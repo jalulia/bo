@@ -100,6 +100,16 @@ BZ.drawBall = function (ctx, cx, cy, d, color, outline, speckle, mode, fuzz, den
     ctx.fillStyle = outline;
     for (let i = 0; i < d; i++) if (c.w[i]) ctx.fillRect(x0 + c.start[i] + fz[i], y0 + i, 1, 1);
   }
+  if (speckle && dense === 'knit') { // a sweater (ours): vertical ribs, every fourth row a purl ridge
+    ctx.fillStyle = speckle;
+    for (let i = 1; i < d - 1; i++) {
+      const w = c.w[i]; if (w < 3) continue;
+      const sx = x0 + c.start[i] + fz[i];
+      if (i % 4 === 2) { for (let x = sx + 1; x < sx + w - 1; x += 2) ctx.fillRect(x, y0 + i, 1, 1); }
+      else for (let x = sx + 1 + (i & 1); x < sx + w - 1; x += 3) ctx.fillRect(x, y0 + i, 1, 1);
+    }
+    return;
+  }
   if (speckle && dense === 'wave') { // rex curls (ours): staggered dash rows
     ctx.fillStyle = speckle;
     for (let i = 1; i < d - 1; i += 3) {
@@ -303,6 +313,7 @@ BZ.RAMPS = {
   ink:     ['#0c0b0d', '#18161a', '#242127', '#322e35', '#46414a', '#5d5762'],
   copper:  ['#4d1d05', '#7a330c', '#a84d14', '#cf6c22', '#e69243', '#f4bb7c'],
   lilac:   ['#5e5560', '#7b717d', '#988e99', '#b3aab3', '#cbc4cb', '#e2dde2'],
+  knit:    ['#8a7a64', '#a8977c', '#c4b496', '#ddd0b4', '#ece4d0', '#f7f2e6'],
   jade:    ['#103d22', '#1f5f36', '#2f844b', '#4ba865', '#78c98a', '#acdfb6'],
 };
 BZ.color = (spec) => (spec ? BZ.RAMPS[spec[0]][spec[1]] : null);
@@ -370,9 +381,9 @@ BZ.PERSONALITIES = {
   // aloof: watches instead of doing. nerve: low = startles. tempo: speed of
   // everything she does. latency: frames before she notices something.
   bo:     { label: 'Bo', energy: 25, sleepy: 88, affection: 72, chatty: 55, curious: 40, grass: 95, sass: 55, aloof: 80, nerve: 75, tempo: 0.85, latency: [22, 70],
-            naps: { baguette: 22, crescent: 20, lounge: 18, flop: 14, loaf: 13, sphinx: 13 }, baseline: 'indifferent', size: 1 },
+            naps: { baguette: 22, crescent: 20, lounge: 18, dangle: 14, flop: 14, loaf: 13, sphinx: 13 }, baseline: 'indifferent', size: 1 },
   bunny:  { label: 'Bunny', energy: 74, sleepy: 60, affection: 92, chatty: 35, curious: 88, grass: 70, sass: 82, aloof: 22, nerve: 80, tempo: 1.18, latency: [5, 22],
-            naps: { crescent: 30, loaf: 18, flop: 16, baguette: 14, lounge: 12, sphinx: 10 }, baseline: 'curious', size: 0.8,
+            naps: { crescent: 30, loaf: 18, flop: 16, baguette: 14, lounge: 12, sphinx: 10, dangle: 6 }, baseline: 'curious', size: 0.8,
             shape: { head: 1.06, ear: 1.06, earW: 0.95, limb: 0.82, body: 0.88, tail: 0.85, tailLen: 0.95 } },
   sprite: { label: 'Zoomy', energy: 85, sleepy: 35, affection: 55, chatty: 40, curious: 90, grass: 50, sass: 60, aloof: 20, nerve: 55, tempo: 1.2, latency: [5, 25],
             naps: { baguette: 10, crescent: 35, lounge: 15, flop: 10, loaf: 15, sphinx: 15 }, baseline: 'alert', size: 0.95 },
@@ -510,6 +521,12 @@ var BZ = window.BZ || (window.BZ = {});
     // on top: low over her, forelegs wrapped, head down for the scruff bite
     pin: P({ hipX: -11, hipY: 22, chestX: 12, chestY: 14, backLift: 3, bellyLift: 2, headDX: 6, headDY: -10, headPitch: -26, earBack: 0.6,
       fl: [22, 6, 4], fr: [21, 4, -4], bl: [-12, 2.5, 4.4], br: [-13, 2.5, -4.4], tailEl: 10, tailCurl: 0, tailHook: 0, tailAmp: 14, tailSpeed: 0.4, pupil: 1 }),
+    // the long lunge (Bo after the string): everything stretched, the near forepaw reaching way out and down
+    lunge: P({ hipX: -18, hipY: 21, chestX: 19, chestY: 17, backLift: -1.5, bellyLift: 2.5, headDX: 6, headDY: -6, headPitch: -12, fl: [41, 5, 3.4], fr: [33, 10, -3.6], bl: [-34, 5, 4.4], br: [-30, 8, -4.4],
+      flexFL: -0.4, tailEl: 22, tailCurl: 0.5, tailHook: 8, tailAmp: 2, earBack: 0.35, pupil: 1 }),
+    // the crab hop (Bo on the couch): back hunched high, hips up, legs long and stiff, head low, tail up in an S with the tip hooked
+    crabArch: P({ hipX: -13, hipY: 31, chestX: 11, chestY: 25, backLift: 13, bellyLift: 6, headDX: -1, headDY: -10, headPitch: 12, fl: [11, 2.5, 5.4], fr: [12, 2.5, -5.4], bl: [-15, 2.5, 5.4], br: [-16, 2.5, -5.4],
+      tailEl: 62, tailCurl: 7, tailHook: 34, tailAmp: 3, tailSpeed: 0.3, earBack: 0.55, pupil: 1 }),
     leap: P({ hipX: -14, hipY: 22, chestX: 15, chestY: 25, headDX: 3, headDY: -2, headPitch: -6, fl: [27, 13, 4.6], fr: [26, 11, -4.6], bl: [-27, 8, 4.4], br: [-26, 7, -4.4],
       tailEl: 15, tailCurl: 1, tailHook: 0, tailAmp: 2, earBack: 0.3, pupil: 1 }),
     held: P({ hipX: 1, hipY: -18, chestX: 2, chestY: 6, backLift: 0, bellyLift: 0, headDX: -9, headDY: 6, fl: [4, -6, 4], fr: [4, -6, -4], bl: [0, -34, 5], br: [0, -34, -5],
@@ -700,12 +717,14 @@ var BZ = window.BZ || (window.BZ = {});
       items.push({ z: (S[a][2] + S[b][2]) / 2 + (L[2] === 'back' ? 0.5 : -0.01), kind: 'line', L, a, b });
     }
     items.push({ z: Math.min(S[IDX.muzL][2], S[IDX.muzR][2]) - 0.3, kind: 'whisk' });
+    if (cat.sweater) { const C = S[IDX.chest], Hd = S[IDX.head]; items.push({ z: Math.min(C[2], Hd[2]) - 9, kind: 'bow', x: C[0] + (Hd[0] - C[0]) * 0.36, y: C[1] + (Hd[1] - C[1]) * 0.36 + 1, collar: [C[0] + (Hd[0] - C[0]) * 0.3, C[1] + (Hd[1] - C[1]) * 0.3] }); } // the ribbon, tied under her chin
     items.sort((p, q) => q.z - p.z); // farthest first (read_out)
 
     const hits = [];
     for (const it of items) {
       if (it.kind === 'ball') {
         let spec = coat.colors[it.slot] || coat.colors.coat;
+        if (cat.sweater && SWEATER_BALLS[it.name]) { BZ.drawBall(ctx, S[it.i][0], S[it.i][1], it.d, BZ.color(['knit', 4]), null, BZ.color(['knit', 1]), -1, 0, 'knit'); hits.push({ x: S[it.i][0], y: S[it.i][1], r: it.d / 2, region: it.region, name: it.name }); continue; } // in her sweater
         if (it.slot === 'mouth') spec = ['pink', 0];
         if (it.slot === 'tongue') spec = ['pink', 3];
         const col = BZ.color(spec);
@@ -719,10 +738,12 @@ var BZ = window.BZ || (window.BZ = {});
           const f = BZ.rotHead([1, 0, 0], sk.headYaw, sk.headPitch, sk.headRoll);
           if (-f[0] * cam.s + f[2] * cam.c > -0.12) continue;
         }
-        const spec = coat.colors[slot] || coat.colors.coat;
+        const sw = cat.sweater && (slot === 'back' || (slot === 'limb' && L[0].startsWith('sh')) || (slot === 'chest' && L[0] === 'chin' && false));
+        const spec = sw ? ['knit', 4] : coat.colors[slot] || coat.colors.coat;
         const sm = shapeMul(cat, slot);
         BZ.drawLine(ctx, A[0], A[1], L[3] * bs * sm, B[0], B[1], L[4] * bs * sm, BZ.color(spec), null, 0);
         if (slot === 'tail' || slot === 'tip' || slot === 'back') hits.push({ x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, r: Math.max(2, L[3] * bs * 0.6), region: slot === 'back' ? 'back' : 'tail', name: L[0] });
+      } else if (it.kind === 'bow') { const f = Math.sin(cat.theta); if (f > -0.25) drawBow(ctx, it.x, it.y, cat.sweater.bow, cat.petScale * 1.15, Math.cos(cat.theta)); // only from the front
       } else if (it.kind === 'eye') {
         drawEyeItem(ctx, cat, it, S);
         hits.push({ x: S[it.i][0], y: S[it.i][1], r: it.d / 2, region: 'face', name: it.name });
@@ -736,6 +757,13 @@ var BZ = window.BZ || (window.BZ = {});
     cat.bbox = [x0 - 6 * bs, y0 - 6 * bs, x1 + 6 * bs, y1 + 6 * bs];
   }
 
+  const SWEATER_BALLS = { hips: 1, belly: 1, chest: 1, back: 1, shL: 1, shR: 1 };
+  function drawBow(ctx, x, y, col, s, facing) { // a satin ribbon bow: two loops, a knot, two tails, a sheen
+    const k = Math.max(0.8, s), lo = mixC(col, '#000000', 0.3), hi = mixC(col, '#ffffff', 0.35);
+    for (const sd of [-1, 1]) { BZ.fillPoly(ctx, [[x, y], [x + sd * 4.4 * k, y - 2.6 * k], [x + sd * 4.8 * k, y + 1.4 * k]], col); BZ.drawThin(ctx, x + sd * 1 * k, y - 0.6 * k, x + sd * 4 * k, y - 2.2 * k, hi); BZ.drawThin(ctx, x + sd * 1 * k, y + 1, x + sd * 2.4 * k + sd * facing, y + 4.6 * k, lo); }
+    BZ.ellipse(ctx, x, y, 1.4 * k, 1.3 * k, lo); ctx.fillStyle = hi; ctx.fillRect(Math.round(x - 0.5), Math.round(y - 1), 1, 1);
+  }
+  function mixC(a, b, t) { const A = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16)), B = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16)); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
   const SHAPE_GROUP = { head: 'head', cheek: 'head', muzzle: 'head', nose: 'head', eye: 'head', mouth: 'head', tongue: 'head', ear: 'earW', inner: 'earW', leg: 'limb', paw: 'limb', limb: 'limb', coat: 'body', back: 'body', belly: 'body', chest: 'body', tail: 'tail', tip: 'tail' };
   function shapeMul(cat, slot) { const sh = cat.shape; if (!sh) return 1; const g = SHAPE_GROUP[slot]; return (g && sh[g]) || 1; }
 
@@ -888,13 +916,16 @@ var BZ = window.BZ || (window.BZ = {});
     sprout: { label: 'Garden plant', hint: '', r: 8, h: 18, garden: true },
     stoop:  { label: 'Steps', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     tire:   { label: 'Tire swing', hint: '', bed: true, fixed: true, r: 0, h: 0 },
+    sweater:{ label: 'Sweaters', hint: 'knit, with ribbon bows: click a cat to dress her', tool: true },
+    bag:    { label: 'Felted bag', hint: 'hand-knit wool; she climbs in', r: 15, h: 26, bed: true, box: true },
+    lamptable: { label: 'Lamp table', hint: 'mahogany, a brass lamp, warm for two', r: 24, h: 74, bed: true },
     cubby:  { label: 'Felt cube', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     adk:    { label: 'Adirondack chair', hint: '', bed: true, fixed: true, soft: true, r: 26, h: 46 },
   });
   BZ.ITEMS.daybed.places = ['desk']; BZ.ITEMS.ctable.places = ['desk']; // in the room they're furniture; on the desktop you can still put them out
-  BZ.ITEM_ORDER = ['sun', 'pod', 'pillow', 'blanket', 'box', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush', 'grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS), 'yarn', 'mouse', 'laser', 'wand', 'brush', 'treat', 'shrimp', 'bowl', ...Object.keys(BZ.GARDEN).map((k) => 'seed_' + k), 'can', 'trowel'];
+  BZ.ITEM_ORDER = ['sun', 'pod', 'pillow', 'blanket', 'box', 'bag', 'lamptable', 'sweater', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush', 'grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS), 'yarn', 'mouse', 'laser', 'wand', 'brush', 'treat', 'shrimp', 'bowl', ...Object.keys(BZ.GARDEN).map((k) => 'seed_' + k), 'can', 'trowel'];
   BZ.ITEM_GROUPS = [
-    ['Comfort', ['sun', 'pod', 'pillow', 'blanket', 'box', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush']],
+    ['Comfort', ['sun', 'pod', 'pillow', 'blanket', 'box', 'bag', 'lamptable', 'sweater', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush']],
     ['Plants', ['grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS)]],
     ['Play', ['yarn', 'mouse', 'laser', 'wand', 'brush']],
     ['Treats', ['treat', 'shrimp', 'bowl']],
@@ -939,9 +970,11 @@ var BZ = window.BZ || (window.BZ = {});
     if (it.type === 'stoop') return { front: it.frontPt, spot: [it.x, it.y], rootPx: it.rootPx, clip: null, sortY: it.y - 0.5, face: it.face };
     if (it.type === 'tire') { const T = BZ.tireGeom(it, s); return { front: [it.x + 6 * s, it.y + 13 * s], spot: [T.cx, it.y], rootPx: it.y - (T.cy + T.r * 0.82), clip: null, sortY: it.y + 0.05, face: Math.PI / 2 - 0.15, tire: true }; }
     if (it.type === 'adk' || (it.type === 'seat' && it.parent && it.parent.type === 'adk')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 13 : -13) * k, P.y + 13 * k], spot: [P.x + (slot ? 8 : -9) * k, P.y - 3 * k], rootPx: 15 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.55 : Math.PI / 2 + 0.55 }; }
+    if (it.type === 'lamptable' || (it.type === 'seat' && it.parent && it.parent.type === 'lamptable')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 12 : -12) * k, P.y + 12 * k], spot: [P.x + (slot ? 9 : -9) * k, P.y - 2 * k], rootPx: 27.5 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.4 : Math.PI / 2 + 0.4 }; }
     if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 16 : -16) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : -17) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; }
     if (it.type === 'pillow') { const k = s * 0.95; return { front: [it.x + 2 * k, it.y + 12 * k], spot: [it.x, it.y - 1 * k], rootPx: 5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.4 }; }
     if (it.type === 'blanket') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 13 * k], spot: [it.x + 2 * k, it.y - 1 * k], rootPx: 2 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.5 }; }
+    if (it.type === 'bag') { const k = s * 0.95; return { front: [it.x + 3 * k, it.y + 13 * k], spot: [it.x, it.y - 3 * k], rootPx: 1 * k, clip: null, sortY: it.y - 0.1, face: Math.PI / 2 + 0.2, box: true }; }
     if (it.type === 'box') { const k = s * 0.95; return { front: [it.x + 3 * k, it.y + 14 * k], spot: [it.x, it.y - 4 * k], rootPx: 1 * k, clip: null, sortY: it.y - 0.1, face: Math.PI / 2 + 0.25, box: true }; }
     if (it.type === 'poppy') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 12 * k], spot: [it.x, it.y - 3 * k], rootPx: 26.5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.6 }; }
     if (BZ.ITEMS[it.type] && BZ.ITEMS[it.type].chair) { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 12 * k], spot: [it.x, it.y - 3 * k], rootPx: 17 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.6 }; }
@@ -1667,6 +1700,59 @@ var BZ = window.BZ || (window.BZ = {});
       BZ.ellipse(ctx, px2 - 0.5 * s, py2 + 0.8 * s, 2 * s, 1.5 * s, D.paw); ctx.fillStyle = D.outline; ctx.fillRect(Math.round(px2 - 1.2 * s), Math.round(py2 + 1.8 * s), 1, 1); ctx.fillRect(Math.round(px2 + 0.4 * s), Math.round(py2 + 1.8 * s), 1, 1); // toe beans down
     }
   };
+  // ── the felted bag (hand-knit in Reston): burgundy wool, a leather strap, a kraft tag on a clothespin ──
+  const FELT = ['#3e1418', '#521c22', '#66262e', '#7a323a', '#8e4048', '#a25058'];
+  function bagPts(it, s) { const k = s * 0.95, x = it.x, y = it.y, w = 14 * k, h = 19 * k; return { k, x, y, w, h, mouth: { cx: x, cy: y - h + 1 * k, rx: w * 0.9, ry: 3.2 * k } }; }
+  BZ.drawBagBack = function (ctx, it, s) {
+    const B = bagPts(it, s), { k, x, y, w, h } = B;
+    ell(ctx, x + 2 * k, y + 1, w * 1.15, 3.4 * k, 'rgba(30,20,10,0.2)');
+    shadePoly(ctx, [[x - w * 0.9, y - h], [x + w * 0.9, y - h], [x + w * 0.86, y - h + 4 * k], [x - w * 0.86, y - h + 4 * k]], (px, py) => ramp(FELT, 0.6 + Math.sin(px * 2.3 + py * 1.7) * 0.5, px, py)); // the dark inside
+    for (const sd of [-1, 1]) { const ax = x + sd * w * 0.75; BZ.drawThin(ctx, ax, y - h + 1, ax + sd * 2 * k, y - h - 9 * k, '#b07a4a'); BZ.drawThin(ctx, ax + sd * 2 * k, y - h - 9 * k, x, y - h - 13 * k, '#b07a4a'); } // the strap, arcing over
+    BZ.drawThin(ctx, x - w * 0.75 + 1, y - h + 1, x - w * 0.75 - 2 * k + 1, y - h - 9 * k, '#d8a878');
+  };
+  BZ.drawBagFront = function (ctx, it, s) {
+    const B = bagPts(it, s), { k, x, y, w, h } = B, r = BZ.rng(19);
+    const pts = []; for (let i = 0; i <= 12; i++) { const u = i / 12; pts.push([x - w + Math.sin(u * Math.PI) * -1.4 * k + u * 0, y - h + 2 * k + u * (h - 2 * k)]); }
+    const body = [[x - w * 0.9, y - h + 2.2 * k], [x + w * 0.9, y - h + 2.2 * k], [x + w, y - h * 0.5], [x + w * 0.88, y - 0.5], [x - w * 0.88, y - 0.5], [x - w, y - h * 0.5]];
+    shadePoly(ctx, body, (px, py) => { const fuzz = Math.sin(px * 3.1 + py * 2.2) * Math.sin(px * 1.3 - py * 3.7); return ramp(FELT, 3.1 + (px - x) / w * 0.6 - (py - (y - h)) / h * 0.9 + fuzz * 0.7 + (((px * 7 + py * 11) & 15) === 0 ? 1 : 0), px, py); });
+    for (let i = 0; i < 22; i++) { const px = x - w + r() * w * 2, py = y - h + 3 * k + r() * (h - 4 * k); ctx.fillStyle = FELT[5]; ctx.fillRect(Math.round(px), Math.round(py), 1, 1); } // stray mohair
+    ctx.fillStyle = FELT[5]; ctx.fillRect(Math.round(x - w * 0.88), Math.round(y - h + 2.2 * k), Math.round(w * 1.76), 1); // the rolled lip, catching the light
+    ell(ctx, x + w * 0.2, y - h + 6 * k, 1.4 * k, 1.4 * k, '#efe6d4'); // a bone button
+    const tx = x + w * 0.55, ty = y - h + 1 * k; ctx.fillStyle = '#6a4a2a'; ctx.fillRect(Math.round(tx), Math.round(ty - 3 * k), Math.max(1, Math.round(1.2 * k)), Math.round(4 * k)); // clothespin
+    BZ.fillPoly(ctx, [[tx + 1 * k, ty], [tx + 6 * k, ty + 1 * k], [tx + 5 * k, ty + 8 * k], [tx, ty + 7 * k]], '#c9a87a'); ctx.fillStyle = '#7a5a3a'; for (let q = 0; q < 3; q++) ctx.fillRect(Math.round(tx + 1.5 * k), Math.round(ty + (2 + q * 1.8) * k), Math.round(3 * k), 1); // the kraft tag, handwritten
+  };
+  // ── the mahogany lamp table: round top, a pedestal on three feet, a brass lamp with a dome shade, warm light ──
+  function paintLampTable(ctx, X, Y, k) {
+    const M = ['#2a120a', '#3e1c10', '#552816', '#6c341e', '#843f26', '#9c4e30', '#b8643e'], BR = ['#5a4416', '#7f6320', '#a8862e', '#cba648', '#e6c870', '#f6e6a8'];
+    ell(ctx, X + 2 * k, Y + 1, 15 * k, 3.4 * k, 'rgba(30,20,10,0.22)');
+    for (const a of [-0.9, 0.9, Math.PI / 2 + 0.02]) { const fx = X + Math.cos(a) * 12 * k * (a > 1.5 ? 0.2 : 1), fy = Y - (a > 1.5 ? -1.5 * k : 0); BZ.drawLine(ctx, X, Y - 7 * k, 2.4 * k, fx, fy, 1.4 * k, M[2], null, 0); ell(ctx, fx, fy - 0.5, 1.6 * k, 1.1 * k, M[3]); } // tripod feet
+    shadePoly(ctx, [[X - 2.2 * k, Y - 25 * k], [X + 2.2 * k, Y - 25 * k], [X + 3 * k, Y - 7 * k], [X - 3 * k, Y - 7 * k]], (x, y) => ramp(M, 2.6 + (x - X) / (3 * k) * 1.4 + Math.sin(y * 0.9) * 0.3, x, y)); // turned pedestal
+    for (const yy of [Y - 20 * k, Y - 12 * k]) ell(ctx, X, yy, 3.2 * k, 1.2 * k, M[4]);
+    // the lamp: weighted base, a brass column, a gold dome shade (drawn before the top's front edge so it sits on it)
+    const lx = X + 1 * k, ly = Y - 30 * k;
+    ell(ctx, lx, ly, 4.6 * k, 1.6 * k, '#1a1410'); ell(ctx, lx, ly - 0.6 * k, 4 * k, 1.2 * k, '#2e2620');
+    BZ.drawLine(ctx, lx, ly - 1 * k, 1.1 * k, lx, ly - 34 * k, 0.9 * k, BR[3], null, 0); BZ.drawThin(ctx, lx - 0.6, ly - 1 * k, lx - 0.6, ly - 34 * k, BR[5]);
+    const sy = ly - 34 * k; shadePoly(ctx, [[lx - 13 * k, sy + 3 * k], [lx + 13 * k, sy + 3 * k], [lx + 9 * k, sy - 3 * k], [lx - 9 * k, sy - 3 * k]], (x, y) => ramp(BR, 2.6 + (x - lx) / (13 * k) * 1.6 + (y < sy - 1 * k ? 1 : 0), x, y));
+    ctx.fillStyle = BR[1]; ctx.fillRect(Math.round(lx - 13 * k), Math.round(sy + 3 * k), Math.round(26 * k), 1); ell(ctx, lx, sy - 3.5 * k, 1.6 * k, 1.2 * k, BR[4]); // shade rim, finial
+    // the round top: a deep French polish, the lamp's reflection pooled in it
+    shadePoly(ctx, Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; return [X + Math.cos(a) * 19 * k, Y - 27 * k + Math.sin(a) * 6.5 * k]; }), (x, y) => { const dx = (x - (lx + 1 * k)) / (6 * k), dy = (y - (Y - 28 * k)) / (2.4 * k), glare = Math.exp(-(dx * dx + dy * dy)); return ramp(M, 3 + (x - X) / (19 * k) * 0.8 - (y - (Y - 27 * k)) / (6.5 * k) * 0.6 + glare * 3.2, x, y); });
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI; ctx.fillStyle = M[1]; ctx.fillRect(Math.round(X + Math.cos(a) * 19 * k), Math.round(Y - 27 * k + Math.sin(a) * 6.5 * k), 1, Math.max(1, Math.round(2 * k))); } // the apron edge
+    // a little silver frame on the table, by the lamp
+    ctx.fillStyle = '#9aa0a8'; ctx.fillRect(Math.round(X - 11 * k), Math.round(Y - 34 * k), Math.round(5 * k), Math.round(6 * k)); ctx.fillStyle = '#d8c8a8'; ctx.fillRect(Math.round(X - 10 * k), Math.round(Y - 33 * k), Math.round(3 * k), Math.round(4 * k));
+  }
+  function lampTable(ctx, it, s, t) {
+    const k = s * 0.95, w = 50 * k, h = 82 * k, ox = 25 * k, oy = 78 * k;
+    ctx.drawImage(cached('lamptable' + s, w, h, ox, oy, (g, X, Y) => paintLampTable(g, X, Y, k)), Math.round(it.x - ox), Math.round(it.y - oy));
+    const glow = BZ.isNight() ? 0.1 : 0.045, lx = it.x + 1 * k, ly = it.y - 58 * k; // warm light pooling under the shade
+    for (let r = 1; r <= 4; r++) ell(ctx, lx, ly + 10 * k + r * 2 * k, 12 * k + r * 6 * k, 4 * k + r * 3 * k, `rgba(255,206,130,${glow})`);
+    void t;
+  }
+  BZ.drawSweaterIcon = function (ctx, x, y, s) { // a little folded cream sweater with a green bow
+    const K = ['#b8a788', '#cfc0a0', '#e2d6bc', '#efe7d4']; y -= 2 * s;
+    BZ.fillPoly(ctx, [[x - 8 * s, y - 7 * s], [x + 8 * s, y - 7 * s], [x + 9 * s, y], [x - 9 * s, y]], K[2]); for (let i = -7; i < 8; i += 2) { ctx.fillStyle = K[1]; ctx.fillRect(Math.round(x + i * s), Math.round(y - 6 * s), 1, Math.round(6 * s)); }
+    ctx.fillStyle = K[0]; ctx.fillRect(Math.round(x - 9 * s), Math.round(y - 1 * s), Math.round(18 * s), Math.max(1, Math.round(1 * s)));
+    BZ.fillPoly(ctx, [[x, y - 7 * s], [x - 4 * s, y - 10 * s], [x - 4 * s, y - 5 * s]], '#5f7a3a'); BZ.fillPoly(ctx, [[x, y - 7 * s], [x + 4 * s, y - 10 * s], [x + 4 * s, y - 5 * s]], '#5f7a3a'); ell(ctx, x, y - 7 * s, 1.2 * s, 1.2 * s, '#3f5a28');
+  };
   // ── the tire swing: rope from the big branch, a black ring you can sit in ──
   BZ.tireGeom = function (it, s) { const k = s * 0.95, R = 17 * k, r = 9.5 * k, L = it.cy - it.ropeY, a = it.ang || 0; return { cx: it.x + Math.sin(a) * L, cy: it.ropeY + Math.cos(a) * L, R, r, k, a }; };
   function tireRing(ctx, T, part) {
@@ -1857,6 +1943,9 @@ var BZ = window.BZ || (window.BZ = {});
       case 'seat': break;
       case 'blanket': blanket(ctx, it, s, t); break;
       case 'box': BZ.drawBoxBack(ctx, it, s); BZ.drawBoxFront(ctx, it, s); break;
+      case 'bag': BZ.drawBagBack(ctx, it, s); BZ.drawBagFront(ctx, it, s); break;
+      case 'lamptable': lampTable(ctx, it, s, t); break;
+      case 'sweater': BZ.drawSweaterIcon(ctx, it.x, it.y, s); break;
       case 'brush': BZ.drawBrush(ctx, it.x, it.y - 6 * s, s, 0); break;
       case 'wand': BZ.drawWand(ctx, { hx: it.x - 8 * s, hy: it.y - 14 * s, fx: it.x + 6 * s, fy: it.y - 2 * s, vx: 1, vy: 2 }, s); break;
       case 'ledge': break;
@@ -1881,7 +1970,7 @@ var BZ = window.BZ || (window.BZ = {});
   BZ.drawIcon = function (cv, type) {
     const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, cv.width, cv.height);
     const W = cv.width, H = cv.height;
-    const sc = Object.assign({ pillow: 0.62, blanket: 0.42, box: 0.5, ctable: 0.4, daybed: 0.3, brush: 0.9, wand: 0.75 }, Object.fromEntries(Object.keys(BZ.PLANTS).map((k) => [k, Math.min(0.6, 15 / BZ.PLANTS[k].h)])))[type] || { sun: 0.3, chair: 0.3, poppy: 0.24, dfly: 0.3, can: 0.75, trowel: 0.85, floral: 0.3, emerald: 0.3, blush: 0.3, mouse: 0.95, shrimp: 1.05, pod: 0.26, grass: 0.46, catnip: 0.62, spider: 0.55, yarn: 0.85, laser: 0.7, treat: 1.05, bowl: 0.6 }[type] || 0.6;
+    const sc = Object.assign({ pillow: 0.62, blanket: 0.42, box: 0.5, ctable: 0.4, daybed: 0.3, brush: 0.9, wand: 0.75 }, Object.fromEntries(Object.keys(BZ.PLANTS).map((k) => [k, Math.min(0.6, 15 / BZ.PLANTS[k].h)])))[type] || { sun: 0.3, chair: 0.3, poppy: 0.24, dfly: 0.3, can: 0.75, trowel: 0.85, bag: 0.5, lamptable: 0.24, sweater: 1, floral: 0.3, emerald: 0.3, blush: 0.3, mouse: 0.95, shrimp: 1.05, pod: 0.26, grass: 0.46, catnip: 0.62, spider: 0.55, yarn: 0.85, laser: 0.7, treat: 1.05, bowl: 0.6 }[type] || 0.6;
     const sc2 = BZ.ITEMS[type].seed ? 1.45 : sc;
     if (sc2 !== sc) { BZ.drawPacket(ctx, W / 2, H * 0.9, sc2, BZ.ITEMS[type].seed); return; }
     const it = BZ.newItem(type, W / 2 + (type === 'spider' ? -3 : 0), H * (BZ.ITEMS[type].bed || BZ.ITEMS[type].plant ? 0.94 : type === 'sun' ? 0.62 : 0.78));
@@ -2074,6 +2163,7 @@ var BZ = window.BZ || (window.BZ = {});
       this.spots = {};
       for (const s of this.coat.spots || []) { const n = Math.hypot(...s.dir) || 1; (this.spots[s.ball] = this.spots[s.ball] || []).push({ dir: s.dir.map((v) => v / n), size: s.size, color: s.color }); }
       this.eyes = { eyeL: { ix: 0, iy: 0 }, eyeR: { ix: 0, iy: 0 } };
+      this.sweater = data.sweater || null;
       this.pose = BZ.clonePose(BZ.POSES.stand);
       this.x = data.x != null ? data.x : 100; this.y = data.y != null ? data.y : 100; this.theta = data.theta != null ? data.theta : 0;
       this.needs = Object.assign({ belly: 70, energy: 75, love: 65, greens: 50 }, data.needs || {});
@@ -2112,7 +2202,7 @@ var BZ = window.BZ || (window.BZ = {});
       if (n.energy < 25) return 'drowsy';
       return this.pers.baseline;
     }
-    serialize() { return { id: this.id, name: this.name, coat: this.coatKey, pers: this.persKey, phi: this.phi, x: Math.round(this.x), y: Math.round(this.y), theta: this.theta, needs: this.needs, mood: this.mood }; }
+    serialize() { return { id: this.id, name: this.name, coat: this.coatKey, pers: this.persKey, phi: this.phi, x: Math.round(this.x), y: Math.round(this.y), theta: this.theta, needs: this.needs, mood: this.mood, sweater: this.sweater || undefined }; }
 
     setState(s) {
       if (!['toBed', 'bed', 'bedHop', 'pounce'].includes(s)) { this.inBed = null; this.clip = null; this.sortY = null; this.bedRoot = 0; this.releaseBed(); }
@@ -2283,7 +2373,7 @@ var BZ = window.BZ || (window.BZ = {});
       const hides = w.items.filter((i) => !i.held && !i.lift && (i.type === 'ctable' || (BZ.PLANTS[i.type] && BZ.PLANTS[i.type].hide)));
       if (hides.length) wts.lurk = 1 + m.play * 2 + (p.sass / 50);
       if (w.inSun(this.x, this.y) && n.energy > 30) wts.sunroll = (m.cuddle + m.play) * 3;
-      const fresh = w.items.find((i) => i.type === 'box' && !i.occupant && w.frame - (i.placedAt || -1e9) < 5400); if (fresh) wts.boxIn = 14; // if she fits
+      const fresh = w.items.find((i) => BZ.ITEMS[i.type].box && !i.occupant && !i.lift && w.frame - (i.placedAt || -1e9) < 5400); if (fresh) wts.boxIn = 14; // if she fits
       const softs = w.items.find((i) => (i.type === 'pillow' || i.type === 'blanket') && !i.occupant && !i.lump); if (softs && m.cuddle > 0.4) wts.biscuits = 1.5 + m.cuddle * 3;
       if (e > 65 && p.energy > 45) wts.zoom = 1.5 * m.play;
       const b = this.buddy;
@@ -2316,7 +2406,7 @@ var BZ = window.BZ || (window.BZ = {});
           ambush: () => { this.setState('ambush'); this.mate = b; },
           follow: () => { this.setState('follow'); this.mate = b; },
           ledge: () => { const L = this.w.items.find((i) => i.type === 'ledge' && !i.occupant); if (!L) { this.setState('idle'); return; } L.occupant = this.id; this.setState('toBed'); this.bedItem = L; },
-          boxIn: () => { const B = this.w.items.find((i) => i.type === 'box' && !i.occupant); if (!B) { this.setState('idle'); return; } B.occupant = this.id; this.setState('toBed'); this.bedItem = B; },
+          boxIn: () => { const B = this.w.items.find((i) => BZ.ITEMS[i.type].box && !i.occupant && !i.lift); if (!B) { this.setState('idle'); return; } B.occupant = this.id; this.setState('toBed'); this.bedItem = B; },
           biscuits: () => { const S = this.w.items.find((i) => (i.type === 'pillow' || i.type === 'blanket') && !i.occupant && !i.lump); if (!S) { this.setState('idle'); return; } S.occupant = this.id; this.setState('toBed'); this.bedItem = S; },
           scratch: () => this.startScratch(),
           plant: () => this.startPlant(),
@@ -2364,8 +2454,8 @@ var BZ = window.BZ || (window.BZ = {});
       const w = this.w, b = this.buddy, p = this.pers, opts = {};
       const freeSlots = (s) => s.slots.filter((sl) => !w.cats.some((c) => c !== this && c.napSpot && dist(c.napSpot[0], c.napSpot[1], sl[0], sl[1]) < 5));
       if (!target) {
-        w.items.forEach((it, i) => { if (BZ.ITEMS[it.type].bed && !it.held && !it.occupant) opts['bed:' + i] = { pod: this.isBo ? 5 : 3, pillow: 5, blanket: 6, box: 3 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), ledge: 2.5, daybed: 7, seat: 7, ctable: 3.5, adk: 7, stoop: 3, tire: 4, cubby: this.isBo ? 7 : 4 }[it.type] || 3.5; });
-        if (b && b.asleep && b.bedItem && ['daybed', 'adk', 'seat'].includes(b.bedItem.type)) { const sib = b.bedItem.type !== 'seat' ? w.items.find((i) => i.type === 'seat' && i.parent === b.bedItem) : b.bedItem.parent; const si = w.items.indexOf(sib); if (sib && si >= 0 && !sib.occupant) opts['bed:' + si] = 16 * w.rel(this, b).bond; } // she's on the daybed: join her
+        w.items.forEach((it, i) => { if (BZ.ITEMS[it.type].bed && !it.held && !it.occupant) opts['bed:' + i] = { pod: this.isBo ? 5 : 3, pillow: 5, blanket: 6, box: 3 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), bag: 3.5 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), lamptable: 6 + (BZ.isNight() ? 3 : 0), ledge: 2.5, daybed: 7, seat: 7, ctable: 3.5, adk: 7, stoop: 3, tire: 4, cubby: this.isBo ? 7 : 4 }[it.type] || 3.5; });
+        if (b && b.asleep && b.bedItem && ['daybed', 'adk', 'lamptable', 'seat'].includes(b.bedItem.type)) { const sib = b.bedItem.type !== 'seat' ? w.items.find((i) => i.type === 'seat' && i.parent === b.bedItem) : b.bedItem.parent; const si = w.items.indexOf(sib); if (sib && si >= 0 && !sib.occupant) opts['bed:' + si] = 16 * w.rel(this, b).bond; } // she's on the daybed: join her
         w.sunSpots().forEach((s, i) => { if (freeSlots(s).length) opts['sun:' + i] = (s.item ? 6 : s.yard ? 5 : 2.5) * (0.6 + p.sleepy / 100); });
         if (b && b.asleep && !b.inBed) { const rel = w.rel(this, b); if (rel.bond > 0.55 && rel.tension < 0.4) opts.buddy = 4 * rel.bond; }
         const sunB = b && b.asleep && !b.inBed && w.inSun(b.x, b.y) && w.rel(this, b).tension < 0.5;
@@ -2440,7 +2530,7 @@ var BZ = window.BZ || (window.BZ = {});
     planBed(it) {
       const p = this.pers, D = BZ.ITEMS[it.type] || {}, tired = this.needs.energy < 62, P = {};
       if (it.type === 'ledge' || it.type === 'stoop' || it.type === 'tire') { P.watch = rr(380, 900) | 0; if (!tired) this.napLen = P.watch + 20; if (it.type === 'tire') it.av = (it.av || 0) + 0.012; }
-      else if (it.type === 'box') { P.peek = rr(260, 700) | 0; if (!tired) this.napLen = P.peek + 30; }
+      else if (D.box) { P.peek = rr(260, 700) | 0; if (!tired) this.napLen = P.peek + 30; }
       if (D.soft || it.type === 'seat' || it.type === 'pod') P.knead = p.affection > 40 || this.mood.cuddle > 0.5 ? rr(70, 160) | 0 : rr(0, 40) | 0; // biscuits
       if (it.type === 'blanket' && Math.random() < 0.25 + p.curious / 200) P.burrow = true;
       P.end1 = P.watch || P.peek || 0; P.end2 = P.end1 + (P.knead || 0);
@@ -2491,8 +2581,8 @@ var BZ = window.BZ || (window.BZ = {});
       if (it.type === 'cubby') { const c = this.coat.colors; it.dangle = this.anim === 'dangle' ? { leg: BZ.color(c.leg || c.limb || c.coat), paw: BZ.color(c.paw || c.leg || c.coat), outline: BZ.color(this.coat.outline) || '#3a3030' } : null; }
       if (ri(300) === 0) this.earT = 10;
       if (ri(280) === 0) this.flickT = 16;
-      if (--this.nextShift <= 0) { this.nextShift = rr(700, 1400); this.napStyle = it.type === 'box' ? (this.napStyle === 'crescent' ? 'loaf' : 'crescent') : pick({ dangle: EDGY.includes(it.type) || BZ.ITEMS[it.type].chair ? 2.5 + (this.isBo ? 1.5 : 0) : 0, crescent: 3, loaf: 2, baguette: it.type === 'ledge' || it.type === 'blanket' || it.type === 'daybed' || it.type === 'seat' ? 2 : 0, lounge: it.type === 'daybed' || it.type === 'seat' || it.type === 'blanket' ? 2 : 0 }); }
-      const cz = ['daybed', 'seat', 'adk'].includes(it.type) ? (() => { const b = this.buddy; return b && b.asleep && b.bedItem && (b.bedItem === it || b.bedItem.parent === it || it.parent === b.bedItem) && st < this.napLen * 1.6; })() : false; // two on the daybed: nobody gets up first
+      if (--this.nextShift <= 0) { this.nextShift = rr(700, 1400); this.napStyle = BZ.ITEMS[it.type].box ? (this.napStyle === 'crescent' ? 'loaf' : 'crescent') : pick({ dangle: EDGY.includes(it.type) || BZ.ITEMS[it.type].chair ? 2.5 + (this.isBo ? 1.5 : 0) : 0, crescent: 3, loaf: 2, baguette: it.type === 'ledge' || it.type === 'blanket' || it.type === 'daybed' || it.type === 'seat' ? 2 : 0, lounge: it.type === 'daybed' || it.type === 'seat' || it.type === 'blanket' ? 2 : 0 }); }
+      const cz = ['daybed', 'seat', 'adk', 'lamptable'].includes(it.type) ? (() => { const b = this.buddy; return b && b.asleep && b.bedItem && (b.bedItem === it || b.bedItem.parent === it || it.parent === b.bedItem) && st < this.napLen * 1.6; })() : false; // two on the daybed: nobody gets up first
       if (!cz && ((this.needs.energy > 97 && st > 700) || st > this.napLen)) this.exitBed();
     }
     // ── under the blanket ──
@@ -2654,7 +2744,7 @@ var BZ = window.BZ || (window.BZ = {});
         }
         case 'crab': { // the sideways hop: back arched, tail up, bouncing past it sideways
           if (!this.crabT) { this.crabT = 1; this.crabDir = ri(2) ? 1 : -1; this.crabLen = rr(26, 48) | 0; }
-          this.crabT++; this.gait = null; this.turnToward(ang, 0.5); this.anim = 'flinch'; this.setTail('quiver', 2);
+          this.crabT++; this.gait = null; this.turnToward(ang, 0.5); this.anim = 'crabArch'; this.setTail('quiver', 2);
           const sa = this.theta + (Math.PI / 2) * this.crabDir, hop = Math.abs(Math.sin(this.crabT * 0.32));
           this.x += Math.cos(sa) * 1.3 * ps; this.y += Math.sin(sa) * 1.3 * ps * K; this.clampToStage(); this.hopY = 6 * hop;
           if (this.crabT > this.crabLen) { this.crabT = 0; this.hopY = 0; if (du < 110 && ri(2)) this.startPounce(s.x - Math.cos(this.theta) * 14 * ps, s.y - Math.sin(this.theta) * 14 * ps * K, 'engage', 'lunge'); else this.modeT = 0; }
@@ -2700,7 +2790,7 @@ var BZ = window.BZ || (window.BZ = {});
       if (u < 1) {
         const e = z.kind === 'lunge' ? 1 - Math.pow(1 - u, 2) : u; // the lunge explodes forward and coasts
         this.x = z.x0 + (z.x1 - z.x0) * e; this.y = z.y0 + (z.y1 - z.y0) * e; this.clampToStage();
-        this.pose.rootY = z.H * Math.sin(Math.PI * u); this.anim = z.kind === 'mouse' && u > 0.5 ? 'pin' : 'leap'; this.vSkid = Math.hypot(z.x1 - z.x0, z.y1 - z.y0) / z.n;
+        this.pose.rootY = z.H * Math.sin(Math.PI * u); this.anim = z.kind === 'mouse' && u > 0.5 ? 'pin' : z.kind === 'lunge' && u > 0.15 ? 'lunge' : 'leap'; this.vSkid = Math.hypot(z.x1 - z.x0, z.y1 - z.y0) / z.n;
       } else {
         this.pose.rootY = 0;
         if (z.kind === 'lunge' && this.vSkid > 0.3) { this.x += Math.cos(this.theta) * this.vSkid; this.y += Math.sin(this.theta) * this.vSkid * K; this.vSkid *= 0.72; this.clampToStage(); } // skid out of it
@@ -3331,7 +3421,7 @@ var BZ = window.BZ || (window.BZ = {});
       if (sc && sc.win) { const y = this.floorTop + 1, top = st.y + sc.win.y1 + 1; put({ key: 'ledgeL', type: 'ledge', x: st.x + sc.win.x0 + 22, y, rootPx: y - top, face: -Math.PI / 2 + 0.3 }); put({ key: 'ledgeR', type: 'ledge', x: st.x + sc.win.x1 - 20, y: y + 0.5, rootPx: y + 0.5 - top, face: -Math.PI / 2 - 0.3 }); }
       if (sc && sc.furniture) for (const f of sc.furniture) put(Object.assign({ draw: true }, f)); // the scene's own furniture: drawn and sat on, never dragged
       if (sc && sc.fixtures) for (const f of sc.fixtures(this)) put(f);
-      for (const it of [...this.items]) if ((it.type === 'daybed' || it.type === 'adk') && (!it.fixed || keep.has(it))) put({ key: 'seat:' + (it.uid || (it.uid = it.key || Math.random().toString(36).slice(2))), type: 'seat', parent: it, x: it.x + 1, y: it.y });
+      for (const it of [...this.items]) if ((it.type === 'daybed' || it.type === 'adk' || it.type === 'lamptable') && (!it.fixed || keep.has(it))) put({ key: 'seat:' + (it.uid || (it.uid = it.key || Math.random().toString(36).slice(2))), type: 'seat', parent: it, x: it.x + 1, y: it.y });
       for (const o of old) if (!keep.has(o)) { o.gone = true; this.items.splice(this.items.indexOf(o), 1); }
     }
     clampItem(it) { if (it.surf) return; const st = this.stage; it.x = clamp(it.x, st.x + 14, st.x + st.w - 14); it.y = clamp(it.y, this.floorTop + 2, st.y + st.h - 3); }
@@ -3447,7 +3537,7 @@ var BZ = window.BZ || (window.BZ = {});
     call() { this.callT = 40; this.callId++; for (const c of this.cats) c.arrived = false; }
     setSize(s) { this.size = s; for (const c of this.cats) c.updateScale(); this.layoutStage(); }
     removeItem(it) {
-      const i = this.items.indexOf(it); if (i >= 0) this.items.splice(i, 1); it.gone = true; if (it.type === 'daybed') this.syncFixtures();
+      const i = this.items.indexOf(it); if (i >= 0) this.items.splice(i, 1); it.gone = true; if (it.type === 'daybed' || it.type === 'lamptable') this.syncFixtures();
       if (BZ.ITEMS[it.type] && BZ.ITEMS[it.type].bed) for (const c of this.cats) if (c.bedItem === it && ['toBed', 'bed', 'bedHop'].includes(c.state)) { c.setState('idle'); c.pose.rootY = 0; }
     }
     changed(save = true) { if (this.host.onChange) this.host.onChange(this.summary()); if (save) this.save(); }
@@ -3496,6 +3586,13 @@ var BZ = window.BZ || (window.BZ = {});
       if (d > Ls) { const nx = dx / d, ny = dy / d; W.fx = W.hx + nx * Ls; W.fy = W.hy + ny * Ls; const vr = W.vx * nx + W.vy * ny; if (vr > 0) { W.vx -= vr * nx; W.vy -= vr * ny; } }
       const flo = this.stage.y + this.stage.h - 2; if (W.fy > flo) { W.fy = flo; W.vy *= -0.3; }
     }
+    dress(c) { // cream knit, a ribbon bow: green for Bo, brown for Bunny (from the lamp-table photos)
+      if (c.sweater) { c.sweater = null; c.say('trill'); if (c.state !== 'bed') { c.setState('idle'); c.act = { kind: 'groom', T: 120 }; } }
+      else { c.sweater = { bow: c.coatKey === 'bunny' ? '#8a5a2a' : c.isBo ? '#5f7a3a' : ['#7a3a4a', '#3f5a7a', '#a8843a'][c.name.length % 3] }; c.say('mew'); c.earT = 20;
+        if (c.state !== 'bed' && !BUSY.includes(c.state)) { c.setState('idle'); c.act = { kind: c.isBo ? 'sphinx' : 'groom', T: c.isBo ? 220 : 90 }; } // Bo sits down in it, unimpressed; Bunny has a look at herself
+        if (c.isBo) c.mood.grump = Math.min(1, c.mood.grump + 0.1); }
+      this.changed();
+    }
     sproutAt(x, y) { let b = null, bd = 14 * this.size; for (const it of this.items) if (it.type === 'sprout') { const D = BZ.GARDEN[it.kind] || {}, h = (it.stage >= 3 ? D.h || 16 : it.stage === 2 ? (D.h || 16) * 0.6 : 6) * this.size; if (Math.abs(x - it.x) < 9 * this.size && y < it.y + 4 && y > it.y - h - 4) { const d = Math.abs(x - it.x); if (d < bd) { bd = d; b = it; } } } return b; }
     dirt(x, y) { for (let i = 0; i < 6; i++) this.fx.push({ x: x + rr(-3, 3), y: y - 2, vx: rr(-0.8, 0.8), vy: rr(-1.4, -0.4), life: rr(18, 34) | 0, col: ri(2) ? '#4a3524' : '#6b503a', ph: 0, g: 0.12 }); }
     water() { // the watering can: a stream from the rose, the soil darkens, the cats object
@@ -3520,13 +3617,14 @@ var BZ = window.BZ || (window.BZ = {});
         let it = BZ.ITEMS[type].consumable ? null : this.items.find((i) => i.type === type);
         if (it) { it.x = p.x; it.y = p.y + 6; for (const c of this.cats) if (c.bedItem === it && ['toBed', 'bed', 'bedHop'].includes(c.state)) c.setState('idle'); }
         else { it = BZ.newItem(type, p.x, p.y + 6); it.placedAt = this.frame; this.items.push(it); }
-        this.setOn(it, this.surfaceAt(p.x, p.y + 6, type), p.x); if (type === 'daybed') this.syncFixtures();
+        this.setOn(it, this.surfaceAt(p.x, p.y + 6, type), p.x); if (type === 'daybed' || type === 'lamptable') this.syncFixtures();
         if (BZ.ITEMS[type].ball) { it.vx = rr(-6, 6); it.vy = rr(-2, 2); }
         this.changed(); return;
       }
       const T = this.tool && BZ.ITEMS[this.tool];
       if (T && T.seed && this.scene && this.scene.plotSlot) { const sl = this.scene.plotSlot(p.x, p.y); if (sl && !this.items.some((i) => i.type === 'sprout' && i.plot === sl.plot && i.slot === sl.slot)) { const sp = Object.assign(BZ.newItem('sprout', sl.x, sl.y), { kind: T.seed, plot: sl.plot, slot: sl.slot, g: 0, water: 0.4, stage: 0 }); this.items.push(sp); this.dirt(sl.x, sl.y); this.sound.nibble(); this.changed(); } return; }
       if (this.tool === 'can') { this.watering = true; return; }
+      if (this.tool === 'sweater') { const h = this.catAt(p.x, p.y); if (h) this.dress(h.cat); return; }
       if (this.tool === 'trowel') { const sp = this.sproutAt(p.x, p.y); if (sp) { this.removeItem(sp); this.dirt(sp.x, sp.y); this.sound.nibble(); this.changed(); } return; }
       const h = this.catAt(p.x, p.y), it = this.itemAt(p.x, p.y);
       if (it && !(h && (BZ.ITEMS[it.type].bed || it.type === 'sun'))) {
@@ -3639,7 +3737,7 @@ var BZ = window.BZ || (window.BZ = {});
       for (const c of this.cats) if (c !== this.heldCat && !c.hidden) ents.push({ y: c.sortY != null ? c.sortY : c.y, c });
       if (sc && sc.props) for (const pr of sc.props()) ents.push({ y: pr.y, prop: pr });
       for (const it of this.items) if (it.type === 'tire') { ents.push({ y: it.y - 0.2, tireBack: it }); ents.push({ y: it.y + 0.3, tireFront: it }); }
-      for (const it of this.items) if (!it.held && (!it.fixed || it.draw) && it.type !== 'sun') { if (it.type === 'pod') { ents.push({ y: it.y - 0.2, podBack: it }); ents.push({ y: it.y, podFront: it }); } else if (it.type === 'box') { ents.push({ y: it.y - 0.2, boxBack: it }); ents.push({ y: it.y + 0.2, boxFront: it }); } else ents.push({ y: it.y, it }); }
+      for (const it of this.items) if (!it.held && (!it.fixed || it.draw) && it.type !== 'sun') { if (it.type === 'pod') { ents.push({ y: it.y - 0.2, podBack: it }); ents.push({ y: it.y, podFront: it }); } else if (BZ.ITEMS[it.type].box) { ents.push({ y: it.y - 0.2, boxBack: it }); ents.push({ y: it.y + 0.2, boxFront: it }); } else ents.push({ y: it.y, it }); }
       ents.sort((a, b) => a.y - b.y);
       if (sc) { ctx.save(); ctx.beginPath(); ctx.rect(st.x, st.y, st.w, st.h); ctx.clip(); sc.drawBack(ctx); }
       BZ._roam = !sc; for (const it of this.items) if (it.type === 'sun' && !it.held) BZ.drawSun(ctx, it, s, this.frame, !sc);
@@ -3648,7 +3746,7 @@ var BZ = window.BZ || (window.BZ = {});
         BZ.ellipse(ctx, c.x + Math.cos(c.theta) * 2, c.y + 1, w, 4.5 * c.petScale, 'rgba(30,20,10,0.16)');
       }
       for (const e of ents) {
-        if (e.prop) e.prop.draw(ctx); else if (e.tireBack) BZ.drawTireBack(ctx, e.tireBack, s); else if (e.tireFront) BZ.drawTireFront(ctx, e.tireFront, s); else if (e.podBack) BZ.drawPodBack(ctx, e.podBack, s); else if (e.podFront) BZ.drawPodFront(ctx, e.podFront, s); else if (e.boxBack) BZ.drawBoxBack(ctx, e.boxBack, s); else if (e.boxFront) BZ.drawBoxFront(ctx, e.boxFront, s);
+        if (e.prop) e.prop.draw(ctx); else if (e.tireBack) BZ.drawTireBack(ctx, e.tireBack, s); else if (e.tireFront) BZ.drawTireFront(ctx, e.tireFront, s); else if (e.podBack) BZ.drawPodBack(ctx, e.podBack, s); else if (e.podFront) BZ.drawPodFront(ctx, e.podFront, s); else if (e.boxBack) (e.boxBack.type === 'bag' ? BZ.drawBagBack : BZ.drawBoxBack)(ctx, e.boxBack, s); else if (e.boxFront) (e.boxFront.type === 'bag' ? BZ.drawBagFront : BZ.drawBoxFront)(ctx, e.boxFront, s);
         else if (e.c) BZ.drawCat(ctx, e.c); else BZ.drawItem(ctx, e.it, s, e.it.t);
       }
       if (sc) { sc.drawFront(ctx); ctx.restore(); }

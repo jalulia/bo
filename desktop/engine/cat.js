@@ -122,6 +122,12 @@ var BZ = window.BZ || (window.BZ = {});
     // on top: low over her, forelegs wrapped, head down for the scruff bite
     pin: P({ hipX: -11, hipY: 22, chestX: 12, chestY: 14, backLift: 3, bellyLift: 2, headDX: 6, headDY: -10, headPitch: -26, earBack: 0.6,
       fl: [22, 6, 4], fr: [21, 4, -4], bl: [-12, 2.5, 4.4], br: [-13, 2.5, -4.4], tailEl: 10, tailCurl: 0, tailHook: 0, tailAmp: 14, tailSpeed: 0.4, pupil: 1 }),
+    // the long lunge (Bo after the string): everything stretched, the near forepaw reaching way out and down
+    lunge: P({ hipX: -18, hipY: 21, chestX: 19, chestY: 17, backLift: -1.5, bellyLift: 2.5, headDX: 6, headDY: -6, headPitch: -12, fl: [41, 5, 3.4], fr: [33, 10, -3.6], bl: [-34, 5, 4.4], br: [-30, 8, -4.4],
+      flexFL: -0.4, tailEl: 22, tailCurl: 0.5, tailHook: 8, tailAmp: 2, earBack: 0.35, pupil: 1 }),
+    // the crab hop (Bo on the couch): back hunched high, hips up, legs long and stiff, head low, tail up in an S with the tip hooked
+    crabArch: P({ hipX: -13, hipY: 31, chestX: 11, chestY: 25, backLift: 13, bellyLift: 6, headDX: -1, headDY: -10, headPitch: 12, fl: [11, 2.5, 5.4], fr: [12, 2.5, -5.4], bl: [-15, 2.5, 5.4], br: [-16, 2.5, -5.4],
+      tailEl: 62, tailCurl: 7, tailHook: 34, tailAmp: 3, tailSpeed: 0.3, earBack: 0.55, pupil: 1 }),
     leap: P({ hipX: -14, hipY: 22, chestX: 15, chestY: 25, headDX: 3, headDY: -2, headPitch: -6, fl: [27, 13, 4.6], fr: [26, 11, -4.6], bl: [-27, 8, 4.4], br: [-26, 7, -4.4],
       tailEl: 15, tailCurl: 1, tailHook: 0, tailAmp: 2, earBack: 0.3, pupil: 1 }),
     held: P({ hipX: 1, hipY: -18, chestX: 2, chestY: 6, backLift: 0, bellyLift: 0, headDX: -9, headDY: 6, fl: [4, -6, 4], fr: [4, -6, -4], bl: [0, -34, 5], br: [0, -34, -5],
@@ -312,12 +318,14 @@ var BZ = window.BZ || (window.BZ = {});
       items.push({ z: (S[a][2] + S[b][2]) / 2 + (L[2] === 'back' ? 0.5 : -0.01), kind: 'line', L, a, b });
     }
     items.push({ z: Math.min(S[IDX.muzL][2], S[IDX.muzR][2]) - 0.3, kind: 'whisk' });
+    if (cat.sweater) { const C = S[IDX.chest], Hd = S[IDX.head]; items.push({ z: Math.min(C[2], Hd[2]) - 9, kind: 'bow', x: C[0] + (Hd[0] - C[0]) * 0.36, y: C[1] + (Hd[1] - C[1]) * 0.36 + 1, collar: [C[0] + (Hd[0] - C[0]) * 0.3, C[1] + (Hd[1] - C[1]) * 0.3] }); } // the ribbon, tied under her chin
     items.sort((p, q) => q.z - p.z); // farthest first (read_out)
 
     const hits = [];
     for (const it of items) {
       if (it.kind === 'ball') {
         let spec = coat.colors[it.slot] || coat.colors.coat;
+        if (cat.sweater && SWEATER_BALLS[it.name]) { BZ.drawBall(ctx, S[it.i][0], S[it.i][1], it.d, BZ.color(['knit', 4]), null, BZ.color(['knit', 1]), -1, 0, 'knit'); hits.push({ x: S[it.i][0], y: S[it.i][1], r: it.d / 2, region: it.region, name: it.name }); continue; } // in her sweater
         if (it.slot === 'mouth') spec = ['pink', 0];
         if (it.slot === 'tongue') spec = ['pink', 3];
         const col = BZ.color(spec);
@@ -331,10 +339,12 @@ var BZ = window.BZ || (window.BZ = {});
           const f = BZ.rotHead([1, 0, 0], sk.headYaw, sk.headPitch, sk.headRoll);
           if (-f[0] * cam.s + f[2] * cam.c > -0.12) continue;
         }
-        const spec = coat.colors[slot] || coat.colors.coat;
+        const sw = cat.sweater && (slot === 'back' || (slot === 'limb' && L[0].startsWith('sh')) || (slot === 'chest' && L[0] === 'chin' && false));
+        const spec = sw ? ['knit', 4] : coat.colors[slot] || coat.colors.coat;
         const sm = shapeMul(cat, slot);
         BZ.drawLine(ctx, A[0], A[1], L[3] * bs * sm, B[0], B[1], L[4] * bs * sm, BZ.color(spec), null, 0);
         if (slot === 'tail' || slot === 'tip' || slot === 'back') hits.push({ x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, r: Math.max(2, L[3] * bs * 0.6), region: slot === 'back' ? 'back' : 'tail', name: L[0] });
+      } else if (it.kind === 'bow') { const f = Math.sin(cat.theta); if (f > -0.25) drawBow(ctx, it.x, it.y, cat.sweater.bow, cat.petScale * 1.15, Math.cos(cat.theta)); // only from the front
       } else if (it.kind === 'eye') {
         drawEyeItem(ctx, cat, it, S);
         hits.push({ x: S[it.i][0], y: S[it.i][1], r: it.d / 2, region: 'face', name: it.name });
@@ -348,6 +358,13 @@ var BZ = window.BZ || (window.BZ = {});
     cat.bbox = [x0 - 6 * bs, y0 - 6 * bs, x1 + 6 * bs, y1 + 6 * bs];
   }
 
+  const SWEATER_BALLS = { hips: 1, belly: 1, chest: 1, back: 1, shL: 1, shR: 1 };
+  function drawBow(ctx, x, y, col, s, facing) { // a satin ribbon bow: two loops, a knot, two tails, a sheen
+    const k = Math.max(0.8, s), lo = mixC(col, '#000000', 0.3), hi = mixC(col, '#ffffff', 0.35);
+    for (const sd of [-1, 1]) { BZ.fillPoly(ctx, [[x, y], [x + sd * 4.4 * k, y - 2.6 * k], [x + sd * 4.8 * k, y + 1.4 * k]], col); BZ.drawThin(ctx, x + sd * 1 * k, y - 0.6 * k, x + sd * 4 * k, y - 2.2 * k, hi); BZ.drawThin(ctx, x + sd * 1 * k, y + 1, x + sd * 2.4 * k + sd * facing, y + 4.6 * k, lo); }
+    BZ.ellipse(ctx, x, y, 1.4 * k, 1.3 * k, lo); ctx.fillStyle = hi; ctx.fillRect(Math.round(x - 0.5), Math.round(y - 1), 1, 1);
+  }
+  function mixC(a, b, t) { const A = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16)), B = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16)); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
   const SHAPE_GROUP = { head: 'head', cheek: 'head', muzzle: 'head', nose: 'head', eye: 'head', mouth: 'head', tongue: 'head', ear: 'earW', inner: 'earW', leg: 'limb', paw: 'limb', limb: 'limb', coat: 'body', back: 'body', belly: 'body', chest: 'body', tail: 'tail', tip: 'tail' };
   function shapeMul(cat, slot) { const sh = cat.shape; if (!sh) return 1; const g = SHAPE_GROUP[slot]; return (g && sh[g]) || 1; }
 

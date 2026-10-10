@@ -6,10 +6,8 @@ Every request from Julia, in her words where possible. Status: `open`, `in progr
 
 | Date | Request | Notes |
 |---|---|---|
-| 2026-10-10 | Sweaters with ribbon bows (from the lamp-table photos) | Surprise item: drop a sweater on a cat to dress her; cream knit, green or brown bow. Refs: `refs/together/both-sweaters-lamp-*.jpg`. |
-| 2026-10-10 | Felted bags (from the dragonfly-chair photo) | Surprise item: a felted bag she climbs into, head poking out. Ref: `refs/furniture/chair-dragonfly-damask.jpg`. |
-| 2026-10-10 | Mahogany lamp table with the brass lamp | Warm perch; the two-cats-in-sweaters scene. |
-| 2026-10-10 | Use the motion references | `refs/motion/bo-play-bed-string.mp4` (pounce, long lunge), `bo-play-couch-crab.mp4` (arched back, high hips, crab hop, tail S), `bunny-walk-harness-bow.mp4` (Bunny's walk, tail up). Next pass on play and walk. |
+| 2026-10-10 | A simple iPad (or phone) version to send to Julia's mom, who is older and not tech-savvy | Options sent 2026-10-10: (1) touch-first "Mom mode" web app added to the iPad home screen, optional Guided Access; (2) native app via TestFlight; (3) a long calm video sent by text. Recommended (1), with (3) as a same-day backup. Waiting on: her device, whether someone can set it up, a note on the opening screen. |
+| 2026-10-10 | Use the motion references, second pass | Lunge and crab-hop poses shipped (2026-10-10f). Still to study: Bunny's walk and tail carriage (`refs/motion/bunny-walk-harness-bow.mp4`), the wiggle-before-pounce timing (`bo-play-bed-string.mp4`). |
 | 2026-10-10 | Bunny visits the stone bunny | First pass shipped as `statue`; revisit pose matching. |
 | earlier | Port the other chat's lost features: gaze system (Bo not cursor-locked), pod carry when dragging | Overwritten by a later deploy; offered, not yet requested. |
 
@@ -17,6 +15,10 @@ Every request from Julia, in her words where possible. Status: `open`, `in progr
 
 | Date | Request | Round |
 |---|---|---|
+| 2026-10-10 | Sweaters with ribbon bows (cream knit; green bow for Bo, brown for Bunny) | 2026-10-10f |
+| 2026-10-10 | Felted bag she climbs into | 2026-10-10f |
+| 2026-10-10 | Mahogany lamp table with the brass lamp, room for two | 2026-10-10f |
+| 2026-10-10 | Motion pass from the videos: the long lunge, the arched crab hop | 2026-10-10f |
 | 2026-10-10 | "Export 3-4 gifs of the gameplay" | 2026-10-10e |
 | 2026-10-10 | Dangle nap: curled on a pillow with one arm languidly hanging off | 2026-10-10e |
 | 2026-10-10 | A cubby hole in the bookshelf they can go in (felt cube) | 2026-10-10e |

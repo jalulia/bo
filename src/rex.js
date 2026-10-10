@@ -20,6 +20,7 @@ BZ.RAMPS = {
   ink:     ['#0c0b0d', '#18161a', '#242127', '#322e35', '#46414a', '#5d5762'],
   copper:  ['#4d1d05', '#7a330c', '#a84d14', '#cf6c22', '#e69243', '#f4bb7c'],
   lilac:   ['#5e5560', '#7b717d', '#988e99', '#b3aab3', '#cbc4cb', '#e2dde2'],
+  knit:    ['#8a7a64', '#a8977c', '#c4b496', '#ddd0b4', '#ece4d0', '#f7f2e6'],
   jade:    ['#103d22', '#1f5f36', '#2f844b', '#4ba865', '#78c98a', '#acdfb6'],
 };
 BZ.color = (spec) => (spec ? BZ.RAMPS[spec[0]][spec[1]] : null);
@@ -87,9 +88,9 @@ BZ.PERSONALITIES = {
   // aloof: watches instead of doing. nerve: low = startles. tempo: speed of
   // everything she does. latency: frames before she notices something.
   bo:     { label: 'Bo', energy: 25, sleepy: 88, affection: 72, chatty: 55, curious: 40, grass: 95, sass: 55, aloof: 80, nerve: 75, tempo: 0.85, latency: [22, 70],
-            naps: { baguette: 22, crescent: 20, lounge: 18, flop: 14, loaf: 13, sphinx: 13 }, baseline: 'indifferent', size: 1 },
+            naps: { baguette: 22, crescent: 20, lounge: 18, dangle: 14, flop: 14, loaf: 13, sphinx: 13 }, baseline: 'indifferent', size: 1 },
   bunny:  { label: 'Bunny', energy: 74, sleepy: 60, affection: 92, chatty: 35, curious: 88, grass: 70, sass: 82, aloof: 22, nerve: 80, tempo: 1.18, latency: [5, 22],
-            naps: { crescent: 30, loaf: 18, flop: 16, baguette: 14, lounge: 12, sphinx: 10 }, baseline: 'curious', size: 0.8,
+            naps: { crescent: 30, loaf: 18, flop: 16, baguette: 14, lounge: 12, sphinx: 10, dangle: 6 }, baseline: 'curious', size: 0.8,
             shape: { head: 1.06, ear: 1.06, earW: 0.95, limb: 0.82, body: 0.88, tail: 0.85, tailLen: 0.95 } },
   sprite: { label: 'Zoomy', energy: 85, sleepy: 35, affection: 55, chatty: 40, curious: 90, grass: 50, sass: 60, aloof: 20, nerve: 55, tempo: 1.2, latency: [5, 25],
             naps: { baguette: 10, crescent: 35, lounge: 15, flop: 10, loaf: 15, sphinx: 15 }, baseline: 'alert', size: 0.95 },

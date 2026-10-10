@@ -67,6 +67,16 @@ BZ.drawBall = function (ctx, cx, cy, d, color, outline, speckle, mode, fuzz, den
     ctx.fillStyle = outline;
     for (let i = 0; i < d; i++) if (c.w[i]) ctx.fillRect(x0 + c.start[i] + fz[i], y0 + i, 1, 1);
   }
+  if (speckle && dense === 'knit') { // a sweater (ours): vertical ribs, every fourth row a purl ridge
+    ctx.fillStyle = speckle;
+    for (let i = 1; i < d - 1; i++) {
+      const w = c.w[i]; if (w < 3) continue;
+      const sx = x0 + c.start[i] + fz[i];
+      if (i % 4 === 2) { for (let x = sx + 1; x < sx + w - 1; x += 2) ctx.fillRect(x, y0 + i, 1, 1); }
+      else for (let x = sx + 1 + (i & 1); x < sx + w - 1; x += 3) ctx.fillRect(x, y0 + i, 1, 1);
+    }
+    return;
+  }
   if (speckle && dense === 'wave') { // rex curls (ours): staggered dash rows
     ctx.fillStyle = speckle;
     for (let i = 1; i < d - 1; i += 3) {

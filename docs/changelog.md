@@ -2,6 +2,13 @@
 
 What Julia can see, by round. Newest first.
 
+## 2026-10-10f · Sweaters
+- **Sweaters** (Comfort → Sweaters): click a cat to dress her in a cream knit sweater with a satin ribbon bow, green for Bo and brown for Bunny; click again to take it off. Bo sits down in it, unimpressed. It stays on between sessions.
+- **Felted bag**: hand-knit burgundy wool with a leather strap, a bone button and a kraft tag on a clothespin. She climbs in and peeks out.
+- **Lamp table**: mahogany pedestal table with a brass lamp and its warm pool of light; room for two (they like it more at night).
+- **Motion**: pounces now stretch into Bo's long lunge (from the string video); the sideways crab hop hunches high with stiff legs and the tail up in an S (from the couch video).
+- GIF: `gifs/sweaters.gif`.
+
 ## 2026-10-10e · The backyard
 - **Backyard** (new place, "Where she lives" → Backyard): the green clapboard studio with French doors and steps (the cats come out through the doors), flagstone patio with moss, plant-care shelves with pots and jugs, rake, wire stand, stone bunny, lawn, woods with leaf litter, the big tree with a tire swing they can nap in, an Adirondack chair with a white plush mat for two, dappled sun pools they bask in, butterflies, falling leaves, a squirrel to chatter at; dusk tint and fireflies at night. They scratch the tree.
 - **Garden**: Garden tab with eight seed packets (cat grass, catmint, poppies, tulips, sunflower, lavender, cosmos, strawberries), a watering can and a trowel. Four plots (wall bed, lawn bed, two grass patches). Plants grow in real time, faster when watered, and keep growing while the app is closed. Bo grazes the cat grass; catmint sends them rolling; lavender makes them sneeze. Nobody likes the watering can.

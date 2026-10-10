@@ -26,6 +26,12 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
       world.carrying = 'pilea'; P.x = bo.x + 22; P.y = sf.y - 6; world.onDown(); rest(bu, T.x + 70, T.y + 30, Math.PI);
       window.__crop = [T.x - 80, T.y - 90, 190, 130]; window.__scale = 3; P.x = T.x - 60; P.y = T.y + 40; P.inside = true;
       let f = 0; window.__script = () => { f++; if (f === 8) { const it = world.items.find((i) => i.surf === 'ctable'); bo.knock = { it, t: 0, side: it.x < bo.x ? -1 : 1 }; } }; }
+    if (sc === 'sweaters') { world.removeItem(world.items.find((i) => i.type === 'pod')); world.carrying = 'lamptable'; P.x = st.x + st.w * 0.3; P.y = st.y + st.h * 0.66; world.onDown(); const lt = world.items.find((i) => i.type === 'lamptable'), seat = world.items.find((i) => i.type === 'seat' && i.parent === lt);
+      rest(bo, lt.x - 34, lt.y + 22, 0.2); rest(bu, lt.x + 42, lt.y + 26, Math.PI - 0.3); world.cmd('carry', 'sweater'); P.inside = true;
+      window.__crop = [lt.x - 85, lt.y - 105, 190, 145]; window.__scale = 3;
+      let f = 0; window.__script = () => { f++; const tgt = f < 40 ? bo : bu; P.x = tgt.x + 2; P.y = tgt.y - 16; world.onMove();
+        if (f === 14) world.dress(bo); if (f === 44) world.dress(bu); if (f === 60) world.cmd('carry', 'sweater');
+        if (f === 64) { lt.occupant = bo.id; bo.setState('toBed'); bo.bedItem = lt; } if (f === 80) { seat.occupant = bu.id; bu.setState('toBed'); bu.bedItem = seat; } }; }
     if (sc === 'swing') { world.cmd('scene', 'yard'); for (const c of world.cats) c.hidden = false; for (let i = 0; i < 60; i++) world.tick();
       const T = world.items.find((i) => i.type === 'tire'); bu.placeInBed(T); bu.placedT = 0; bu.bedPlan = { watch: 0, end1: 0, end2: 0, it: T }; bu.napStyle = 'loaf'; T.ang = 0.14; T.av = 0; for (const c of world.cats) c.hidden = false;
       const A = world.items.find((i) => i.type === 'adk'), S = world.items.find((i) => i.type === 'seat' && i.parent === A); bo.placeInBed(A); bo.placedT = 0; bo.bedPlan = { end1: 0, end2: 0, it: A }; bo.napStyle = 'dangle'; bo.st = 300;
@@ -36,7 +42,7 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     window.__grab = () => { const [x, y, w, h] = window.__crop.map(Math.round), c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(world.cv, x, y, w, h, 0, 0, w, h); return c.toDataURL('image/png'); };
     return 'ok';
   }, sc);
-  const N = { doors: 120, garden: 190, knock: 110, swing: 120, cubby: 120 }[sc] || 120;
+  const N = { doors: 120, garden: 190, knock: 110, swing: 120, cubby: 120, sweaters: 150 }[sc] || 120;
   for (let i = 0; i < N; i++) { const url = await p.evaluate(() => { window.__script(); world.tick(); window.__script(); world.tick(); return window.__grab(); }); fs.writeFileSync(path.join(tmp, String(i).padStart(4, '0') + '.png'), Buffer.from(url.split(',')[1], 'base64')); }
   const sc2 = await p.evaluate(() => window.__scale); await b.close();
   execSync(`ffmpeg -v error -y -framerate 15 -i ${tmp}/%04d.png -vf "scale=iw*${sc2}:ih*${sc2}:flags=neighbor,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=none" -loop 0 ${out}`);

@@ -68,13 +68,16 @@ var BZ = window.BZ || (window.BZ = {});
     sprout: { label: 'Garden plant', hint: '', r: 8, h: 18, garden: true },
     stoop:  { label: 'Steps', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     tire:   { label: 'Tire swing', hint: '', bed: true, fixed: true, r: 0, h: 0 },
+    sweater:{ label: 'Sweaters', hint: 'knit, with ribbon bows: click a cat to dress her', tool: true },
+    bag:    { label: 'Felted bag', hint: 'hand-knit wool; she climbs in', r: 15, h: 26, bed: true, box: true },
+    lamptable: { label: 'Lamp table', hint: 'mahogany, a brass lamp, warm for two', r: 24, h: 74, bed: true },
     cubby:  { label: 'Felt cube', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     adk:    { label: 'Adirondack chair', hint: '', bed: true, fixed: true, soft: true, r: 26, h: 46 },
   });
   BZ.ITEMS.daybed.places = ['desk']; BZ.ITEMS.ctable.places = ['desk']; // in the room they're furniture; on the desktop you can still put them out
-  BZ.ITEM_ORDER = ['sun', 'pod', 'pillow', 'blanket', 'box', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush', 'grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS), 'yarn', 'mouse', 'laser', 'wand', 'brush', 'treat', 'shrimp', 'bowl', ...Object.keys(BZ.GARDEN).map((k) => 'seed_' + k), 'can', 'trowel'];
+  BZ.ITEM_ORDER = ['sun', 'pod', 'pillow', 'blanket', 'box', 'bag', 'lamptable', 'sweater', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush', 'grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS), 'yarn', 'mouse', 'laser', 'wand', 'brush', 'treat', 'shrimp', 'bowl', ...Object.keys(BZ.GARDEN).map((k) => 'seed_' + k), 'can', 'trowel'];
   BZ.ITEM_GROUPS = [
-    ['Comfort', ['sun', 'pod', 'pillow', 'blanket', 'box', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush']],
+    ['Comfort', ['sun', 'pod', 'pillow', 'blanket', 'box', 'bag', 'lamptable', 'sweater', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush']],
     ['Plants', ['grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS)]],
     ['Play', ['yarn', 'mouse', 'laser', 'wand', 'brush']],
     ['Treats', ['treat', 'shrimp', 'bowl']],
@@ -119,9 +122,11 @@ var BZ = window.BZ || (window.BZ = {});
     if (it.type === 'stoop') return { front: it.frontPt, spot: [it.x, it.y], rootPx: it.rootPx, clip: null, sortY: it.y - 0.5, face: it.face };
     if (it.type === 'tire') { const T = BZ.tireGeom(it, s); return { front: [it.x + 6 * s, it.y + 13 * s], spot: [T.cx, it.y], rootPx: it.y - (T.cy + T.r * 0.82), clip: null, sortY: it.y + 0.05, face: Math.PI / 2 - 0.15, tire: true }; }
     if (it.type === 'adk' || (it.type === 'seat' && it.parent && it.parent.type === 'adk')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 13 : -13) * k, P.y + 13 * k], spot: [P.x + (slot ? 8 : -9) * k, P.y - 3 * k], rootPx: 15 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.55 : Math.PI / 2 + 0.55 }; }
+    if (it.type === 'lamptable' || (it.type === 'seat' && it.parent && it.parent.type === 'lamptable')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 12 : -12) * k, P.y + 12 * k], spot: [P.x + (slot ? 9 : -9) * k, P.y - 2 * k], rootPx: 27.5 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.4 : Math.PI / 2 + 0.4 }; }
     if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 16 : -16) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : -17) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; }
     if (it.type === 'pillow') { const k = s * 0.95; return { front: [it.x + 2 * k, it.y + 12 * k], spot: [it.x, it.y - 1 * k], rootPx: 5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.4 }; }
     if (it.type === 'blanket') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 13 * k], spot: [it.x + 2 * k, it.y - 1 * k], rootPx: 2 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.5 }; }
+    if (it.type === 'bag') { const k = s * 0.95; return { front: [it.x + 3 * k, it.y + 13 * k], spot: [it.x, it.y - 3 * k], rootPx: 1 * k, clip: null, sortY: it.y - 0.1, face: Math.PI / 2 + 0.2, box: true }; }
     if (it.type === 'box') { const k = s * 0.95; return { front: [it.x + 3 * k, it.y + 14 * k], spot: [it.x, it.y - 4 * k], rootPx: 1 * k, clip: null, sortY: it.y - 0.1, face: Math.PI / 2 + 0.25, box: true }; }
     if (it.type === 'poppy') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 12 * k], spot: [it.x, it.y - 3 * k], rootPx: 26.5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.6 }; }
     if (BZ.ITEMS[it.type] && BZ.ITEMS[it.type].chair) { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 12 * k], spot: [it.x, it.y - 3 * k], rootPx: 17 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.6 }; }
@@ -847,6 +852,59 @@ var BZ = window.BZ || (window.BZ = {});
       BZ.ellipse(ctx, px2 - 0.5 * s, py2 + 0.8 * s, 2 * s, 1.5 * s, D.paw); ctx.fillStyle = D.outline; ctx.fillRect(Math.round(px2 - 1.2 * s), Math.round(py2 + 1.8 * s), 1, 1); ctx.fillRect(Math.round(px2 + 0.4 * s), Math.round(py2 + 1.8 * s), 1, 1); // toe beans down
     }
   };
+  // ── the felted bag (hand-knit in Reston): burgundy wool, a leather strap, a kraft tag on a clothespin ──
+  const FELT = ['#3e1418', '#521c22', '#66262e', '#7a323a', '#8e4048', '#a25058'];
+  function bagPts(it, s) { const k = s * 0.95, x = it.x, y = it.y, w = 14 * k, h = 19 * k; return { k, x, y, w, h, mouth: { cx: x, cy: y - h + 1 * k, rx: w * 0.9, ry: 3.2 * k } }; }
+  BZ.drawBagBack = function (ctx, it, s) {
+    const B = bagPts(it, s), { k, x, y, w, h } = B;
+    ell(ctx, x + 2 * k, y + 1, w * 1.15, 3.4 * k, 'rgba(30,20,10,0.2)');
+    shadePoly(ctx, [[x - w * 0.9, y - h], [x + w * 0.9, y - h], [x + w * 0.86, y - h + 4 * k], [x - w * 0.86, y - h + 4 * k]], (px, py) => ramp(FELT, 0.6 + Math.sin(px * 2.3 + py * 1.7) * 0.5, px, py)); // the dark inside
+    for (const sd of [-1, 1]) { const ax = x + sd * w * 0.75; BZ.drawThin(ctx, ax, y - h + 1, ax + sd * 2 * k, y - h - 9 * k, '#b07a4a'); BZ.drawThin(ctx, ax + sd * 2 * k, y - h - 9 * k, x, y - h - 13 * k, '#b07a4a'); } // the strap, arcing over
+    BZ.drawThin(ctx, x - w * 0.75 + 1, y - h + 1, x - w * 0.75 - 2 * k + 1, y - h - 9 * k, '#d8a878');
+  };
+  BZ.drawBagFront = function (ctx, it, s) {
+    const B = bagPts(it, s), { k, x, y, w, h } = B, r = BZ.rng(19);
+    const pts = []; for (let i = 0; i <= 12; i++) { const u = i / 12; pts.push([x - w + Math.sin(u * Math.PI) * -1.4 * k + u * 0, y - h + 2 * k + u * (h - 2 * k)]); }
+    const body = [[x - w * 0.9, y - h + 2.2 * k], [x + w * 0.9, y - h + 2.2 * k], [x + w, y - h * 0.5], [x + w * 0.88, y - 0.5], [x - w * 0.88, y - 0.5], [x - w, y - h * 0.5]];
+    shadePoly(ctx, body, (px, py) => { const fuzz = Math.sin(px * 3.1 + py * 2.2) * Math.sin(px * 1.3 - py * 3.7); return ramp(FELT, 3.1 + (px - x) / w * 0.6 - (py - (y - h)) / h * 0.9 + fuzz * 0.7 + (((px * 7 + py * 11) & 15) === 0 ? 1 : 0), px, py); });
+    for (let i = 0; i < 22; i++) { const px = x - w + r() * w * 2, py = y - h + 3 * k + r() * (h - 4 * k); ctx.fillStyle = FELT[5]; ctx.fillRect(Math.round(px), Math.round(py), 1, 1); } // stray mohair
+    ctx.fillStyle = FELT[5]; ctx.fillRect(Math.round(x - w * 0.88), Math.round(y - h + 2.2 * k), Math.round(w * 1.76), 1); // the rolled lip, catching the light
+    ell(ctx, x + w * 0.2, y - h + 6 * k, 1.4 * k, 1.4 * k, '#efe6d4'); // a bone button
+    const tx = x + w * 0.55, ty = y - h + 1 * k; ctx.fillStyle = '#6a4a2a'; ctx.fillRect(Math.round(tx), Math.round(ty - 3 * k), Math.max(1, Math.round(1.2 * k)), Math.round(4 * k)); // clothespin
+    BZ.fillPoly(ctx, [[tx + 1 * k, ty], [tx + 6 * k, ty + 1 * k], [tx + 5 * k, ty + 8 * k], [tx, ty + 7 * k]], '#c9a87a'); ctx.fillStyle = '#7a5a3a'; for (let q = 0; q < 3; q++) ctx.fillRect(Math.round(tx + 1.5 * k), Math.round(ty + (2 + q * 1.8) * k), Math.round(3 * k), 1); // the kraft tag, handwritten
+  };
+  // ── the mahogany lamp table: round top, a pedestal on three feet, a brass lamp with a dome shade, warm light ──
+  function paintLampTable(ctx, X, Y, k) {
+    const M = ['#2a120a', '#3e1c10', '#552816', '#6c341e', '#843f26', '#9c4e30', '#b8643e'], BR = ['#5a4416', '#7f6320', '#a8862e', '#cba648', '#e6c870', '#f6e6a8'];
+    ell(ctx, X + 2 * k, Y + 1, 15 * k, 3.4 * k, 'rgba(30,20,10,0.22)');
+    for (const a of [-0.9, 0.9, Math.PI / 2 + 0.02]) { const fx = X + Math.cos(a) * 12 * k * (a > 1.5 ? 0.2 : 1), fy = Y - (a > 1.5 ? -1.5 * k : 0); BZ.drawLine(ctx, X, Y - 7 * k, 2.4 * k, fx, fy, 1.4 * k, M[2], null, 0); ell(ctx, fx, fy - 0.5, 1.6 * k, 1.1 * k, M[3]); } // tripod feet
+    shadePoly(ctx, [[X - 2.2 * k, Y - 25 * k], [X + 2.2 * k, Y - 25 * k], [X + 3 * k, Y - 7 * k], [X - 3 * k, Y - 7 * k]], (x, y) => ramp(M, 2.6 + (x - X) / (3 * k) * 1.4 + Math.sin(y * 0.9) * 0.3, x, y)); // turned pedestal
+    for (const yy of [Y - 20 * k, Y - 12 * k]) ell(ctx, X, yy, 3.2 * k, 1.2 * k, M[4]);
+    // the lamp: weighted base, a brass column, a gold dome shade (drawn before the top's front edge so it sits on it)
+    const lx = X + 1 * k, ly = Y - 30 * k;
+    ell(ctx, lx, ly, 4.6 * k, 1.6 * k, '#1a1410'); ell(ctx, lx, ly - 0.6 * k, 4 * k, 1.2 * k, '#2e2620');
+    BZ.drawLine(ctx, lx, ly - 1 * k, 1.1 * k, lx, ly - 34 * k, 0.9 * k, BR[3], null, 0); BZ.drawThin(ctx, lx - 0.6, ly - 1 * k, lx - 0.6, ly - 34 * k, BR[5]);
+    const sy = ly - 34 * k; shadePoly(ctx, [[lx - 13 * k, sy + 3 * k], [lx + 13 * k, sy + 3 * k], [lx + 9 * k, sy - 3 * k], [lx - 9 * k, sy - 3 * k]], (x, y) => ramp(BR, 2.6 + (x - lx) / (13 * k) * 1.6 + (y < sy - 1 * k ? 1 : 0), x, y));
+    ctx.fillStyle = BR[1]; ctx.fillRect(Math.round(lx - 13 * k), Math.round(sy + 3 * k), Math.round(26 * k), 1); ell(ctx, lx, sy - 3.5 * k, 1.6 * k, 1.2 * k, BR[4]); // shade rim, finial
+    // the round top: a deep French polish, the lamp's reflection pooled in it
+    shadePoly(ctx, Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; return [X + Math.cos(a) * 19 * k, Y - 27 * k + Math.sin(a) * 6.5 * k]; }), (x, y) => { const dx = (x - (lx + 1 * k)) / (6 * k), dy = (y - (Y - 28 * k)) / (2.4 * k), glare = Math.exp(-(dx * dx + dy * dy)); return ramp(M, 3 + (x - X) / (19 * k) * 0.8 - (y - (Y - 27 * k)) / (6.5 * k) * 0.6 + glare * 3.2, x, y); });
+    for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI; ctx.fillStyle = M[1]; ctx.fillRect(Math.round(X + Math.cos(a) * 19 * k), Math.round(Y - 27 * k + Math.sin(a) * 6.5 * k), 1, Math.max(1, Math.round(2 * k))); } // the apron edge
+    // a little silver frame on the table, by the lamp
+    ctx.fillStyle = '#9aa0a8'; ctx.fillRect(Math.round(X - 11 * k), Math.round(Y - 34 * k), Math.round(5 * k), Math.round(6 * k)); ctx.fillStyle = '#d8c8a8'; ctx.fillRect(Math.round(X - 10 * k), Math.round(Y - 33 * k), Math.round(3 * k), Math.round(4 * k));
+  }
+  function lampTable(ctx, it, s, t) {
+    const k = s * 0.95, w = 50 * k, h = 82 * k, ox = 25 * k, oy = 78 * k;
+    ctx.drawImage(cached('lamptable' + s, w, h, ox, oy, (g, X, Y) => paintLampTable(g, X, Y, k)), Math.round(it.x - ox), Math.round(it.y - oy));
+    const glow = BZ.isNight() ? 0.1 : 0.045, lx = it.x + 1 * k, ly = it.y - 58 * k; // warm light pooling under the shade
+    for (let r = 1; r <= 4; r++) ell(ctx, lx, ly + 10 * k + r * 2 * k, 12 * k + r * 6 * k, 4 * k + r * 3 * k, `rgba(255,206,130,${glow})`);
+    void t;
+  }
+  BZ.drawSweaterIcon = function (ctx, x, y, s) { // a little folded cream sweater with a green bow
+    const K = ['#b8a788', '#cfc0a0', '#e2d6bc', '#efe7d4']; y -= 2 * s;
+    BZ.fillPoly(ctx, [[x - 8 * s, y - 7 * s], [x + 8 * s, y - 7 * s], [x + 9 * s, y], [x - 9 * s, y]], K[2]); for (let i = -7; i < 8; i += 2) { ctx.fillStyle = K[1]; ctx.fillRect(Math.round(x + i * s), Math.round(y - 6 * s), 1, Math.round(6 * s)); }
+    ctx.fillStyle = K[0]; ctx.fillRect(Math.round(x - 9 * s), Math.round(y - 1 * s), Math.round(18 * s), Math.max(1, Math.round(1 * s)));
+    BZ.fillPoly(ctx, [[x, y - 7 * s], [x - 4 * s, y - 10 * s], [x - 4 * s, y - 5 * s]], '#5f7a3a'); BZ.fillPoly(ctx, [[x, y - 7 * s], [x + 4 * s, y - 10 * s], [x + 4 * s, y - 5 * s]], '#5f7a3a'); ell(ctx, x, y - 7 * s, 1.2 * s, 1.2 * s, '#3f5a28');
+  };
   // ── the tire swing: rope from the big branch, a black ring you can sit in ──
   BZ.tireGeom = function (it, s) { const k = s * 0.95, R = 17 * k, r = 9.5 * k, L = it.cy - it.ropeY, a = it.ang || 0; return { cx: it.x + Math.sin(a) * L, cy: it.ropeY + Math.cos(a) * L, R, r, k, a }; };
   function tireRing(ctx, T, part) {
@@ -1037,6 +1095,9 @@ var BZ = window.BZ || (window.BZ = {});
       case 'seat': break;
       case 'blanket': blanket(ctx, it, s, t); break;
       case 'box': BZ.drawBoxBack(ctx, it, s); BZ.drawBoxFront(ctx, it, s); break;
+      case 'bag': BZ.drawBagBack(ctx, it, s); BZ.drawBagFront(ctx, it, s); break;
+      case 'lamptable': lampTable(ctx, it, s, t); break;
+      case 'sweater': BZ.drawSweaterIcon(ctx, it.x, it.y, s); break;
       case 'brush': BZ.drawBrush(ctx, it.x, it.y - 6 * s, s, 0); break;
       case 'wand': BZ.drawWand(ctx, { hx: it.x - 8 * s, hy: it.y - 14 * s, fx: it.x + 6 * s, fy: it.y - 2 * s, vx: 1, vy: 2 }, s); break;
       case 'ledge': break;
@@ -1061,7 +1122,7 @@ var BZ = window.BZ || (window.BZ = {});
   BZ.drawIcon = function (cv, type) {
     const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false; ctx.clearRect(0, 0, cv.width, cv.height);
     const W = cv.width, H = cv.height;
-    const sc = Object.assign({ pillow: 0.62, blanket: 0.42, box: 0.5, ctable: 0.4, daybed: 0.3, brush: 0.9, wand: 0.75 }, Object.fromEntries(Object.keys(BZ.PLANTS).map((k) => [k, Math.min(0.6, 15 / BZ.PLANTS[k].h)])))[type] || { sun: 0.3, chair: 0.3, poppy: 0.24, dfly: 0.3, can: 0.75, trowel: 0.85, floral: 0.3, emerald: 0.3, blush: 0.3, mouse: 0.95, shrimp: 1.05, pod: 0.26, grass: 0.46, catnip: 0.62, spider: 0.55, yarn: 0.85, laser: 0.7, treat: 1.05, bowl: 0.6 }[type] || 0.6;
+    const sc = Object.assign({ pillow: 0.62, blanket: 0.42, box: 0.5, ctable: 0.4, daybed: 0.3, brush: 0.9, wand: 0.75 }, Object.fromEntries(Object.keys(BZ.PLANTS).map((k) => [k, Math.min(0.6, 15 / BZ.PLANTS[k].h)])))[type] || { sun: 0.3, chair: 0.3, poppy: 0.24, dfly: 0.3, can: 0.75, trowel: 0.85, bag: 0.5, lamptable: 0.24, sweater: 1, floral: 0.3, emerald: 0.3, blush: 0.3, mouse: 0.95, shrimp: 1.05, pod: 0.26, grass: 0.46, catnip: 0.62, spider: 0.55, yarn: 0.85, laser: 0.7, treat: 1.05, bowl: 0.6 }[type] || 0.6;
     const sc2 = BZ.ITEMS[type].seed ? 1.45 : sc;
     if (sc2 !== sc) { BZ.drawPacket(ctx, W / 2, H * 0.9, sc2, BZ.ITEMS[type].seed); return; }
     const it = BZ.newItem(type, W / 2 + (type === 'spider' ? -3 : 0), H * (BZ.ITEMS[type].bed || BZ.ITEMS[type].plant ? 0.94 : type === 'sun' ? 0.62 : 0.78));

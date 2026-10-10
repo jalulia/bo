@@ -1,6 +1,6 @@
 {
  "name": "Desktop Bo",
- "version": "2.5.0",
+ "version": "2.6.0",
  "provenance_note": "breed_standard = CFA Cornish Rex standard (cfa.org/?p=21290); photos = Julia's reference photos of Bo; read_out = PF.Magic engine rules via petz.js kb; ours = choices made here",
  "body": {
   "source": "breed_standard + photos",
@@ -254,7 +254,9 @@
    "arc": "14f, 16 high",
    "mouse": "19f, 27 high, 70% travel, lands in pin pose holding the toy",
    "lunge": "9f, 5 high, ease-out, skids after"
-  }
+  },
+  "lunge_pose": "refs/motion/bo-play-bed-string.mp4: hips -18/21, chest 19/17, back flat, near forepaw [41,5,3.4], hind legs [-34,5]/[-30,8]; used for the airborne part of lunge pounces",
+  "crab_pose": "refs/motion/bo-play-couch-crab.mp4: hips high (31), backLift 13, stiff straight legs, head low, tail up 62 with hook 34"
  },
  "room": {
   "source": "ours, after RollerCoaster Tycoon-era sprite craft (shade ramps + ordered dither, single light source, dense specific props, small ambient animation)",
@@ -329,5 +331,27 @@
  "chairs": {
   "poppy": "tall (seat 27, arms 39.5, back 68 units), butter-cream ramp, coral 5-petal poppies on sage vines in a jittered repeat, T-cushion, welted base, skirt with kick pleats",
   "dfly": "Louis XV bergere: cabriole legs, carved apron with a shell, serpentine top rail with a carved flower, padded arm manchettes, blue-gray checked damask with staggered gold dragonflies, twisted blue/gold cord"
+ },
+ "sweater": {
+  "source": "photos (refs/together/both-sweaters-lamp-*.jpg) + ours",
+  "balls": [
+   "hips",
+   "belly",
+   "chest",
+   "back",
+   "shL",
+   "shR"
+  ],
+  "lines": [
+   "back topline",
+   "upper foreleg (sh->el)"
+  ],
+  "ramp": "knit #8a7a64 #a8977c #c4b496 #ddd0b4 #ece4d0 #f7f2e6; base knit[4], texture knit[1]",
+  "texture": "vertical ribs every 3 px, a purl ridge every 4th row",
+  "bow": "two satin loops + knot + tails at the throat (lerp chest->head 0.36), front views only; Bo #5f7a3a, Bunny #8a5a2a"
+ },
+ "items_new_2026_10_10f": {
+  "bag": "box-type bed (periscope peeks, ambush), felt ramp, strap, button, kraft tag",
+  "lamptable": "paired bed (two slots at rootPx 27.5), cached painting, live glow pool; nap weight up at night"
  }
 }
