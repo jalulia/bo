@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:">
+<title>Desktop Bo</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; user-select: none; -webkit-user-select: none; }
+  body.habitat { background: #3a3030; }
+  canvas#c { position: fixed; left: 0; top: 0; image-rendering: pixelated; }
+  canvas#o { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #bar { display: none; position: fixed; z-index: 5; left: 0; right: 0; top: 0; height: 38px; background: #3a3030; color: #f2ebdc; -webkit-app-region: drag; align-items: center; justify-content: center; }
+  body.habitat #bar { display: flex; }
+  #bar b { font: 400 13px/1 'BoPixel', ui-monospace, monospace; letter-spacing: .04em; }
+  #bar button { -webkit-app-region: no-drag; position: absolute; right: 10px; top: 7px; height: 24px; padding: 0 10px; border-radius: 7px; border: 1.5px solid #f2ebdc; background: transparent; color: #f2ebdc; font: 600 12px ui-rounded, system-ui, sans-serif; cursor: pointer; }
+  #bar button:hover { background: #f2ebdc; color: #3a3030; }
+</style></head>
+<body>
+<div id="bar" data-ui><b>Bo's Jungle</b><button id="toybox">Toy box</button></div>
+<canvas id="c"></canvas><canvas id="o"></canvas>
+<script src="engine/font-data.js"></script>
+<script src="engine/raster.js"></script>
+<script src="engine/rex.js"></script>
+<script src="engine/cat.js"></script>
+<script src="engine/items.js"></script>
+<script src="engine/sound.js"></script>
+<script src="engine/world.js"></script>
+<script src="engine/jungle.js"></script>
+<script src="renderer.js"></script>
+</body></html>

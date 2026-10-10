@@ -1,0 +1,7 @@
+node_modules/
+dist/*.zip
+dist/*-darwin-*/
+dist/payload/
+dist/update/engine/
+test/*.png
+.DS_Store

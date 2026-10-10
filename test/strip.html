@@ -1,0 +1,28 @@
+<!doctype html><html><body style="margin:0;background:#7f9a96">
+<canvas id="c"></canvas>
+<script src="../src/raster.js"></script><script src="../src/rex.js"></script><script src="../src/cat.js"></script><script src="../src/items.js"></script><script src="../src/sound.js"></script><script src="../src/world.js"></script>
+<script>
+// filmstrip: one cat simulated frame by frame; a cell every `every` frames
+const q = new URLSearchParams(location.search);
+const mode = q.get('mode') || 'walk', coat = q.get('coat') || 'bo', th = +(q.get('theta') || 0);
+const n = +(q.get('n') || 12), every = +(q.get('every') || 3), cols = +(q.get('cols') || 6), warm = +(q.get('warm') || 40);
+const PX = 3, cellW = 110, cellH = 80;
+const cv = document.getElementById('c'); cv.width = cellW * cols; cv.height = cellH * Math.ceil(n / cols);
+cv.style.width = cv.width * PX + 'px'; cv.style.height = cv.height * PX + 'px'; cv.style.imageRendering = 'pixelated';
+const ctx = cv.getContext('2d');
+const fake = { size: 1, items: [], cats: [], stage: { x: -1e5, y: -1e5, w: 2e5, h: 2e5 }, floorTop: -1e5, sound: { purr() {}, meow() {} }, pointer: {}, inSun() { return false; } };
+const c = new BZ.Cat({ coat, x: 0, y: 0, theta: th }, fake); fake.cats.push(c);
+c.state = 'show'; c.anim = q.get('anim') || (mode === 'walk' || mode === 'creep' || mode === 'run' ? 'stand' : mode); c.t = 10;
+c.pose = BZ.clonePose(BZ.POSES.stand);
+const step = () => { c.t++; if (['walk', 'creep', 'run', 'brisk'].includes(mode)) { c.steer(c.x + Math.cos(th) * 500, c.y + Math.sin(th) * 500, mode); } c.animate(); };
+for (let k = 0; k < warm; k++) step();
+for (let i = 0; i < n; i++) {
+  for (let k = 0; k < every; k++) step();
+  const r = Math.floor(i / cols), ci = i % cols;
+  ctx.fillStyle = (r + ci) % 2 ? '#86a19d' : '#7f9a96'; ctx.fillRect(ci * cellW, r * cellH, cellW, cellH);
+  const ox = c.x, oy = c.y; c.x = ci * cellW + cellW / 2; c.y = r * cellH + cellH - 8;
+  BZ.ellipse(ctx, c.x, c.y + 1, 26, 4, 'rgba(0,0,0,0.15)'); BZ.drawCat(ctx, c);
+  ctx.fillStyle = '#0006'; ctx.font = '8px monospace'; ctx.fillText(String(warm + (i + 1) * every), ci * cellW + 3, r * cellH + 9);
+  c.x = ox; c.y = oy;
+}
+</script></body></html>

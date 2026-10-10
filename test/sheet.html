@@ -1,0 +1,25 @@
+<!doctype html><html><body style="margin:0;background:#7f9a96">
+<canvas id="c"></canvas><canvas id="o" style="display:none"></canvas>
+<script src="../src/raster.js"></script><script src="../src/rex.js"></script><script src="../src/cat.js"></script><script src="../src/items.js"></script><script src="../src/sound.js"></script><script src="../src/world.js"></script><script src="../src/jungle.js"></script>
+<script>
+// static pose sheet: rows of poses, columns of angles
+const q = new URLSearchParams(location.search);
+const poses = (q.get('poses') || 'stand,sit,loaf,sphinx,baguette,crescent,lounge,graze').split(',');
+const angles = (q.get('angles') || '0,1.97,-0.6').split(',').map(Number);
+const coat = q.get('coat') || 'bo';
+const PX = 3, cellW = 130, cellH = 90;
+const cv = document.getElementById('c'); cv.width = cellW * angles.length; cv.height = cellH * poses.length;
+cv.style.width = cv.width * PX + 'px'; cv.style.height = cv.height * PX + 'px'; cv.style.imageRendering = 'pixelated';
+const ctx = cv.getContext('2d');
+const fake = { size: 1, items: [], stage: { x: 0, y: 0, w: 999, h: 999 }, floorTop: 0, sound: { purr() {}, meow() {} }, pointer: {} };
+poses.forEach((a, r) => angles.forEach((th, ci) => {
+  const c = new BZ.Cat({ coat, x: ci * cellW + cellW / 2, y: r * cellH + cellH - 8, theta: th }, fake);
+  c.state = 'show'; c.anim = a; c.t = 10;
+  c.pose = BZ.clonePose(BZ.POSES[a] || BZ.POSES.sit);
+  if (q.get('walk')) { c.gait = q.get('walk'); c.phase = ci * 0.25 + r * 0.1; }
+  for (let k = 0; k < 60; k++) { c.t++; c.animate(); }
+  ctx.fillStyle = (r + ci) % 2 ? '#86a19d' : '#7f9a96'; ctx.fillRect(ci * cellW, r * cellH, cellW, cellH);
+  BZ.ellipse(ctx, c.x, c.y + 1, 26, 4, 'rgba(0,0,0,0.15)');
+  BZ.drawCat(ctx, c);
+}));
+</script></body></html>

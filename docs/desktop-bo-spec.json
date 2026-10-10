@@ -1,0 +1,333 @@
+{
+ "name": "Desktop Bo",
+ "version": "2.5.0",
+ "provenance_note": "breed_standard = CFA Cornish Rex standard (cfa.org/?p=21290); photos = Julia's reference photos of Bo; read_out = PF.Magic engine rules via petz.js kb; ours = choices made here",
+ "body": {
+  "source": "breed_standard + photos",
+  "head": "small egg (ball d17), Roman nose (nose low and forward of a high bridge), muzzle d5.5, cheeks d8",
+  "ears": "tapered linez 7.8 -> 0.8 wide, tip 16 units above base (taller than the head), pink inner line shown only when facing the viewer",
+  "eyes": "d7.2, oval-ish, slit pupil, Bo baseline lid 0.32 (indifferent half-lid) except when alert",
+  "neck": "two linez: chest->head (coat, 8 -> 6.5) + chin->chest throat (white, 3.2 -> 7); no neck ball, so no lump",
+  "back": "arched: back ball lifted 2.5, belly tucked up 4 (CFA 'tucked up' waistline); hips d16, chest d17, back d12, belly d10, topline linez 13 -> 10.5 -> 12.5",
+  "legs": "stands high: chest y30, hips y31; front IK 12+12 from shoulder at chest-1.8 (near-straight columns); hind IK thigh 7.5 + shank 10.5 (short thigh, long shank: knee rides up by the belly, long white lower leg), hock 11 above paw; thigh ball 9.5, thigh linez 6.5->3.6, knee 4.2",
+  "tail": "15 joints, 14 linez tapering 3.5 -> 1.2, dark brown; wrap mode (sit/loaf/crescent): drop to floor, sideways turn wide of the haunch, run forward along the flank, tip curls in over the paws, always on the viewer's side",
+  "coat": "marcel waves: staggered 2px dash rows every 3rd ball row, one shade darker, on coat/back/limb/belly/chest slots",
+  "outline": "no per-ball rims; one 1px silhouette outline from an offscreen alpha pass",
+  "palette_bo": {
+   "body": "#d0c0a0",
+   "points": "#3a3030 family (mask #685a58)",
+   "white": "#ebe6dd",
+   "eyes": "bright blue (boblue #4c9be8)",
+   "tail": "#4e3a2a"
+  },
+  "roll": "roll about the spine with the low side rested on the ground; the ground-rest is weighted by min(1, |roll|/35) and lerped pose values snap exactly to target within 0.01, so a cat that gets up from a flop/lounge/tussle is never left sunk into the floor"
+ },
+ "gait": {
+  "source": "ours",
+  "frame_ms": 33,
+  "walk": {
+   "sequence": "lateral: LH 0, LF .25, RH .5, RF .75",
+   "stance": 0.64,
+   "half_stride": 8.5,
+   "lift_front": "1.3x, peaks early (sin(pi*u^0.7))",
+   "lift_hind": "0.8x",
+   "swing_path": "eased with ~6% overreach then set down",
+   "flex": "front wrist leads and paw trails curled through 62% of swing, extends to reach; hind hock folds; heel peels in last 18% of stance",
+   "track": "narrow runway: front paws z +-2.7, hind +-3.1",
+   "girdles": "shoulder/haunch over the planted leg rises 1.3/0.8 (blades roll)",
+   "spine": "hip z sway 0.9, chest -0.7, back undulates 0.5",
+   "head": "slightly low and level, counter-bobs, yaw sways 2.5 deg, leads turns by up to 30 deg"
+  },
+  "speed": "eased toward target (walk 0.07/frame, run 0.16), slows into arrival (0.3 + 0.06*distance), amble +-14% on a slow sine; stride length scales with speed (0.35..1.1) so feet never skate",
+  "turning": "inside her turning circle she pivots on the spot with short shuffling steps (fix for circling); stuck counter 50 frames",
+  "creep": "low: chest -5, hips -4, head forward 3",
+  "run": "rotary gallop LF 0, RF .1, LH .5, RH .6, spine flex 3.5",
+  "rule": "any step is taken on long legs: gait on a low base pose (hipY < 29) switches the base to stand; stalking steps (creep gait, crouch or slink anim) use the slink pose",
+  "slink": "stalk pose: hips 27.5, chest 25, head 5 forward / 7 down, ears forward, tail low; crouch only for the last wiggle before a pounce"
+ },
+ "tail_dynamics": {
+  "source": "ours",
+  "model": "per-segment damped spring on elevation and side angle; k = 0.30 at base -> 0.10 at tip, damping 0.74; body turns push the tail opposite (dTheta * i/n * 0.9)",
+  "moods": {
+   "happy": {
+    "el": 82,
+    "curl": -4,
+    "hook": -42,
+    "amp": 4,
+    "speed": 0.09,
+    "when": "walking with love > 45, greeting"
+   },
+   "low": {
+    "el": 25,
+    "curl": -3,
+    "hook": -12,
+    "amp": 6,
+    "speed": 0.07,
+    "when": "walking, love low"
+   },
+   "quiver": {
+    "el": 88,
+    "hook": -30,
+    "amp": 3,
+    "speed": 0.9,
+    "when": "being petted standing or sitting"
+   },
+   "lash": {
+    "el": 18,
+    "amp": 26,
+    "speed": 0.32,
+    "when": "after a poke or being scruffed, belly trap"
+   },
+   "twitch": {
+    "amp": 7,
+    "speed": 0.7,
+    "when": "hunting, chasing"
+   },
+   "streak": {
+    "el": 8,
+    "hook": 6,
+    "when": "zoomies"
+   },
+   "flick": "tip-only pulse during naps and when tapped asleep"
+  }
+ },
+ "naps": {
+  "source": "photos + ours",
+  "styles": {
+   "baguette": "long low loaf: hips -17, chest 13, legs tucked, head forward and down, tail straight back",
+   "crescent": "curled round: hips and chest close, back domed 8, head tucked under and turned, tail wrapped",
+   "lounge": "roll 38, near foreleg flat forward, hind leg flat behind (the leg out), upper shoulder/haunch sunk into the body",
+   "sphinx": "loaf with forearms flat on the ground, paws out front, head up, eyes half closed",
+   "loaf": "compact: forelegs hidden under the chest (elbows in), only paw tips showing, hind legs tucked",
+   "flop": "on her side (roll 80 about the spine), legs out, ears relaxed back, waist balls fattened so no dog-bone silhouette; preferred in sunbeams"
+  },
+  "bo_weights": {
+   "baguette": 26,
+   "crescent": 24,
+   "lounge": 22,
+   "loaf": 14,
+   "sphinx": 14
+  },
+  "sequence": "walk to spot (sunbeam or pod sometimes) -> turn round once -> settle (loaf) -> style -> may shift style every 20-40s -> wake: stretch, yawn",
+  "drive": "energy need: drops while awake (scaled by sleepiness), restores while napping; nap weight = ((100-energy)/100)^1.6 * sleepy * 0.7",
+  "dangle": {
+   "source": "photos (refs/bo/bo-pillow-arm-hanging.jpg, bo-felt-cube-arm-out.jpg)",
+   "shape": "curled (backLift 6.5, head down -11, pitch -30), near foreleg ik to [27,-9,3.2]: poured out long and hanging below the bed surface; hind legs tucked; tail wrapped",
+   "where": "beds with an edge: pillow, ledge, daybed/seat, adk, cubby, ctable, stoop, tire, chairs; weighted up for Bo"
+  }
+ },
+ "personalities": {
+  "traits": [
+   "energy",
+   "sleepy",
+   "affection",
+   "chatty",
+   "curious",
+   "grass",
+   "sass"
+  ],
+  "bo": {
+   "energy": 25,
+   "sleepy": 88,
+   "affection": 72,
+   "chatty": 55,
+   "curious": 40,
+   "grass": 95,
+   "sass": 45,
+   "baseline": "indifferent"
+  },
+  "others": [
+   "Zoomy",
+   "Velcro",
+   "Diva"
+  ],
+  "needs": [
+   "belly",
+   "energy",
+   "love",
+   "greens"
+  ],
+  "bunny": {
+   "size": 0.8,
+   "tempo": 1.18,
+   "aloof": 22,
+   "nerve": 80,
+   "baseline": "curious",
+   "coat": "all white, gold/yellow eyes, pink ears/nose",
+   "shape": "head 1.06, ears 1.06 tall/.95 wide, limbs .82, body .88, tail .85",
+   "sass": 82,
+   "note": "older and tinier than Bo but the one who wallops her"
+  },
+  "adopt_order": [
+   "bunny"
+  ]
+ },
+ "items": {
+  "pod": "placeable egg bed; sleepy cats walk over, turn, hop in and nap clipped to the opening; one occupant",
+  "grass": "cat grass tray; 14 servings, nibbled blades get short, regrows 1 per ~36s; grazing = head down, sideways chew",
+  "catnip": "potted catnip; two nibbles -> ~14s zoomies -> flop nap; 200s cooldown",
+  "spider": "spider plant; bat the leaves, then nibble",
+  "yarn": "read_out ball physics (1/40 friction, edge bounce), chased with 4-frame lead",
+  "laser": "tool; stalk, butt wiggle, pounce",
+  "treat": "carry to make them beg, click to drop",
+  "bowl": "30 servings",
+  "sun": "placeable sunbeam: two nap slots, the comfort zone",
+  "chair": "armchair (first of the furniture line): perch and nap on the seat",
+  "drop_in_bed": "pick a cat up and let go over a free pod/chair: a pulsing ring marks it; she sits, loafs, then curls up (short nap unless tired)"
+ },
+ "ui": {
+  "mac": "menu-bar Bo icon -> toy-box panel (portrait, mood, belly/energy/love meters, where she lives, put-out grid, rexes, size, sound, open at login, quit); habitat window with its own title bar and Toy box button",
+  "placement": "pick a tile, the item follows the cursor, click to put it down; drag to move; x to put away"
+ },
+ "stretch": {
+  "source": "ours",
+  "sequence_frames": {
+   "gather (crouch)": "0-10",
+   "pour forward (lerp .035 -> .085)": "10-52",
+   "hold, tremble, yawn": "52-74",
+   "SNAP to back stretch (lerp .42)": "74-80",
+   "back stretch, one hind leg drawn out": "80-96",
+   "shake it off (head roll decays)": "96-112"
+  },
+  "front": "downward dog: forearms flat, paws 38 forward, chest y8, hips y28.5, spine dipped",
+  "back": "weight forward, hind leg extended to x -36 with hock folded"
+ },
+ "attention": {
+  "source": "ours",
+  "model": "per stimulus: noticed after a personal latency (Bo 22-70 frames), interest rises with salience x curiosity x play mood x tempo, falls with aloofness, grumpiness, boredom and fatigue, plus a slow ebb; she commits only above her own threshold",
+  "modes": "watch / stalk / chase / swat / groom, re-picked every 35-110 frames weighted by interest, aloofness, energy, distance and whether a buddy is already on it",
+  "boredom": "engaging one toy accrues boredom (0.0011/frame x aloofness); recovers slowly when apart",
+  "energy": "play drains energy; below 15 she drops out",
+  "still_toys": "a toy lying still has 35% of the distance salience, so a parked felt mouse doesn't trigger endless stalking"
+ },
+ "social": {
+  "source": "ours",
+  "relationship": "bond = 0.72 + 0.18 sin(slow phase) - tension/4 (love/hate/love); tension rises when crowding the same prey, cools in shared sunshine",
+  "states": [
+   "visit",
+   "groomBuddy",
+   "ambush",
+   "react",
+   "flee",
+   "chaseBuddy",
+   "follow",
+   "nap beside buddy"
+  ],
+  "comfort_zone": "when one sleeps in a sunbeam the other is strongly pulled (+16 x bond to nap weight, 14 x bond to take the slot beside her, mirroring her style); neither wakes while the other sleeps there",
+  "brawl": {
+   "source": "Julia: Bunny body-slammed Bo; chase-and-brawl fests, mostly napping together otherwise",
+   "start": "weight = play x energy/70 x sass/50 x bond x 6 (play, so bond not tension); target accepts with p = play*.6 + bond*.35 + sass/250 +-energy",
+   "phases": {
+    "approach": "brisk trot in",
+    "box": "both rear on hind legs trading cuffs, 40-80 frames",
+    "slam": "the feistier one hops and lands on the other, who goes over",
+    "roll": "bottom cat on her back kicking (roll 128), top cat pins from behind and nips the scruff, 45-90 frames",
+    "after": "55% loser flees + winner chases, 20% revenge chase, 25% both groom like nothing happened; 1-3 rounds"
+   },
+   "effects": "bond +0.04, tension -0.05, energy -8, play mood x0.6"
+  }
+ },
+ "sound": {
+  "source": "ours",
+  "voice": "sawtooth softened by a 2.4k low-pass + breath noise into 3 parallel formant filters gliding between cat-scale vowels (m 420/1500, i 720/2500, a 1150/1900, o 820/1350); master low-pass 5.2k + compressor, gain .32",
+  "meow": "mi-a-ow, f0 560 x pitch, Bo 0.86 and raspier",
+  "mew": "short questioning mew on pickup",
+  "trill": "mrrp: low (330 x pitch), rolled 26Hz flutter, rising",
+  "purr": "lowpassed noise pulsed ~25Hz with a slow breath cycle",
+  "hiss": "short breathy band, no alarm",
+  "rate_limit": "no two utterances within ~1s"
+ },
+ "hover_tag": "Name \u00b7 mood/awake state only",
+ "play": {
+  "source": "ours",
+  "modes": {
+   "watch": "sit/slink/sphinx/loaf by personality",
+   "stalk": "slink on long legs, crouch only for the final wiggle",
+   "chase": "leads the target 4 frames; random freeze-and-stare (16-44f); skids 10f when the target reverses under speed",
+   "swat": "alternating paws, 1-in-4 one-two double tap, per-cat cadence 12-22f (slower for aloof), Bo half-amplitude lazy taps; paw hooks inward",
+   "kick": "flop onto side hugging a ball toy, hind feet rake it, then fling it",
+   "toss": "scoop the toy into the air (z, gravity 0.32, bounce 0.38), rear up after it, bat it on the way down",
+   "crab": "arched sideways hop past the prey, then a lunge",
+   "wall": "laser above the floor line: trot under it, rear, spring (hop height scales with dot height), paw at it"
+  },
+  "pounces": {
+   "arc": "14f, 16 high",
+   "mouse": "19f, 27 high, 70% travel, lands in pin pose holding the toy",
+   "lunge": "9f, 5 high, ease-out, skids after"
+  }
+ },
+ "room": {
+  "source": "ours, after RollerCoaster Tycoon-era sprite craft (shade ramps + ordered dither, single light source, dense specific props, small ambient animation)",
+  "layers": [
+   "bg: dithered sage wall lit from the window, stencil sprigs, crown + picture rail, wainscot panels, chair rail, baseboard; perspective plank floor with per-plank tone, grain, knots, bevels; kilim rug; paned sunbeam; walnut bookcase with books, lamp, pampas, photo; two framed prints; wall clock",
+   "view: sky by real time of day (day/dawn/dusk/night ramps, stars, lit windows at night), far skyline, brick and limestone fronts, water tower, treetops, hanging bird feeder",
+   "clouds (drift)",
+   "pigeon (visits the feeder by day; cats chatter at it)",
+   "frame: trim, mullions, transom, glare, sill + succulent, curtain rod",
+   "curtains (linen fold ramp, sway)",
+   "clock hands (real time)",
+   "plants: hanging pothos, bird of paradise, philodendron on iron stand",
+   "light shaft + dust motes",
+   "[items, cats]",
+   "fg: monstera, pothos"
+  ]
+ },
+ "places": {
+  "source": "ours",
+  "keys": [
+   "room",
+   "yard",
+   "desk"
+  ],
+  "rule": "each place keeps its own item set (World.sets); habitat window shows room or yard; roam is desk",
+  "save": "v4 {sets:{room,yard,desk}, scene, savedAt}"
+ },
+ "surfaces": {
+  "source": "ours",
+  "what": "raised spots small things can sit on: room sill, bookTop, shelf1, shelf2, ctable; yard shelfTop, shelfMid, stand, landing",
+  "item_fields": "surf (key), su (0..1 along it), lift (px above its sort ground)",
+  "eligible": "non-bed, non-tool, non-snack, not the bowl",
+  "knock_off": "a cat in a bed with a surface (ledge->sill, ctable, stoop->landing, potTop->shelfTop) glances at you, swats 3-4 times, the thing falls with gravity and lands with a thunk"
+ },
+ "fixtures": {
+  "source": "ours",
+  "room": [
+   "ledgeL",
+   "ledgeR",
+   "daybed (+seat)",
+   "ctable",
+   "cubby (felt cube, clip = hole ellipse, dangle leg drawn over the lip)"
+  ],
+  "yard": [
+   "stoop (cats enter through the studio doors onto it)",
+   "potTop (ledge on the shelves)",
+   "tire (pendulum swing; cat rides it)",
+   "adk (+seat, white plush mat)"
+  ]
+ },
+ "garden": {
+  "source": "ours",
+  "plots": "wallBed (5 slots), lawnBed (7), patchA (3), patchB (3)",
+  "kinds": [
+   "catgrass (graze)",
+   "catmint (nip roll)",
+   "poppy",
+   "tulip",
+   "sunflower",
+   "lavender (sneeze)",
+   "cosmos",
+   "strawberry"
+  ],
+  "growth": "g seconds += 1 + 1.6*water every 30 frames; stages at 25 / 110 / 260; offline growth at 0.6x capped 2 h",
+  "tools": "seed packets, watering can (startles cats), trowel"
+ },
+ "yard": {
+  "source": "photos (refs/scenes/*) + ours",
+  "layers": "sky -> woods (3 hazed trunk/foliage layers, litter band) -> studio (clapboard 6px laps, white trim, windows reflect the woods, French doors drawn live) -> ground (lawn | flagstone Worley slabs with moss joints) -> plots -> plant-care corner -> deck/steps -> dapple (shade with punched flecks, double-drawn shimmer) -> sun pools -> [props: trunk, stone bunny; items; cats] -> life (leaves, butterflies, squirrel, fireflies) -> canopy -> phase tint",
+  "life": "2 butterflies by day (stimuli when low), leaves fall and lie, squirrel runs down the tree to the lawn and back (birdSpot for chatter), fireflies at night"
+ },
+ "chairs": {
+  "poppy": "tall (seat 27, arms 39.5, back 68 units), butter-cream ramp, coral 5-petal poppies on sage vines in a jittered repeat, T-cushion, welted base, skirt with kick pleats",
+  "dfly": "Louis XV bergere: cabriole legs, carved apron with a shell, serpentine top rail with a carved flower, padded arm manchettes, blue-gray checked damask with staggered gold dragonflies, twisted blue/gold cord"
+ }
+}

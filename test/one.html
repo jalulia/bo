@@ -1,0 +1,9 @@
+<!doctype html><html><body style="margin:0;background:#c9cdbf"><canvas id="c"></canvas>
+<script src="../src/raster.js"></script><script src="../src/rex.js"></script><script src="../src/cat.js"></script><script src="../src/items.js"></script>
+<script>
+const q = new URLSearchParams(location.search), t = q.get('t') || 'daybed', sc = +(q.get('s') || 1.5), PX = +(q.get('px') || 4);
+const cv = document.getElementById('c'); cv.width = 200; cv.height = 150; cv.style.width = cv.width * PX + 'px'; cv.style.imageRendering = 'pixelated';
+const g = cv.getContext('2d'); g.fillStyle = '#c3c7ba'; g.fillRect(0, 0, 200, 100); g.fillStyle = '#8a5b34'; g.fillRect(0, 100, 200, 50);
+const it = BZ.newItem(t, 100, 140); if (q.get('lump')) it.lump = { x: 100 + 2 * sc, y: 140 - 1 * sc + 1, dir: +(q.get('dir') || 1), tail: '#3a2a22', ear: '#4a3a34', face: q.get('face') || '#d8c8b0', eye: '#3ccbdb', peek: +(q.get('peek') || 0), hop: 0 };
+BZ.drawItem(g, it, sc, 40);
+</script></body></html>

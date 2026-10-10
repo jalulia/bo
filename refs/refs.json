@@ -1,0 +1,511 @@
+{
+ "version": 1,
+ "updated": "2026-10-10",
+ "note": "Every reference Julia has sent. Photos downscaled to 2000px JPEG, videos to 720p H.264 (no audio). Add new ones here and in refs/README.md.",
+ "refs": [
+  {
+   "file": "refs/bo/bo-standing-monstera-albo.jpg",
+   "category": "bo",
+   "received": "2026-10-06",
+   "shows": "Bo standing on a table beside a big variegated monstera albo; full-body proportions",
+   "informs": "Bo's body proportions: long legs, tucked waist, huge ears; the albo plant",
+   "source": "dc83fd6f-image.png"
+  },
+  {
+   "file": "refs/bo/bo-loaf-closeup.jpg",
+   "category": "bo",
+   "received": "2026-10-08",
+   "shows": "Bo loafing on a blanket, front view, eyes half closed",
+   "informs": "loaf pose, face mask shape, eye color, sleepy lids",
+   "source": "9541ccb4-image.png"
+  },
+  {
+   "file": "refs/bo/bo-sill-under-monstera.jpg",
+   "category": "bo",
+   "received": "2026-10-08",
+   "shows": "Bo on the window sill cushion under monstera leaves, sun",
+   "informs": "window-sill perch, sun napping",
+   "source": "9a1ee1c6-image.png"
+  },
+  {
+   "file": "refs/bo/bo-sill-loaf-side.jpg",
+   "category": "bo",
+   "received": "2026-10-08",
+   "shows": "Bo loafed on the sill cushion in sun, side view",
+   "informs": "loaf silhouette from the side; sill cushion",
+   "source": "3d16b675-image.png"
+  },
+  {
+   "file": "refs/bo/bo-loaf-contact-sheet.jpg",
+   "category": "bo",
+   "received": "2026-10-08",
+   "shows": "Bo loafing by a bookshelf plus three smaller crops",
+   "informs": "loaf and curl shapes",
+   "source": "1e928d1f-image.png"
+  },
+  {
+   "file": "refs/bo/bo-pillow-arm-hanging.jpg",
+   "category": "bo",
+   "received": "2026-10-08",
+   "shows": "Bo curled on a gray pillow with one foreleg stretched out and hanging",
+   "informs": "the 'dangle' nap: curled, one arm languidly out (requested 2026-10-10)",
+   "source": "3950d12f-image.png"
+  },
+  {
+   "file": "refs/bo/bo-felt-cube-peek.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo peeking out of the round hole of a gray felt cube cat cave on a bookshelf, paws on a black shag cushion",
+   "informs": "bookshelf cubby; face framed by the hole",
+   "source": "d73e949a-image.png"
+  },
+  {
+   "file": "refs/bo/bo-felt-cube-drowsy.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo drowsing in the felt cube, chin on the shag",
+   "informs": "cubby nap",
+   "source": "ad0caab9-image.png"
+  },
+  {
+   "file": "refs/bo/bo-felt-cube-arm-out.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo asleep in the felt cube with one foreleg hanging out of the hole",
+   "informs": "the 'dangle' leg over the cubby lip",
+   "source": "2bb7b504-image.png"
+  },
+  {
+   "file": "refs/bo/bo-curled-sherpa-blanket.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo curled asleep on a taupe sherpa blanket on the couch",
+   "informs": "curl nap on blankets; blanket texture",
+   "source": "e6b8effa-image.png"
+  },
+  {
+   "file": "refs/bo/bo-bookshelf-cubby-plush.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo sitting in a bookshelf cubby on a plush bed among magazines, tongue out",
+   "informs": "bookshelf cubby; tongue-out blep",
+   "source": "0be81629-image.png"
+  },
+  {
+   "file": "refs/bo/bo-blanket-cocoon-leg-out.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo wrapped in a sherpa blanket like a hood, one hind leg sticking out, tongue out",
+   "informs": "blanket burrow + peek; hood of blanket over her head",
+   "source": "2e40fbbe-image.png"
+  },
+  {
+   "file": "refs/bo/bo-sill-sun-loaf-back.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo loafing on the felt sill pad in hard sun, monstera albo beside her",
+   "informs": "sill perch, light, the albo",
+   "source": "6e279ff0-image.png"
+  },
+  {
+   "file": "refs/bo/bo-sill-grooming-back.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo from behind on the sill pad grooming a paw, looking out the window",
+   "informs": "groom (paw wash) seen from behind; sill",
+   "source": "602ffca5-image.png"
+  },
+  {
+   "file": "refs/bo/bo-sill-regal-lounge.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo lounging on the sill pad, foreleg forward, tail curled round, red-lit ears",
+   "informs": "lounge pose; ear translucency; tail wrap",
+   "source": "021f19e9-image.png"
+  },
+  {
+   "file": "refs/bo/bo-sill-sit-leg-out.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo half-curled on the sill pad, one foreleg slid way out in front",
+   "informs": "dangle/reach variant on a flat surface",
+   "source": "caf75495-image.png"
+  },
+  {
+   "file": "refs/bo/bo-rooftop-bench-sit.jpg",
+   "category": "bo",
+   "received": "2026-10-10",
+   "shows": "Bo sitting upright on a rooftop bench, tail curled round her feet",
+   "informs": "upright sit; tail wrap; marcel-wave coat",
+   "source": "e2f44f84-image.png"
+  },
+  {
+   "file": "refs/together/both-couch-sunbeam.jpg",
+   "category": "together",
+   "received": "2026-10-10",
+   "shows": "Bo and Bunny stacked on a couch cushion in a hard sunbeam",
+   "informs": "the comfort zone: sun naps together",
+   "source": "1af45087-image.jpg"
+  },
+  {
+   "file": "refs/together/both-adirondack-mat.jpg",
+   "category": "together",
+   "received": "2026-10-10",
+   "shows": "Bunny and Bo loafed together on a white plush mat on an Adirondack chair",
+   "informs": "yard Adirondack chair with the mat, napping as a pair",
+   "source": "06b0cc38-image.jpg"
+  },
+  {
+   "file": "refs/together/both-sweaters-lamp-1.jpg",
+   "category": "together",
+   "received": "2026-10-10",
+   "shows": "Both cats in cream knit sweaters with green and brown ribbon bows on a mahogany table under a brass lamp",
+   "informs": "sweaters with bows (surprise item, backlog); the lamp table",
+   "source": "c99c0506-image.jpg"
+  },
+  {
+   "file": "refs/together/both-sweaters-lamp-2.jpg",
+   "category": "together",
+   "received": "2026-10-10",
+   "shows": "Same scene, closer",
+   "informs": "sweaters, bows",
+   "source": "0c15a911-image.jpg"
+  },
+  {
+   "file": "refs/together/both-sweaters-lamp-3.jpg",
+   "category": "together",
+   "received": "2026-10-10",
+   "shows": "Same scene, another angle",
+   "informs": "sweaters, bows",
+   "source": "b0b48ede-image.jpg"
+  },
+  {
+   "file": "refs/furniture/coffee-table-carved.jpg",
+   "category": "furniture",
+   "received": "2026-10-10",
+   "shows": "Carved antique coffee table with cabriole legs and ball-and-claw feet",
+   "informs": "the room's carved coffee table",
+   "source": "773a1026-image.png"
+  },
+  {
+   "file": "refs/furniture/daybed-burl-sleigh.jpg",
+   "category": "furniture",
+   "received": "2026-10-10",
+   "shows": "Burl sleigh daybed with a gray velvet mattress and pleated bolsters",
+   "informs": "the room's daybed",
+   "source": "574c553f-image.png"
+  },
+  {
+   "file": "refs/furniture/chair-poppy-with-bo.jpg",
+   "category": "furniture",
+   "received": "2026-10-10",
+   "shows": "Butter-cream armchair with coral poppies on sage vines, rolled arms, skirt; Bo on the seat",
+   "informs": "Poppy chair (tall proportions)",
+   "source": "dafd60a0-image.jpg"
+  },
+  {
+   "file": "refs/furniture/chair-dragonfly-damask.jpg",
+   "category": "furniture",
+   "received": "2026-10-10",
+   "shows": "Pale blue-gray checked damask with gold dragonflies, carved fruitwood frame, twisted cord; felted bags on the seat",
+   "informs": "Dragonfly chair; felted bags (surprise item, backlog)",
+   "source": "c7073e83-image.jpg"
+  },
+  {
+   "file": "refs/plants/monstera-albo.jpg",
+   "category": "plants",
+   "received": "2026-10-10",
+   "shows": "Julia's variegated monstera albo",
+   "informs": "Monstera albo plant",
+   "source": "a6f4b4cc-image.png"
+  },
+  {
+   "file": "refs/plants/plants-and-pod.jpg",
+   "category": "plants",
+   "received": "2026-10-06",
+   "shows": "Room corner: pod bed among big tropical plants",
+   "informs": "pod + jungle plant styling",
+   "source": "59571d45-image.png"
+  },
+  {
+   "file": "refs/scenes/yard-studio-patio.jpg",
+   "category": "scenes",
+   "received": "2026-10-10",
+   "shows": "The green clapboard art studio: white-trim windows, French doors, wooden steps; flagstone patio with moss; the plant-care shelves, rake, wire stand, stone bunny",
+   "informs": "Backyard scene",
+   "source": "b12307ae-image.jpg"
+  },
+  {
+   "file": "refs/scenes/yard-woods-tire-swing.jpg",
+   "category": "scenes",
+   "received": "2026-10-10",
+   "shows": "Woods with leaf litter behind a lawn; tire swing on a big tree",
+   "informs": "Backyard scene: woods, lawn, tire swing",
+   "source": "b49de614-image.jpg"
+  },
+  {
+   "file": "refs/technique/ballz-notes-1.jpg",
+   "category": "technique",
+   "received": "2026-10-06",
+   "shows": "Notes / screenshots on the PF Magic Ballz technique",
+   "informs": "rendering technique (see docs/ballz-technique.json)",
+   "source": "18a24c56-image.png"
+  },
+  {
+   "file": "refs/technique/ballz-notes-2.jpg",
+   "category": "technique",
+   "received": "2026-10-06",
+   "shows": "More technique notes",
+   "informs": "rendering technique",
+   "source": "8608ce65-image.png"
+  },
+  {
+   "file": "refs/technique/ballz-sprite-on-black.jpg",
+   "category": "technique",
+   "received": "2026-10-06",
+   "shows": "A Catz/Ballz sprite on black",
+   "informs": "sprite read",
+   "source": "4272e58e-image.png"
+  },
+  {
+   "file": "refs/technique/petz-ui-windows.jpg",
+   "category": "technique",
+   "received": "2026-10-06",
+   "shows": "Classic Petz/Catz window UI",
+   "informs": "period UI reference",
+   "source": "4b069b08-image.png"
+  },
+  {
+   "file": "refs/technique/catz-site.jpg",
+   "category": "technique",
+   "received": "2026-10-06",
+   "shows": "Catz era web page with sprites",
+   "informs": "period reference",
+   "source": "071a22c9-image.png"
+  },
+  {
+   "file": "refs/motion/bunny-walk-harness-bow.mp4",
+   "category": "motion",
+   "received": "2026-10-10",
+   "shows": "Bunny walking around the living room in a harness with a brown ribbon bow; Persian rug, carved coffee table, patterned chair",
+   "informs": "Bunny's walk, tail carriage (up, hooked); the bow; living room",
+   "source": "2cb854f5-IMG_1104.MOV"
+  },
+  {
+   "file": "refs/motion/bo-play-bed-string.mp4",
+   "category": "motion",
+   "received": "2026-10-10",
+   "shows": "Bo playing with a string on a white duvet: crouch, wiggle, pounce, long stretched lunge",
+   "informs": "pounce/lunge timing and the long reach",
+   "source": "6e7740f0-IMG_3016.mov"
+  },
+  {
+   "file": "refs/motion/bo-play-couch-crab.mp4",
+   "category": "motion",
+   "received": "2026-10-10",
+   "shows": "Bo on the couch: arched back, high hips, tail up in an S, sideways hops and swats",
+   "informs": "crab hop, arched play posture, long hind legs, tail S-curve",
+   "source": "02903d30-IMG_2399.mov"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-464c1971.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "early Bo render",
+   "source": "464c1971-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-4c957cf2.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bo on black, legs",
+   "source": "4c957cf2-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-55bc84a4.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bo napping leg out",
+   "source": "55bc84a4-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-1a86382b.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "room early",
+   "source": "1a86382b-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-c6106a72.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "room, legs",
+   "source": "c6106a72-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-ce42821a.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bo rolled, legs",
+   "source": "ce42821a-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-46431fb5.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bo hungry sit",
+   "source": "46431fb5-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-4d05eecc.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bo stretch",
+   "source": "4d05eecc-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-08-a6f94b33.png",
+   "category": "app-feedback",
+   "received": "2026-10-08",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "desktop mode",
+   "source": "a6f94b33-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-6811f991.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bunny curious",
+   "source": "6811f991-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-9506dac4.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "room wide",
+   "source": "9506dac4-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-249070a3.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "room wide",
+   "source": "249070a3-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-a37ed353.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "stuck in ground",
+   "source": "a37ed353-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-dc8cf64e.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "stuck in ground",
+   "source": "dc8cf64e-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-df55c175.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "stretch / walk",
+   "source": "df55c175-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-1e77acc6.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "Bunny curious",
+   "source": "1e77acc6-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-09-96cbb2b9.png",
+   "category": "app-feedback",
+   "received": "2026-10-09",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "stuck after wake",
+   "source": "96cbb2b9-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-fcb4e65c.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "stumpy legs",
+   "source": "fcb4e65c-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-b33ddf92.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "stumpy legs",
+   "source": "b33ddf92-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-d08634ff.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "chat screenshot",
+   "source": "d08634ff-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-c166e7e6.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "wall stretch idea",
+   "source": "c166e7e6-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-9c77f69f.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "crude daybed: 'a wee bit better'",
+   "source": "9c77f69f-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-905df7ad.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "room: pod size, fixtures, bookcase",
+   "source": "905df7ad-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-bbbf37fe.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "poppy chair: make taller",
+   "source": "bbbf37fe-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-10-6295c072.png",
+   "category": "app-feedback",
+   "received": "2026-10-10",
+   "shows": "screenshot of the app sent as feedback",
+   "informs": "blanket lump doesn't read",
+   "source": "6295c072-image.png"
+  }
+ ]
+}

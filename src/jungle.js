@@ -1,0 +1,838 @@
+// ─── Bo's Jungle: the habitat room (ours) ──────────────────────────────────
+// Painted the way RollerCoaster Tycoon-era sprite art was: every material is a
+// short shade ramp, mixed with a 4x4 ordered dither instead of smooth
+// gradients; one light source (the window, upper right) puts a highlight on
+// every top/left edge and a shadow on every bottom/right edge; and the room is
+// dense with small, specific things, some of them quietly alive (clouds, the
+// curtains, dust in the sunbeam, the clock, a pigeon that visits the ledge).
+// Layers: bg (wall, floor, rug, furniture) → window view (sky, rooftops,
+// clouds, pigeon) → window frame → curtains → plants → dust → [items, cats] → fg.
+var BZ = window.BZ || (window.BZ = {});
+(function () {
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => v / 16);
+  const dith = (x, y) => BAYER[(y & 3) * 4 + (x & 3)];
+  const rampAt = (ramp, L, x, y) => ramp[Math.max(0, Math.min(ramp.length - 1, Math.floor(L + dith(x, y))))];
+  const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const mix = (a, b, t) => { const A = hex(a), B = hex(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+  const R = {
+    wall: ['#9ea395', '#a8ad9f', '#b2b7a9', '#bcc0b3', '#c5c9bc', '#ced1c5', '#d7d9ce', '#dfe1d7'],
+    panel: ['#b4b8aa', '#bfc3b5', '#c9ccbf', '#d2d5c9', '#dadcd1', '#e2e4da', '#eaebe3'],
+    wood: ['#4e2f19', '#5e3a20', '#6d4527', '#7b4f2d', '#875a35', '#93643c', '#9f6e44', '#ab7a4e', '#b8875a'],
+    walnut: ['#2a1a10', '#3e2616', '#55351f', '#6b4429', '#7f5333', '#95653f'],
+    trim: ['#a9ad9f', '#c6c9bd', '#dcded4', '#eceee6', '#f8f9f4'],
+    linen: ['#cdbfa8', '#d9cdb8', '#e4dac8', '#eee6d7', '#f6f1e6'],
+  };
+  const BOOKS = ['#c9963a', '#3f6f6a', '#b5583c', '#e6d9bf', '#34446b', '#7a8f5a', '#7b4b6a', '#d8b48a', '#2f5d5a', '#a8432f'];
+  const PHASES = {
+    day:   { sky: ['#5f9fd2', '#7cb4de', '#9cc8e7', '#bcdbee', '#d6e9f3'], far: '#9fb3c2', beam: 1, cloud: ['#ffffff', '#e4eef4', '#c9d9e4'], lit: 0 },
+    dawn:  { sky: ['#8a9fcf', '#b0b3d6', '#d9c1c9', '#f1cdb4', '#f8dcbc'], far: '#b5a9b8', beam: 0.7, cloud: ['#fff1e4', '#f3d4c4', '#d9b3b0'], lit: 0.15 },
+    dusk:  { sky: ['#3e4685', '#6a5d97', '#b56f86', '#e8946a', '#f5b878'], far: '#7d6a85', beam: 0.55, cloud: ['#f7c6a0', '#d88f86', '#8d6a86'], lit: 0.35 },
+    night: { sky: ['#0d1430', '#131d3e', '#1a274c', '#22325a', '#2b3d66'], far: '#1c2645', beam: 0.18, cloud: ['#3a4672', '#2e3961', '#242e52'], lit: 0.6 },
+  };
+  function phaseNow() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 5.5 || h >= 20.5 ? 'night' : h < 8 ? 'dawn' : h < 17.5 ? 'day' : 'dusk'; }
+  function mk() { return document.createElement('canvas'); }
+  function ell(ctx, cx, cy, rx, ry, col) { BZ.ellipse(ctx, cx, cy, rx, ry, col); }
+  function ellRing(ctx, cx, cy, rx, ry, col) { let px = null, py = null; for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry; if (px !== null) BZ.drawThin(ctx, px, py, x, y, col); px = x; py = y; } }
+  function px(g, x, y, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), 1, 1); }
+  function rect(g, x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+  // a bevelled box: base fill, light top/left edge, dark bottom/right edge (light from the window, upper right → we bias top)
+  function bevel(g, x, y, w, h, base, hi, lo) { rect(g, x, y, w, h, base); rect(g, x, y, w, 1, hi); rect(g, x, y, 1, h, hi); rect(g, x, y + h - 1, w, 1, lo); rect(g, x + w - 1, y, 1, h, lo); }
+  function leafPts(x, y, len, wid, ang, notch) {
+    const top = [], bot = [], c = Math.cos(ang), s = Math.sin(ang), n = 14;
+    for (let i = 0; i <= n; i++) { const t = i / n; let w = wid * Math.pow(Math.sin(Math.PI * t), 0.75); if (notch && t < 0.18) w *= t / 0.18; top.push([t * len, -w]); bot.push([t * len, w]); }
+    return top.concat(bot.reverse()).map(([u, v]) => [x + u * c - v * s, y + u * s + v * c]);
+  }
+  function leaf(ctx, x, y, len, wid, ang, col, rib, opt = {}) {
+    BZ.fillPoly(ctx, leafPts(x, y, len, wid, ang, opt.notch), col);
+    if (opt.edge) { const p = leafPts(x, y, len, wid, ang, opt.notch); for (let i = 1; i < p.length; i += 2) px(ctx, p[i][0], p[i][1], opt.edge); }
+    if (opt.hi) { const p = leafPts(x, y, len * 0.9, wid * 0.55, ang - 0.08, opt.notch); for (let i = 2; i < p.length / 2; i += 3) px(ctx, p[i][0], p[i][1], opt.hi); }
+    if (rib) BZ.drawThin(ctx, x, y, x + Math.cos(ang) * len * 0.92, y + Math.sin(ang) * len * 0.92, rib);
+  }
+
+  class Jungle {
+    constructor(world) { this.w = world; this.key = 'room'; this.bg = mk(); this.frame = mk(); this.over = mk(); this.fg = mk(); this.view = mk(); this.phase = null; this.bird = null; this.birdWait = 600 + Math.random() * 900; }
+    layout(st) {
+      this.st = st; const W = st.w, H = st.h;
+      this.floorY = Math.round(H * 0.5);
+      const F = this.floorY;
+      this.win = { x0: Math.round(W * 0.685), x1: Math.round(W * 0.965), y0: 18, y1: F - 50 };
+      // the sunbeam patch on the floor (panes of light), and its centre for the nap spot
+      const top = F + 14, bot = Math.round(H * 0.93), sh = W * 0.15;
+      this.beam = { top, bot, xa: W * 0.5, xb: W * 0.8, sh };
+      this.sun = { x: st.x + (this.beam.xa + this.beam.xb) / 2 - sh * 0.62, y: st.y + top + (bot - top) * 0.62 };
+      this.clouds = Array.from({ length: 5 }, (_, i) => ({ x: Math.random() * (this.win.x1 - this.win.x0 + 60) - 30, y: 4 + Math.random() * (this.win.y1 - this.win.y0) * 0.32, s: 0.6 + Math.random() * 0.8, v: 0.02 + Math.random() * 0.03, k: i }));
+      this.motes = Array.from({ length: 26 }, () => ({ u: Math.random(), v: Math.random(), p: Math.random() * 6.28, s: 0.4 + Math.random() }));
+      // the room's own furniture (fixtures, not toy-box things): the daybed against the wall, the carved table out on the rug
+      { const x0 = Math.round(W * 0.23), x1 = Math.round(W * 0.46); this.bookcase = { x0, x1, topY: F - 70, baseY: F + 5, mid: F - 38 }; this.cube = { x0: x1 - 50, x1: x1 - 6, y0: F - 35, y1: F - 2 }; this.cube.hx = Math.round((this.cube.x0 + this.cube.x1) / 2); this.cube.hy = this.cube.y1 - 15; }
+      this.furniture = [{ key: 'daybed', type: 'daybed', x: st.x + Math.round(W * 0.6), y: st.y + F + 17 }, { key: 'ctable', type: 'ctable', x: st.x + Math.round(W * 0.43), y: st.y + Math.round(F + (H - F) * 0.62) }];
+      this.paint();
+    }
+    paint() {
+      this.phase = phaseNow(); const P = PHASES[this.phase];
+      const { w: W, h: H } = this.st, F = this.floorY;
+      for (const c of [this.bg, this.frame, this.over, this.fg]) { c.width = W; c.height = H; }
+      this.paintWall(W, H, F); this.paintFloor(W, H, F, P); this.paintFurniture(W, H, F, P);
+      this.paintView(P); this.paintFrame(W, H, F); this.paintPlants(W, H, F); this.paintFront(W, H);
+    }
+
+    // ── wall: dithered sage with the window's light pooling around it, stencil sprigs, wainscot, mouldings ──
+    paintWall(W, H, F) {
+      const g = this.bg.getContext('2d'), wn = this.win, wcx = (wn.x0 + wn.x1) / 2, wcy = (wn.y0 + wn.y1) / 2;
+      const img = g.createImageData(W, F), d = img.data, rail = F - 44, cornerX = Math.round(W * 0.06);
+      const panelL = (x, y) => 3.2 + 1.6 * Math.exp(-(((x - wcx) / (W * 0.32)) ** 2) - (((y - wcy) / (F * 0.9)) ** 2)) - (x < cornerX ? 1.6 : 0);
+      for (let y = 0; y < F; y++) for (let x = 0; x < W; x++) {
+        const ramp = y > rail ? R.panel : R.wall;
+        let L = y > rail ? panelL(x, y) : 3.0 + 2.2 * Math.exp(-(((x - wcx) / (W * 0.3)) ** 2) - (((y - wcy) / (F * 0.8)) ** 2)) - 0.9 * Math.max(0, 1 - y / 26) + 0.6 * (y / F);
+        if (x < cornerX) L -= 1.7 - (x / cornerX) * 0.4; // the side wall, out of the light
+        const c = hex(rampAt(ramp, L, x, y)), i = (y * W + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+      const r = BZ.rng(77);
+      // stencilled botanical sprigs, very quiet
+      for (let y = 30; y < rail - 8; y += 22) for (let x = ((y / 22) & 1) * 13 + 6; x < W; x += 26) {
+        if (x > wn.x0 - 22 && x < wn.x1 + 22 && y > wn.y0 - 10 && y < wn.y1 + 10) continue;
+        const c = x < cornerX ? '#a1a698' : '#b4b9ab';
+        px(g, x, y, c); px(g, x, y + 1, c); px(g, x, y + 2, c); px(g, x - 1, y, c); px(g, x + 1, y + 1, c); px(g, x - 2, y - 1, c); px(g, x + 2, y, c);
+      }
+      // crown moulding + picture rail
+      ['#8f9386', '#e9ebe2', '#d3d6ca', '#b9bdaf', '#a3a799'].forEach((c, i) => rect(g, 0, i, W, 1, c));
+      rect(g, 0, 13, W, 1, '#e4e6dc'); rect(g, 0, 14, W, 1, '#a6aa9c');
+      rect(g, cornerX, 0, 1, F, '#9a9e90'); rect(g, cornerX + 1, 0, 1, F, '#d4d7cb'); // the corner
+      // chair rail
+      ['#f2f3eb', '#e1e3d8', '#cbcec1', '#a5a99b'].forEach((c, i) => rect(g, 0, rail + i, W, 1, c));
+      // wainscot panels
+      for (let x = 8; x < W - 30; x += 46) {
+        if (x + 38 < cornerX) continue;
+        const y0 = rail + 9, h = F - 7 - y0 - 6;
+        rect(g, x, y0, 38, h, '#cdd0c3'); rect(g, x, y0, 38, 1, '#b0b4a6'); rect(g, x, y0, 1, h, '#b0b4a6'); rect(g, x, y0 + h - 1, 38, 1, '#eceee5'); rect(g, x + 37, y0, 1, h, '#eceee5');
+      }
+      // baseboard
+      ['#f4f4ed', '#e6e6dd', '#d8d8ce', '#d8d8ce', '#c6c6ba', '#a2a295', '#727268'].forEach((c, i) => rect(g, 0, F - 7 + i, W, 1, c));
+      // art above the bookcase, the clock, and the window's cast shadow
+      this.paintArt(g, W, F);
+      const cx = Math.round(W * 0.6), cy = 34; this.clock = { x: cx, y: cy, r: 9 };
+      ell(g, cx + 1, cy + 1, 10, 10, '#9a9e90'); ell(g, cx, cy, 10, 10, '#2e2b28'); ell(g, cx, cy, 8.5, 8.5, '#f4efe2'); ell(g, cx - 2, cy - 2, 5, 5, '#fbf8ef');
+      for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; px(g, cx + Math.cos(a) * 7, cy + Math.sin(a) * 7, k % 3 ? '#9c958a' : '#2e2b28'); }
+      void r;
+    }
+    paintArt(g, W, F) {
+      // a botanical print (black frame, cream mat) and a little sun-and-hills (oak frame)
+      const a = { x: Math.round(W * 0.245), y: 30, w: 30, h: 40 }, b = { x: Math.round(W * 0.335), y: 40, w: 30, h: 28 };
+      rect(g, a.x + 2, a.y + 2, a.w, a.h, '#a3a799'); rect(g, a.x, a.y, a.w, a.h, '#1f1c1a'); rect(g, a.x + 2, a.y + 2, a.w - 4, a.h - 4, '#efe8d8'); rect(g, a.x + 4, a.y + 4, a.w - 8, a.h - 8, '#f7f2e6');
+      BZ.drawThin(g, a.x + a.w / 2, a.y + a.h - 7, a.x + a.w / 2 - 1, a.y + 14, '#4f6b3a');
+      leaf(g, a.x + a.w / 2 - 1, a.y + 18, 13, 6, -2.2, '#2f5d36', '#7ea36a', { notch: true }); leaf(g, a.x + a.w / 2, a.y + 24, 11, 5, -0.7, '#3b6f3f', '#8db37a', { notch: true });
+      rect(g, a.x + 6, a.y + a.h - 6, a.w - 12, 1, '#c9bfa9');
+      rect(g, b.x + 2, b.y + 2, b.w, b.h, '#a3a799'); bevel(g, b.x, b.y, b.w, b.h, '#a5784a', '#c99a66', '#6e4a2a');
+      const ix = b.x + 3, iy = b.y + 3, iw = b.w - 6, ih = b.h - 6; rect(g, ix, iy, iw, ih, '#cfd8c4');
+      ell(g, ix + iw * 0.62, iy + ih * 0.42, 4.5, 4.5, '#e2a63c');
+      BZ.fillPoly(g, [[ix, iy + ih], [ix, iy + ih * 0.62], [ix + iw * 0.3, iy + ih * 0.5], [ix + iw * 0.6, iy + ih * 0.7], [ix + iw, iy + ih * 0.56], [ix + iw, iy + ih]], '#b5583c');
+      BZ.fillPoly(g, [[ix, iy + ih], [ix, iy + ih * 0.82], [ix + iw * 0.45, iy + ih * 0.72], [ix + iw, iy + ih * 0.86], [ix + iw, iy + ih]], '#8a3f2c');
+    }
+
+    // ── floor: perspective planks with grain, knots, bevels; the kilim; the paned sunbeam ──
+    paintFloor(W, H, F, P) {
+      const g = this.bg.getContext('2d'), r = BZ.rng(4242), wx = (this.win.x0 + this.win.x1) / 2;
+      let y = F + 1, row = 0;
+      while (y < H) {
+        const t = (y - F) / (H - F), h = Math.round(4 + 6 * t);
+        let x = -Math.floor(r() * 80);
+        while (x < W) {
+          const L = Math.round((70 + r() * 70) * (0.8 + 0.5 * t)), mid = x + L / 2;
+          let k = 2 + Math.floor(r() * 4) + (Math.abs(mid - wx) < W * 0.25 ? 1 : 0) - (mid < W * 0.15 ? 1 : 0);
+          k = Math.max(1, Math.min(R.wood.length - 2, k));
+          rect(g, x, y, L, h, R.wood[k]);
+          rect(g, x, y, L, 1, R.wood[k + 1]); rect(g, x, y + h - 1, L, 1, R.wood[0]);
+          for (let s = 0; s < 2 + h / 3; s++) { const gx = x + r() * L, gl = 6 + r() * 26, gy = y + 1 + Math.floor(r() * Math.max(1, h - 2)); rect(g, gx, gy, gl, 1, R.wood[k - 1]); } // grain
+          if (r() < 0.12) { const kx = x + 8 + r() * (L - 16), ky = y + h / 2; ell(g, kx, ky, 2, 1, R.wood[k - 1]); px(g, kx, ky, R.wood[0]); } // a knot
+          rect(g, x, y, 1, h, R.wood[0]); rect(g, x + 1, y, 1, h - 1, R.wood[k + 1]); // butt joint
+          x += L;
+        }
+        y += h; row++;
+      }
+      for (let i = 0; i < 4; i++) rect(g, 0, F + 1 + i, W, 1, `rgba(20,10,0,${0.28 - i * 0.07})`); // contact shadow under the baseboard
+      this.paintRug(g, W, H, F);
+      // the paned sunbeam: three columns of light split by the mullion shadows, two rows split by the transom
+      const B = this.beam, a = 0.2 * P.beam, at = (yy) => (yy - B.top) / (B.bot - B.top);
+      const quad = (u0, u1, v0, v1, col) => {
+        const xl = (v) => B.xa - B.sh * v, wid = B.xb - B.xa;
+        const y0 = B.top + (B.bot - B.top) * v0, y1 = B.top + (B.bot - B.top) * v1;
+        BZ.fillPoly(g, [[xl(v0) + wid * u0, y0], [xl(v0) + wid * u1, y0], [xl(v1) + wid * u1, y1], [xl(v1) + wid * u0, y1]], col);
+      };
+      const tint = this.phase === 'night' ? '200,215,255' : this.phase === 'dusk' ? '255,196,140' : '255,228,168';
+      for (const [u0, u1] of [[0, 0.315], [0.345, 0.655], [0.685, 1]]) for (const [v0, v1] of [[0, 0.43], [0.48, 1]]) { quad(u0, u1, v0, v1, `rgba(${tint},${a})`); quad(u0 + 0.03, u1 - 0.03, v0 + 0.05, v1 - 0.05, `rgba(${tint},${a * 0.45})`); }
+      void at;
+    }
+    paintRug(g, W, H, F) {
+      const top = Math.round(F + (H - F) * 0.36), bot = H - 7, xl0 = W * 0.17, xr0 = W * 0.75, xl1 = W * 0.08, xr1 = W * 0.84;
+      const RW = 104, RH = 40, r = BZ.rng(31);
+      const C = { edge: '#3b2c34', mus: '#c9963a', musD: '#a87a2c', cream: '#e6d9bf', base: '#8e4a43', baseD: '#7a3d38', ind: '#3f4f78', indL: '#5a6c98', sage: '#7d8f6a' };
+      for (let y = top; y <= bot; y++) {
+        const v = (y - top) / (bot - top), xl = xl0 + (xl1 - xl0) * v, xr = xr0 + (xr1 - xr0) * v;
+        for (let x = Math.ceil(xl); x <= xr; x++) {
+          const U = ((x - xl) / (xr - xl)) * RW, V = v * RH; let c;
+          if (U < 2 || U > RW - 2 || V < 1.5 || V > RH - 1.5) c = C.edge;
+          else if (U < 5 || U > RW - 5 || V < 3.5 || V > RH - 3.5) c = (Math.floor(U) + Math.floor(V)) % 4 < 2 ? C.mus : C.musD; // stepped border band
+          else if (U < 6.5 || U > RW - 6.5 || V < 4.6 || V > RH - 4.6) c = C.cream;
+          else {
+            const cu = Math.round((U - 6) / 16) * 16 + 6, cv = Math.round((V - 2) / 12) * 12 + 2, dd = Math.abs(U - cu) / 8 + Math.abs(V - cv) / 6;
+            const cu2 = Math.floor((U - 6) / 16) * 16 + 14, cv2 = Math.floor((V - 2) / 12) * 12 + 8, d2 = Math.abs(U - cu2) / 4 + Math.abs(V - cv2) / 3;
+            c = dd < 0.22 ? C.mus : dd < 0.42 ? C.ind : dd < 0.55 ? C.cream : dd < 0.68 ? C.indL : d2 < 0.5 ? C.sage : (Math.floor(V) % 6 === 0 && Math.floor(U) % 3 === 0) ? C.baseD : C.base;
+          }
+          if (r() < 0.03) c = mix(c, '#d8c8b0', 0.25); // wear
+          px(g, x, y, c);
+        }
+        if (y % 2 === 0) { px(g, xl - 1, y, '#efe6d4'); px(g, xl - 2, y, '#d9ccb4'); px(g, xr + 1, y, '#efe6d4'); px(g, xr + 2, y, '#d9ccb4'); } // fringe
+      }
+      for (let x = xl1; x < xr1; x++) px(g, x, bot + 1, 'rgba(20,10,0,0.35)');
+    }
+
+    // ── bookcase with books, lamp and pampas; its contact shadow ──
+    paintFurniture(W, H, F, P) {
+      const g = this.bg.getContext('2d'), r = BZ.rng(9001), Wd = R.walnut;
+      const { x0, x1, topY, baseY, mid } = this.bookcase, w = x1 - x0, cb = this.cube;
+      rect(g, x0 - 2, baseY - 1, w + 6, 3, 'rgba(20,10,0,0.28)');
+      bevel(g, x0, topY, w, baseY - topY, Wd[2], Wd[3], Wd[0]);
+      rect(g, x0 - 2, topY - 3, w + 4, 3, Wd[4]); rect(g, x0 - 2, topY - 3, w + 4, 1, Wd[5]); rect(g, x0 - 2, topY - 1, w + 4, 1, Wd[1]); // top board
+      rect(g, x0 + 2, baseY - 5, w - 4, 4, Wd[1]); rect(g, x0 + 3, baseY, 2, 2, Wd[0]); rect(g, x1 - 5, baseY, 2, 2, Wd[0]); // plinth, feet
+      const shelves = [[topY + 3, mid, x1 - 6], [mid + 3, baseY - 7, cb.x0 - 3]];
+      for (const [sy0, sy1, bxEnd] of shelves) {
+        rect(g, x0 + 3, sy0, w - 6, sy1 - sy0, Wd[0]); rect(g, x0 + 3, sy0, w - 6, 1, '#1a100a');
+        rect(g, x0 + 3, sy1, w - 6, 2, Wd[4]); rect(g, x0 + 3, sy1, w - 6, 1, Wd[5]);
+        let bx = x0 + 4; const bh = sy1 - sy0;
+        while (bx < bxEnd - 3) {
+          const q = r();
+          if (q < 0.1 && bx < bxEnd - 15) { // a stack lying flat
+            for (let k = 0; k < 3; k++) { const c = BOOKS[Math.floor(r() * BOOKS.length)], ww = 11 + Math.floor(r() * 4); bevel(g, bx, sy1 - 3 * (k + 1), ww, 3, c, mix(c, '#ffffff', 0.25), mix(c, '#000000', 0.35)); }
+            bx += 16; continue;
+          }
+          if (q < 0.2) { bx += 3 + Math.floor(r() * 4); continue; } // a gap
+          const c = BOOKS[Math.floor(r() * BOOKS.length)], ww = 3 + Math.floor(r() * 3), hh = Math.round(bh * (0.68 + r() * 0.3));
+          if (q > 0.93 && bx < bxEnd - 10) { // one leaning over
+            BZ.fillPoly(g, [[bx, sy1], [bx + ww, sy1], [bx + ww + hh * 0.45, sy1 - hh * 0.9], [bx + hh * 0.45, sy1 - hh * 0.9]], c); bx += ww + Math.ceil(hh * 0.45) + 1; continue;
+          }
+          bevel(g, bx, sy1 - hh, ww, hh, c, mix(c, '#ffffff', 0.28), mix(c, '#000000', 0.38));
+          if (r() < 0.6) rect(g, bx, sy1 - hh + 2, ww, 1, mix(c, '#f3e6c0', 0.55)); // spine band
+          if (r() < 0.4) rect(g, bx, sy1 - 4, ww, 1, mix(c, '#000000', 0.25));
+          bx += ww;
+        }
+      }
+      // the felt cube in the lower right compartment: dark inside, a black shaggy cushion at the bottom of the hole (its felt face is drawn in front of whoever's in it)
+      rect(g, cb.x0 - 1, mid + 3, cb.x1 - cb.x0 + 4, baseY - 7 - mid - 3, '#1c1410'); rect(g, cb.x0 - 2, mid + 3, 1, baseY - 7 - mid - 3, Wd[2]); // divider
+      rect(g, cb.x0, cb.y0, cb.x1 - cb.x0, cb.y1 - cb.y0, '#141214');
+      for (let i = 0; i < 50; i++) { const a = Math.PI * (0.05 + 0.9 * (i / 50)), rr = 11.5; px(g, cb.hx + Math.cos(a) * rr * (0.6 + r() * 0.45), cb.hy + 5 + Math.sin(a) * 7 * (0.5 + r() * 0.5), i % 3 ? '#2a2628' : '#3a3538'); }
+      // on top: brass lamp with a linen drum shade, a pampas vase, a little leaning photo
+      const lx = x0 + 10, ly = topY - 3;
+      rect(g, lx - 3, ly - 2, 7, 2, '#a07b3a'); rect(g, lx - 3, ly - 2, 7, 1, '#d6b46a'); rect(g, lx, ly - 13, 1, 11, '#b8924a');
+      BZ.fillPoly(g, [[lx - 7, ly - 13], [lx + 7, ly - 13], [lx + 6, ly - 22], [lx - 6, ly - 22]], '#efe3c6');
+      rect(g, lx - 7, ly - 14, 14, 1, '#d8c8a4'); rect(g, lx - 6, ly - 22, 12, 1, '#fbf3df');
+      const glow = this.phase === 'night' ? 0.11 : this.phase === 'day' ? 0.03 : 0.06;
+      for (let k = 1; k <= 5; k++) ell(g, lx, ly - 16, 7 + k * 5, 5 + k * 3.5, `rgba(255,214,140,${glow})`);
+      const vx = x1 - 12; ell(g, vx, ly - 5, 4, 5, '#cfc6b5'); ell(g, vx - 1, ly - 6, 2, 3, '#e7e0d1'); rect(g, vx - 2, ly - 11, 4, 2, '#bdb3a0');
+      for (let k = 0; k < 7; k++) { const a = -Math.PI / 2 + (k - 3) * 0.16, L = 16 + r() * 8, ex = vx + Math.cos(a) * L, ey = ly - 11 + Math.sin(a) * L; BZ.drawThin(g, vx, ly - 11, ex, ey, '#bfa77c'); ell(g, ex, ey, 1.6, 2.6, k % 2 ? '#e3d3ae' : '#d6c296'); }
+      const fx = x0 + w * 0.48; BZ.fillPoly(g, [[fx, ly], [fx + 10, ly], [fx + 11, ly - 12], [fx + 1, ly - 12]], '#1f1c1a'); rect(g, fx + 2, ly - 10, 7, 8, '#9cb7c4'); rect(g, fx + 2, ly - 5, 7, 3, '#6f8d5a');
+      void P;
+    }
+
+    // ── the view out of the window: sky by time of day, rooftops, a water tower, treetops ──
+    paintView(P) {
+      const wn = this.win, VW = wn.x1 - wn.x0, VH = wn.y1 - wn.y0, v = this.view; v.width = VW; v.height = VH;
+      const g = v.getContext('2d'), r = BZ.rng(555), night = this.phase === 'night';
+      for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) px(g, x, y, rampAt(P.sky, (y / (VH * 0.72)) * (P.sky.length - 1), x, y));
+      if (night) for (let i = 0; i < 40; i++) px(g, r() * VW, r() * VH * 0.5, r() < 0.3 ? '#ffffff' : '#9fb0d8');
+      // far skyline
+      let x = -4; while (x < VW) { const bw = 8 + r() * 18, bh = VH * (0.28 + r() * 0.16); rect(g, x, VH - bh, bw, bh, P.far); if (r() < 0.3) rect(g, x + bw * 0.4, VH - bh - 4, 2, 4, P.far); x += bw - 1; }
+      // nearer brick and limestone fronts
+      const fronts = [['#8f5442', '#a8654f', '#6f3d30'], ['#c9bea6', '#ddd3bd', '#a59a83'], ['#9a5a44', '#b06b52', '#74402f'], ['#7f4a3c', '#965a49', '#5f352a']];
+      x = -6; let k = 0;
+      while (x < VW) {
+        const f = fronts[k++ % fronts.length], bw = 26 + r() * 22, bh = VH * (0.2 + r() * 0.14), by = VH - bh;
+        const shade = (c) => night ? mix(c, '#141a33', 0.72) : this.phase === 'dusk' ? mix(c, '#5b3c5c', 0.3) : c;
+        rect(g, x, by, bw, bh, shade(f[0]));
+        rect(g, x, by, bw, 2, shade(f[1])); rect(g, x, by + 2, bw, 1, shade(f[2])); // cornice
+        for (let wy = by + 6; wy < VH - 4; wy += 7) for (let wx = x + 3; wx < x + bw - 4; wx += 6) {
+          const lit = r() < P.lit; rect(g, wx, wy, 3, 4, lit ? '#f2cf72' : shade('#3c4a5a')); rect(g, wx, wy + 4, 3, 1, shade(f[1]));
+          if (!lit && !night) px(g, wx, wy, '#8fa4b5');
+        }
+        if (k === 2) { // a wooden water tower
+          const tx = x + bw * 0.55, ty = by - 14; const wd = night ? '#2a2230' : '#6b4a32', wdL = night ? '#3a2f3e' : '#8a6444';
+          BZ.drawThin(g, tx - 4, by, tx - 3, ty + 8, wd); BZ.drawThin(g, tx + 4, by, tx + 3, ty + 8, wd); BZ.drawThin(g, tx - 4, by - 2, tx + 4, ty + 9, wd);
+          rect(g, tx - 4, ty, 8, 9, wd); rect(g, tx - 4, ty, 2, 9, wdL); rect(g, tx - 4, ty + 3, 8, 1, '#2a2622'); rect(g, tx - 4, ty + 6, 8, 1, '#2a2622');
+          BZ.fillPoly(g, [[tx - 5, ty], [tx + 5, ty], [tx, ty - 5]], night ? '#231c28' : '#4a3424');
+        }
+        x += bw;
+      }
+      // treetops in front
+      for (let i = 0; i < 26; i++) { const cx = r() * VW, cy = VH - 2 - r() * VH * 0.12, rr = 4 + r() * 6; const tc = night ? ['#16241f', '#1c2e26', '#22382d'] : ['#3f6b35', '#4f7f3d', '#6a9a4a']; ell(g, cx, cy, rr, rr * 0.8, tc[0]); ell(g, cx - 1, cy - 1, rr * 0.7, rr * 0.55, tc[1]); for (let s = 0; s < 4; s++) px(g, cx - rr * 0.5 + r() * rr, cy - rr * 0.6 + r() * 2, tc[2]); }
+      // a little wooden bird feeder hanging outside the left pane
+      const fx = Math.round(VW * 0.17), fy = 26; this.feeder = { x: fx, y: fy + 12 };
+      BZ.drawThin(g, fx, 0, fx, fy - 4, night ? '#555' : '#7a756c');
+      BZ.fillPoly(g, [[fx - 7, fy], [fx + 7, fy], [fx, fy - 5]], night ? '#3a2a22' : '#8a4a32'); rect(g, fx - 7, fy, 14, 1, night ? '#2a1e18' : '#6a3626');
+      rect(g, fx - 5, fy + 1, 10, 8, night ? '#4a3a2c' : '#c9a476'); rect(g, fx - 5, fy + 1, 2, 8, night ? '#5a4836' : '#ddb98a'); rect(g, fx - 2, fy + 3, 4, 4, night ? '#2a2018' : '#5a3a22');
+      rect(g, fx - 8, fy + 9, 16, 2, night ? '#3a2a22' : '#9a6a44'); rect(g, fx - 8, fy + 9, 16, 1, night ? '#4a3a2c' : '#b8875a');
+      for (let i = 0; i < 6; i++) px(g, fx - 6 + i * 2.4, fy + 8, night ? '#6a5a40' : '#d8c48a');
+      rect(g, 0, VH - 2, VW, 2, night ? '#2b2b33' : '#9a9488'); rect(g, 0, VH - 3, VW, 1, night ? '#3b3b44' : '#c8c2b4'); // the outside ledge
+    }
+
+    // ── window trim, mullions, glass glare, sill, curtain rod ──
+    paintFrame(W, H, F) {
+      const g = this.frame.getContext('2d'), wn = this.win, T = R.trim;
+      for (let k = 6; k > 0; k--) rect(g, wn.x0 - 6 - k, wn.y0 - 6 - k, wn.x1 - wn.x0 + 12 + 2 * k, wn.y1 - wn.y0 + 12 + 2 * k, 'rgba(255,252,236,0.03)'); // glow spilling onto the wall
+      rect(g, wn.x0 - 6, wn.y0 - 6, wn.x1 - wn.x0 + 12, 6, T[3]); rect(g, wn.x0 - 6, wn.y0 - 6, wn.x1 - wn.x0 + 12, 1, T[4]); rect(g, wn.x0 - 6, wn.y0 - 1, wn.x1 - wn.x0 + 12, 1, T[1]);
+      rect(g, wn.x0 - 6, wn.y0, 6, wn.y1 - wn.y0, T[3]); rect(g, wn.x0 - 6, wn.y0, 1, wn.y1 - wn.y0, T[4]); rect(g, wn.x0 - 1, wn.y0, 1, wn.y1 - wn.y0, T[1]);
+      rect(g, wn.x1, wn.y0, 6, wn.y1 - wn.y0, T[2]); rect(g, wn.x1, wn.y0, 1, wn.y1 - wn.y0, T[4]); rect(g, wn.x1 + 5, wn.y0, 1, wn.y1 - wn.y0, T[0]);
+      const VW = wn.x1 - wn.x0, VH = wn.y1 - wn.y0;
+      for (const f of [1 / 3, 2 / 3]) { const mx = Math.round(wn.x0 + VW * f); rect(g, mx - 1, wn.y0, 3, VH, T[3]); rect(g, mx - 1, wn.y0, 1, VH, T[4]); rect(g, mx + 1, wn.y0, 1, VH, T[1]); }
+      const ty = Math.round(wn.y0 + VH * 0.45); rect(g, wn.x0, ty - 1, VW, 3, T[3]); rect(g, wn.x0, ty - 1, VW, 1, T[4]); rect(g, wn.x0, ty + 1, VW, 1, T[1]);
+      for (let i = 0; i < 3; i++) { const gx = wn.x0 + VW * (i / 3) + 6; BZ.fillPoly(g, [[gx, wn.y0 + VH * 0.55], [gx + 6, wn.y0 + VH * 0.55], [gx + 18, wn.y0 + 2], [gx + 12, wn.y0 + 2]], 'rgba(255,255,255,0.09)'); } // glare
+      // sill
+      // a deep sill: a seat for cats. Top surface, bullnose front, bracket shadow
+      rect(g, wn.x0 - 12, wn.y1 - 2, VW + 24, 4, T[2]); rect(g, wn.x0 - 12, wn.y1 - 2, VW + 24, 1, T[4]); // top, receding
+      rect(g, wn.x0 - 13, wn.y1 + 2, VW + 26, 5, T[3]); rect(g, wn.x0 - 13, wn.y1 + 2, VW + 26, 1, T[4]); rect(g, wn.x0 - 13, wn.y1 + 6, VW + 26, 1, T[0]);
+      rect(g, wn.x0 - 11, wn.y1 + 7, VW + 22, 3, 'rgba(40,40,30,0.16)');
+      for (const bx of [wn.x0 - 4, wn.x1 + 2]) { rect(g, bx, wn.y1 + 7, 3, 6, T[1]); rect(g, bx, wn.y1 + 7, 1, 6, T[3]); } // brackets
+      // two linen cushions where the cats like to sit
+      for (const [cx, w] of [[wn.x0 + 22, 30], [wn.x1 - 20, 26]]) {
+        const L = ['#cdbfa8', '#dcd0bb', '#e8dfcd', '#f3ede1'];
+        rect(g, cx - w / 2, wn.y1 - 4, w, 4, L[1]); rect(g, cx - w / 2 + 1, wn.y1 - 5, w - 2, 1, L[2]); rect(g, cx - w / 2 + 2, wn.y1 - 4, w - 6, 1, L[3]);
+        rect(g, cx - w / 2, wn.y1 - 1, w, 1, L[0]); px(g, cx - w / 2, wn.y1 - 4, L[0]); px(g, cx + w / 2 - 1, wn.y1 - 4, L[0]);
+        for (let i = 0; i < w; i += 4) px(g, cx - w / 2 + i, wn.y1 - 3, '#cbbca3'); // stitching
+      }
+      // a succulent on the sill
+      const sx = Math.round(wn.x0 + VW * 0.58), sy = wn.y1 - 2; BZ.fillPoly(g, [[sx - 5, sy], [sx + 5, sy], [sx + 4, sy - 6], [sx - 4, sy - 6]], '#b8643e'); rect(g, sx - 5, sy - 7, 10, 2, '#cf7a50');
+      for (let k = 0; k < 7; k++) { const a = -Math.PI / 2 + (k - 3) * 0.42; leaf(g, sx, sy - 7, 6, 2, a, k % 2 ? '#7fa38a' : '#9cbca2', null); }
+      // curtain rod with finials
+      const ry = wn.y0 - 11; rect(g, wn.x0 - 22, ry, VW + 44, 2, '#2b2724'); rect(g, wn.x0 - 22, ry, VW + 44, 1, '#57504a');
+      ell(g, wn.x0 - 23, ry + 1, 2.5, 2.5, '#2b2724'); ell(g, wn.x1 + 23, ry + 1, 2.5, 2.5, '#2b2724'); px(g, wn.x0 - 24, ry, '#77706a'); px(g, wn.x1 + 22, ry, '#77706a');
+      rect(g, wn.x0 - 20, ry + 2, 2, 4, '#2b2724'); rect(g, wn.x1 + 18, ry + 2, 2, 4, '#2b2724');
+    }
+
+    // ── plants that stand in front of the window and wall (unchanged species, richer shading) ──
+    paintPlants(W, H, F) {
+      const g = this.over.getContext('2d'), r = BZ.rng(1919);
+      // hanging pothos (top left)
+      const hx = W * 0.2; BZ.drawThin(g, hx, 0, hx, 14, '#3a3a36');
+      ell(g, hx, 18, 11, 5, '#e9e4d8'); ell(g, hx, 16, 11, 2, '#cfc8b8'); ell(g, hx - 4, 18, 4, 3, '#f6f2e8');
+      for (const [dx, len] of [[-8, 0.55], [-2, 0.75], [5, 0.45], [9, 0.62]]) {
+        let vx = hx + dx, vy = 20;
+        for (let k = 0; k < len * H * 0.5; k += 4) {
+          const nx = vx + Math.sin(k * 0.11 + dx) * 1.6, ny = vy + 4; BZ.drawThin(g, vx, vy, nx, ny, '#4f6b2e');
+          if (k % 8 === 0) leaf(g, nx, ny, 7, 3.2, Math.PI * (k % 16 ? 0.15 : 0.85), k % 24 ? '#5b8a32' : '#86ad4a', null, { notch: true, hi: '#a9c96e' });
+          vx = nx; vy = ny;
+        }
+      }
+      // bird of paradise (back left, speckled black pot)
+      const bx = W * 0.13, bpY = F + 14;
+      ell(g, bx + 3, bpY + 11, 17, 3, 'rgba(20,10,0,0.25)');
+      for (const [a, L] of [[-1.95, 0.8], [-1.75, 0.95], [-1.45, 0.88], [-1.25, 0.7], [-2.2, 0.6], [-1.05, 0.55]]) {
+        const sx = bx + Math.cos(a) * L * H * 0.42, sy = bpY - 10 + Math.sin(a) * L * H * 0.42;
+        BZ.drawThin(g, bx, bpY - 10, sx, sy, '#4a6630'); BZ.drawThin(g, bx + 1, bpY - 10, sx + 1, sy, '#3e5828');
+        const la = a + (a < -1.6 ? -0.35 : 0.35);
+        leaf(g, sx, sy, H * 0.22 * L, 7 * L + 2, la, '#3f6a38', '#7da35e', { edge: '#2f5229', hi: '#5f8a4c' });
+        for (let k = 0; k < 4; k++) { const t = 0.3 + k * 0.17, lx = sx + Math.cos(la) * H * 0.22 * L * t, ly = sy + Math.sin(la) * H * 0.22 * L * t; BZ.drawThin(g, lx, ly, lx + Math.cos(la + 1.4) * 5, ly + Math.sin(la + 1.4) * 5, '#c3c7ba'); }
+      }
+      BZ.fillPoly(g, [[bx - 15, bpY - 12], [bx + 15, bpY - 12], [bx + 12, bpY + 10], [bx - 12, bpY + 10]], '#2b2a2d');
+      BZ.fillPoly(g, [[bx - 15, bpY - 12], [bx - 9, bpY - 12], [bx - 7, bpY + 10], [bx - 12, bpY + 10]], '#38373b');
+      for (let i = 0; i < 40; i++) px(g, bx - 12 + r() * 24, bpY - 10 + r() * 18, '#d8d6d0');
+      ell(g, bx, bpY - 12, 15, 3, '#1c1b1e'); ell(g, bx, bpY - 12, 13, 2, '#3a2a1e');
+      // split-leaf philodendron on an iron stand by the window, porcelain pot
+      const fx = Math.min(W - 8, this.win.x1 + 30), standTop = F - 6, potY = standTop - 12; // beside the window, not in front of the sill
+      ell(g, fx, F + 24, 18, 3, 'rgba(20,10,0,0.22)');
+      BZ.drawThin(g, fx - 10, standTop, fx - 14, F + 22, '#2a2826'); BZ.drawThin(g, fx + 10, standTop, fx + 14, F + 22, '#2a2826'); BZ.drawThin(g, fx, standTop, fx, F + 24, '#2a2826');
+      ellRing(g, fx - 15, F + 22, 2, 2, '#2a2826'); ellRing(g, fx + 15, F + 22, 2, 2, '#2a2826');
+      ell(g, fx, standTop, 16, 3, '#33302c'); ell(g, fx - 4, standTop - 1, 8, 1, '#4a4642');
+      for (let i = 0; i < 11; i++) {
+        const a = -Math.PI * 0.92 + (i / 10) * Math.PI * 0.84 + (r() - 0.5) * 0.12, L = H * (0.13 + r() * 0.07);
+        const mx2 = fx + Math.cos(a) * L * 0.5, my2 = potY - 10 + Math.sin(a) * L * 0.75 - 4;
+        const sx = fx + Math.cos(a) * L * 0.85, sy = potY - 8 + Math.sin(a) * L * 0.7;
+        BZ.drawThin(g, fx, potY - 10, mx2, my2, '#6b8642'); BZ.drawThin(g, mx2, my2, sx, sy, '#6b8642');
+        const droop = a + (Math.cos(a) > 0 ? 0.55 : -0.55), col = i % 3 ? '#2f5d2d' : '#3b6f35';
+        for (let k = -4; k <= 4; k++) leaf(g, sx, sy, L * (0.62 - Math.abs(k) * 0.05), 3.4, droop + k * 0.2, col, k === 0 ? '#6f9d55' : null, { hi: k < 0 ? '#4f8a45' : null });
+      }
+      ell(g, fx, potY, 16, 13, '#e8ebf1'); ell(g, fx - 4, potY - 3, 8, 7, '#f6f8fb'); ell(g, fx + 6, potY + 4, 7, 6, '#d5d9e2'); ell(g, fx, potY - 12, 15, 3, '#c8ccd6');
+      for (let i = 0; i < 28; i++) { const a = r() * Math.PI * 2, rr = r(); g.fillStyle = '#3c5aa3'; g.fillRect(Math.round(fx + Math.cos(a) * 13 * rr), Math.round(potY + Math.sin(a) * 9 * rr), 2, 1); }
+      g.fillStyle = '#3c5aa3'; g.fillRect(Math.round(fx - 15), Math.round(potY - 8), 30, 1); g.fillRect(Math.round(fx - 14), Math.round(potY + 7), 28, 1);
+    }
+    paintFront(W, H) {
+      const f = this.fg.getContext('2d'), r = BZ.rng(1920); f.clearRect(0, 0, W, H);
+      const mx = 6, my = H + 4;
+      for (const [a, L] of [[-1.15, 0.2], [-0.7, 0.17], [-1.5, 0.16]]) {
+        const lx = mx + Math.cos(a) * 18, ly = my + Math.sin(a) * 18;
+        BZ.drawThin(f, mx, my, lx, ly, '#7c9a5a');
+        leaf(f, lx, ly, H * L, H * L * 0.45, a - 0.1, '#3f7d3b', '#d9e6c4', { notch: true, hi: '#5f9a55' });
+        for (let k = 0; k < 5; k++) { const t = 0.25 + r() * 0.6, v = (r() - 0.5) * 0.5; const ex = lx + Math.cos(a) * H * L * t - Math.sin(a) * H * L * 0.45 * v, ey = ly + Math.sin(a) * H * L * t + Math.cos(a) * H * L * 0.45 * v; ell(f, ex, ey, 2 + r() * 3, 1 + r() * 2, k % 2 ? '#eef3e2' : '#d4e5bd'); }
+      }
+      for (let k = 0; k < 7; k++) leaf(f, W - 4 - k * 5, H + 2 - (k % 3) * 4, 13, 6, Math.PI + 0.5 + k * 0.18, k % 2 ? '#5b8a32' : '#6f9c3e', '#9dc06a', { notch: true });
+    }
+
+    // ── live bits ──
+    tickBird() {
+      const wn = this.win, VW = wn.x1 - wn.x0, fd = this.feeder || { x: 20, y: 38 }, ledge = fd.y;
+      if (!this.bird) { if (--this.birdWait <= 0 && this.phase !== 'night') this.bird = { x: VW + 8, y: 4, st: 'in', t: 0, tx: fd.x + (Math.random() < 0.5 ? -4 : 4), stay: 500 + Math.random() * 700 }; return; }
+      const b = this.bird; b.t++;
+      if (b.st === 'in') { b.x += (b.tx - b.x) * 0.05 - 0.4; b.y += (ledge - b.y) * 0.06; if (Math.abs(b.x - b.tx) < 2 && Math.abs(b.y - ledge) < 1.5) { b.st = 'perch'; b.t = 0; b.y = ledge; } }
+      else if (b.st === 'perch') { if (b.t % 90 === 0) b.face = Math.random() < 0.5 ? -1 : 1; if (b.t % 140 === 70) b.x = fd.x + (Math.random() < 0.5 ? -4 : 4); if (b.t > b.stay) { b.st = 'out'; b.t = 0; } }
+      else { b.x += 1.5; b.y -= 0.6; if (b.x > VW + 12) { this.bird = null; this.birdWait = 1200 + Math.random() * 2400; } }
+    }
+    drawBird(ctx, X, Y) {
+      const b = this.bird; if (!b) return; const wn = this.win, x = X + wn.x0 + b.x, y = Y + wn.y0 + b.y, f = b.face || -1;
+      const body = this.phase === 'dusk' ? '#7d7f90' : '#8f95a3', wing = '#6c7180';
+      if (b.st === 'perch') {
+        const peck = b.t % 160 > 140; ell(ctx, x, y - 3, 3.5, 2.5, body); ell(ctx, x - f, y - 3, 2.2, 1.6, wing);
+        const hx = x + f * (peck ? 3.5 : 3), hy = y - (peck ? 3 : 5.5); ell(ctx, hx, hy, 1.6, 1.6, '#7e8494'); px(ctx, hx - f * 0.5, hy + 1.3, '#5f9e7c'); px(ctx, hx, hy + 1.5, '#8c5f9e'); px(ctx, hx + f * 0.6, hy - 0.4, '#e09b3a'); px(ctx, hx + f * 1.7, hy + 0.3, '#3b3b3b');
+        px(ctx, x - f * 4, y - 3, wing); px(ctx, x - 1, y, '#d48a8a'); px(ctx, x + 1, y, '#d48a8a');
+      } else { const up = (b.t >> 2) & 1; ell(ctx, x, y, 3, 1.8, body); BZ.drawThin(ctx, x - 3, y - (up ? 3 : -1), x + 3, y - (up ? 3 : -1), wing); px(ctx, x + 3.5, y - 1, '#7e8494'); }
+    }
+    drawCurtains(ctx, X, Y, t) {
+      const wn = this.win, F = this.floorY, top = wn.y0 - 9, bot = F + 1, L = R.linen;
+      ctx.save(); ctx.globalAlpha = 0.94;
+      for (const [x0, w, side] of [[wn.x0 - 19, 22, -1], [wn.x1 - 3, 22, 1]]) {
+        const sway = 1.4 * Math.sin(t * 0.011 + side) + 0.6 * Math.sin(t * 0.027 + side * 2);
+        for (let c = 0; c < w; c++) {
+          const k = Math.sin(c * 0.62 + side) * 1.6 + 2.2 + (side < 0 ? c / w : 1 - c / w) * 0.8, col = L[Math.max(0, Math.min(L.length - 1, Math.round(k)))];
+          ctx.fillStyle = col;
+          for (let sg = 0; sg < 6; sg++) { const y0 = top + ((bot - top) * sg) / 6, y1 = top + ((bot - top) * (sg + 1)) / 6, u = (sg + 0.5) / 6, dx = sway * Math.pow(u, 1.6) * (1 - c / (w * 2)); ctx.fillRect(Math.round(X + x0 + c + dx), Math.round(Y + y0), 1, Math.ceil(y1 - y0)); }
+        }
+        for (let c = 0; c < w; c += 3) { ctx.fillStyle = '#2b2724'; ctx.fillRect(Math.round(X + x0 + c), Math.round(Y + top - 1), 1, 2); } // rings
+        ctx.fillStyle = L[0]; for (let c = 0; c < w; c++) if ((c + Math.round(t * 0.02)) % 4 < 2) ctx.fillRect(Math.round(X + x0 + c + sway), Math.round(Y + bot), 1, 1); // hem
+      }
+      ctx.restore();
+    }
+    drawClock(ctx, X, Y) {
+      const c = this.clock; if (!c) return; const d = new Date(), m = d.getMinutes() + d.getSeconds() / 60, h = (d.getHours() % 12) + m / 60;
+      const am = (m / 60) * Math.PI * 2 - Math.PI / 2, ah = (h / 12) * Math.PI * 2 - Math.PI / 2, x = X + c.x, y = Y + c.y;
+      BZ.drawThin(ctx, x, y, x + Math.cos(ah) * 4, y + Math.sin(ah) * 4, '#2e2b28'); BZ.drawThin(ctx, x, y, x + Math.cos(am) * 6.5, y + Math.sin(am) * 6.5, '#2e2b28');
+      const as = (d.getSeconds() / 60) * Math.PI * 2 - Math.PI / 2; px(ctx, x + Math.cos(as) * 6, y + Math.sin(as) * 6, '#b5583c');
+    }
+    drawShaft(ctx, X, Y, t) { // the light in the air between window and floor, with dust turning in it
+      const wn = this.win, B = this.beam, P = PHASES[this.phase], F = this.floorY;
+      const quad = [[X + wn.x0 + 4, Y + wn.y1], [X + wn.x1 - 4, Y + wn.y1], [X + B.xb, Y + B.top + 4], [X + B.xa - B.sh * 0.1, Y + B.top + 4]];
+      BZ.fillPoly(ctx, quad, `rgba(255,236,190,${0.045 * P.beam})`);
+      if (P.beam < 0.3) return;
+      ctx.fillStyle = 'rgba(255,248,224,0.75)';
+      for (const m of this.motes) {
+        const v = (m.v + t * 0.00025 * m.s) % 1, u = m.u + Math.sin(t * 0.01 * m.s + m.p) * 0.03;
+        const yy = wn.y1 + (B.top + (B.bot - B.top) * 0.4 - wn.y1) * v, l = wn.x0 + (B.xa - B.sh * 0.2 - wn.x0) * v, rr = wn.x1 + (B.xb - wn.x1) * v;
+        if ((t + m.p * 40) % 200 < 150) ctx.fillRect(Math.round(X + l + (rr - l) * u), Math.round(Y + yy), 1, 1);
+      }
+      void F;
+    }
+
+    drawBack(ctx) {
+      const X = this.st.x, Y = this.st.y, t = this.w.frame || 0, wn = this.win;
+      if (t % 900 === 0 && phaseNow() !== this.phase) this.paint();
+      ctx.drawImage(this.bg, X, Y);
+      ctx.drawImage(this.view, X + wn.x0, Y + wn.y0);
+      // clouds drifting behind the rooftops
+      const P = PHASES[this.phase]; ctx.save(); ctx.beginPath(); ctx.rect(X + wn.x0, Y + wn.y0, wn.x1 - wn.x0, (wn.y1 - wn.y0) * 0.5); ctx.clip();
+      for (const c of this.clouds) {
+        c.x += c.v; if (c.x > wn.x1 - wn.x0 + 30) c.x = -40;
+        const cx = X + wn.x0 + c.x, cy = Y + wn.y0 + c.y, s = c.s;
+        ell(ctx, cx, cy + 2 * s, 14 * s, 3 * s, P.cloud[2]); ell(ctx, cx - 5 * s, cy, 7 * s, 4 * s, P.cloud[1]); ell(ctx, cx + 4 * s, cy - 1 * s, 8 * s, 5 * s, P.cloud[0]); ell(ctx, cx + 11 * s, cy + 1 * s, 5 * s, 3 * s, P.cloud[1]);
+      }
+      ctx.restore();
+      this.tickBird(); this.drawBird(ctx, X, Y);
+      ctx.drawImage(this.frame, X, Y);
+      this.drawCurtains(ctx, X, Y, t);
+      this.drawClock(ctx, X, Y);
+      ctx.drawImage(this.over, X, Y);
+      this.drawShaft(ctx, X, Y, t);
+    }
+    drawFront(ctx) { ctx.drawImage(this.fg, this.st.x, this.st.y); }
+    // where a cat should look to chatter at the pigeon (stage coords), or null
+    fixtures() { const X = this.st.x, Y = this.st.y, F = this.floorY, cb = this.cube; return [{ key: 'cubby', type: 'cubby', draw: true, x: X + cb.hx, y: Y + F + 7, rootPx: F + 7 - cb.y1, hole: { cx: X + cb.hx, cy: Y + cb.hy, rx: 12.5, ry: 12 }, box: { x0: X + cb.x0, x1: X + cb.x1, y0: Y + cb.y0, y1: Y + cb.y1 } }]; }
+    // places a small thing can be set down: the sill, the bookcase top and its two shelves (stage coords; `ground` sorts it)
+    surfaces() {
+      const X = this.st.x, Y = this.st.y, F = this.floorY, wn = this.win, bc = this.bookcase, back = Y + F + 1;
+      return [
+        { key: 'sill', x0: X + wn.x0 - 9, x1: X + wn.x1 + 9, y: Y + wn.y1 - 1, ground: back - 3.2 },
+        { key: 'bookTop', x0: X + bc.x0 + 3, x1: X + bc.x1 - 3, y: Y + bc.topY - 3, ground: back - 3 },
+        { key: 'shelf1', x0: X + bc.x0 + 6, x1: X + bc.x1 - 6, y: Y + bc.mid, ground: back - 2.8 },
+        { key: 'shelf2', x0: X + bc.x0 + 6, x1: X + this.cube.x0 - 6, y: Y + bc.baseY - 7, ground: back - 2.6 },
+      ];
+    }
+    birdSpot() { const b = this.bird; if (!b || b.st !== 'perch') return null; return [this.st.x + this.win.x0 + b.x, this.st.y + this.win.y0 + b.y - 3]; }
+  }
+
+  // ─── The backyard (ours): out the French doors of the green art studio ─────
+  // Same RCT rules as the room: short ramps, ordered dither, one light (the sun,
+  // high and to the right), dense specific things. Layers: bg (sky, woods,
+  // studio, plant-care corner, lawn, flagstones, beds) → sun pools → leaf
+  // dapple → [props, items, cats] → canopy + life (butterflies, leaves, the
+  // squirrel) → time-of-day tint.
+  const Y = {
+    siding: ['#2c4231', '#334c37', '#3a563e', '#425f45', '#4a694c', '#537354', '#5e7e5e', '#6a8a69'],
+    trim: ['#9da197', '#bfc2b9', '#d8dad2', '#eaebe5', '#f7f8f3'],
+    deck: ['#4f3f30', '#62503d', '#76634d', '#8a765e', '#9d8a70', '#b09d83'],
+    stone: ['#7b7a72', '#8a887f', '#98968c', '#a6a399', '#b3b0a5', '#c0bdb1', '#ccc9bd'],
+    lawn: ['#355c27', '#3f6a2c', '#4a7932', '#558839', '#619642', '#6fa44b', '#7fb155'],
+    litter: ['#4e3121', '#6b4026', '#86522e', '#a0663a', '#b97c47', '#7a5a3a', '#94744c'],
+    bark: ['#2f2a25', '#3d3730', '#4c453c', '#5c544a', '#6e665b', '#807868'],
+    leafD: ['#22381f', '#2c4727', '#365631', '#43663a', '#527845', '#648a52', '#7a9e60'],
+    soil: ['#2e2016', '#3b2a1d', '#4a3524', '#5a422e', '#6b503a'],
+  };
+  const dist = (a, b, c, d) => Math.hypot(a - c, b - d);
+  class Yard {
+    constructor(world) { this.w = world; this.key = 'yard'; this.bg = mk(); this.fg = mk(); this.dap = mk(); this.phase = null; this.doorT = 0; this.bflies = []; this.leaves = []; this.squirrel = null; this.sqWait = 500 + Math.random() * 900; this.ffl = []; }
+    layout(st) {
+      this.st = st; const W = st.w, H = st.h;
+      const F = Math.round(H * 0.44); this.F = F; this.floorY = F + 7;
+      const S = Math.round(W * 0.44); this.S = S;
+      const top = 22; this.wallTop = top; this.door = { x0: S + 132, x1: S + 168, y0: top + 4, y1: F - 15 };
+      this.landing = { x0: S + 122, x1: S + 172, top: F - 15, front: F - 7, foot: F + 5 };
+      this.steps = [0, 1, 2].map((i) => ({ x0: S + 172 + i * 8, x1: S + 180 + i * 8, top: F - 11 + i * 5 }));
+      this.shelf = { x0: S + 6, x1: S + 62, top: F - 48, mid: F - 26, foot: F + 3 };
+      this.stand = { x: S + 76, top: F - 22, foot: F + 4 };
+      this.bunny = { x: S + 204, y: F + 12 };
+      this.tree = { x: Math.round(W * 0.15), base: F + 36, w: 15 };
+      this.tire = { x: Math.round(W * 0.15) + 46, ropeY: 16, cy: F + 2, R: 19, r: 11, ground: F + 40 };
+      const fy = (v) => F + 8 + (H - F - 8) * v;
+      this.plots = [
+        { key: 'wallBed', kind: 'bed', shape: 'rect', x0: S + 84, x1: S + 120, y0: F + 6, y1: F + 15, slots: [[S + 88, F + 13], [S + 96, F + 12], [S + 104, F + 13], [S + 112, F + 12], [S + 117, F + 13.5]] },
+        { key: 'lawnBed', kind: 'bed', shape: 'ell', cx: Math.round(Math.min(W * 0.2, S - 90)), cy: Math.round(fy(0.6)), rx: 36, ry: 10, slots: [] },
+        { key: 'patchA', kind: 'turf', shape: 'ell', cx: S + 70, cy: Math.round(fy(0.42)), rx: 17, ry: 6, slots: [] },
+        { key: 'patchB', kind: 'turf', shape: 'ell', cx: Math.min(W - 26, S + 176), cy: Math.round(fy(0.8)), rx: 19, ry: 6, slots: [] },
+      ];
+      for (const p of this.plots) if (p.shape === 'ell') { const n = p.kind === 'bed' ? 7 : 3; for (let i = 0; i < n; i++) { const u = n === 1 ? 0 : (i / (n - 1)) * 2 - 1, row = p.kind === 'bed' ? (i % 2 ? -1 : 1) : 0; p.slots.push([p.cx + u * p.rx * 0.74, p.cy + row * p.ry * 0.3 + 1]); } }
+      for (const p of this.plots) p.slots = p.slots.map(([x, y]) => [st.x + x, st.y + y]);
+      this.adk = { x: Math.round(Math.max(W * 0.33, S - 46)), y: Math.round(fy(0.3)) };
+      // sun pools on the ground: they drift with the hour, like the real dapple did
+      const hr = new Date().getHours() + new Date().getMinutes() / 60, drift = Math.max(-1, Math.min(1, (hr - 13) / 5)) * 18;
+      this.pools = [[S + 128 + drift, fy(0.3)], [W * 0.2 + drift, fy(0.42)], [S + 40 + drift, fy(0.74)]].map(([x, y]) => ({ x: st.x + x, y: st.y + y, rx: 34, ry: 10 }));
+      this.sun = this.pools[0];
+      this.ffl = Array.from({ length: 12 }, () => ({ x: Math.random() * W, y: F - 30 + Math.random() * (H - F + 10), p: Math.random() * 6.28, v: 0.3 + Math.random() * 0.5 }));
+      this.paint();
+    }
+    paint() {
+      this.phase = phaseNow(); const P = PHASES[this.phase], { w: W, h: H } = this.st, F = this.F;
+      for (const c of [this.bg, this.fg, this.dap]) { c.width = W; c.height = H; }
+      const g = this.bg.getContext('2d');
+      this.paintSky(g, W, F, P); this.paintWoods(g, W, F); this.paintStudio(g, W, F); this.paintGround(g, W, H, F); this.paintPlots(g); this.paintCorner(g, F); this.paintDeck(g, F);
+      this.paintDapple(W, H, F); this.paintCanopy(W, H, F);
+    }
+    night() { return this.phase === 'night'; }
+    // ── sky in the gaps, the woods: layered trunks, foliage masses, a carpet of last year's leaves ──
+    paintSky(g, W, F, P) { for (let y = 0; y < F; y++) for (let x = 0; x < W; x++) px(g, x, y, rampAt(P.sky, (y / (F * 0.9)) * (P.sky.length - 1), x, y)); }
+    paintWoods(g, W, F) {
+      const r = BZ.rng(808), S = this.S, nt = this.night(), haze = (c, t) => mix(c, nt ? '#1b2440' : '#b8c8b4', t);
+      for (const [layer, n, wMin, wMax, tone] of [[0, 26, 2, 5, 0.55], [1, 16, 3, 7, 0.32], [2, 9, 5, 10, 0.12]]) { // far → near trunks, hazier with distance
+        for (let i = 0; i < n; i++) {
+          const x = r() * (S + 20), w = wMin + r() * (wMax - wMin), base = F - 8 + layer * 5 + r() * 4;
+          for (let y = 0; y < base; y++) { const k = (x + y * 0.02) % 3 < 1 ? 1 : 2; rect(g, x, y, w, 1, haze(Y.bark[k + (layer > 1 ? 1 : 0)], tone)); }
+          rect(g, x, 0, 1, base, haze(Y.bark[3], tone)); // lit edge
+        }
+        for (let i = 0; i < 46 + layer * 16; i++) { // leaf masses between and above the trunks: lumpy, leafy edges, lit from the upper right
+          const cx = r() * (S + 30), cy = r() * (F - 26) * (layer === 2 ? 0.55 : 0.92), rr = 7 + r() * (layer === 2 ? 10 : 14);
+          const cols = Y.leafD.slice(Math.min(2, layer), Math.min(2, layer) + 5).map((c) => haze(c, tone));
+          for (let k = 0; k < 7; k++) { const a = r() * 6.28, d = r() * rr * 0.6; ell(g, cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.7, rr * (0.45 + r() * 0.25), rr * (0.35 + r() * 0.2), cols[k < 3 ? 0 : 1]); }
+          ell(g, cx + rr * 0.2, cy - rr * 0.25, rr * 0.45, rr * 0.3, cols[2]);
+          for (let k = 0; k < rr * 3; k++) { const a = r() * 6.28, d = r() * rr; px(g, cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.7, cols[(Math.sin(a) < -0.2 ? 3 : 1) + (k & 1)]); }
+        }
+      }
+      // the leaf-litter floor of the woods, sloping up behind the lawn
+      for (let y = F - 16; y < F + 14; y++) for (let x = 0; x < S + 10; x++) {
+        const edge = F - 10 + Math.sin(x * 0.05) * 3 + Math.sin(x * 0.13) * 1.5; if (y < edge) continue;
+        const q = r(); px(g, x, y, q < 0.3 ? Y.litter[1] : q < 0.55 ? Y.litter[2] : q < 0.72 ? Y.litter[0] : q < 0.86 ? Y.litter[3] : q < 0.95 ? Y.litter[5] : Y.litter[4]);
+      }
+      // two yellow stakes off in the woods (from the photo)
+      const sx = Math.round(S * 0.42); rect(g, sx, F - 34, 1, 28, '#c9a43a'); rect(g, sx + 3, F - 30, 1, 25, '#d8b44a');
+    }
+    // ── the green studio: clapboard, white trim, windows with the woods in them, French doors ──
+    paintStudio(g, W, F) {
+      const S = this.S, eave = 12, nt = this.night(), r = BZ.rng(4040);
+      rect(g, S - 4, 0, W - S + 8, eave - 2, '#3a3b3d'); for (let x = S - 4; x < W; x += 3) px(g, x, 2 + ((x / 3) & 1), '#4c4d50'); // roof edge
+      rect(g, S - 6, eave - 3, W - S + 10, 3, Y.trim[3]); rect(g, S - 6, eave - 3, W - S + 10, 1, Y.trim[4]); rect(g, S - 6, eave - 1, W - S + 10, 1, Y.trim[1]); // fascia + gutter
+      for (let y = eave; y < F - 5; y++) {
+        const b = (y - eave) % 6;
+        for (let x = S; x < W; x++) {
+          let L = b === 0 ? 0.6 : b === 1 ? 6 : 3.4 + (b - 2) * 0.35 + ((x * 7 + y * 3) % 23 === 0 ? -0.8 : 0) + Math.sin(x * 0.7 + y * 3.1) * 0.25;
+          if (x < S + 3) L -= 1.2; // the corner board's shadow
+          px(g, x, y, rampAt(Y.siding, L, x, y));
+        }
+      }
+      rect(g, S - 2, eave, 4, F - 5 - eave, Y.siding[5]); rect(g, S - 2, eave, 1, F - 5 - eave, Y.siding[7]); // corner board
+      for (let x = S; x < W; x++) for (let y = F - 5; y < F + 1; y++) px(g, x, y, (Math.floor((x + (y & 1) * 3) / 6) + y) % 5 === 0 ? '#5e3a2c' : ((x + (y & 1) * 3) % 6 === 0 ? '#9a8f80' : y === F - 5 ? '#6f4635' : '#8a5440')); // brick foundation
+      const win = (x0, x1, y0, y1, seed) => {
+        const rr = BZ.rng(seed); rect(g, x0 - 3, y0 - 3, x1 - x0 + 6, y1 - y0 + 6, Y.trim[3]); rect(g, x0 - 3, y0 - 3, x1 - x0 + 6, 1, Y.trim[4]); rect(g, x1 + 2, y0 - 3, 1, y1 - y0 + 6, Y.trim[1]); rect(g, x0 - 3, y1 + 2, x1 - x0 + 6, 1, Y.trim[0]);
+        for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+          if (nt) { px(g, x, y, (x + y) % 7 === 0 ? '#f2cf80' : rampAt(['#a8783a', '#c8954a', '#e0b060', '#efc778'], 1.6 + (y - y0) / (y1 - y0) * 1.4, x, y)); continue; }
+          const u = (x - x0) / (x1 - x0), v = (y - y0) / (y1 - y0), trunk = Math.abs(u - 0.55 - Math.sin(v * 3) * 0.03) < 0.09;
+          px(g, x, y, trunk ? '#4a443c' : rampAt(['#2c3a30', '#3a4c3c', '#4d644c', '#6c8468', '#9eb4a8', '#c8d8d4'], 1.2 + (1 - v) * 2.2 + Math.sin(x * 0.8 + y * 0.3) * 0.6 + (rr() < 0.05 ? 1.5 : 0), x, y));
+        }
+        if (!nt) BZ.fillPoly(g, [[x0 + 2, y1], [x0 + 7, y1], [x1 - 2, y0 + 6], [x1 - 2, y0 + 1]], 'rgba(255,255,255,0.12)');
+        rect(g, x0 - 4, y1 + 3, x1 - x0 + 8, 2, Y.trim[2]); rect(g, x0 - 4, y1 + 3, x1 - x0 + 8, 1, Y.trim[4]); // sill
+      };
+      const wt = this.wallTop + 6;
+      win(S + 12, S + 50, wt, F - 54, 1);
+      win(S + 96, S + 122, wt + 4, F - 40, 2);
+      win(S + 180, S + 200, wt + 4, F - 42, 3);
+      for (let x = S + 238; x + 22 < W - 4; x += 64) win(x, x + 22, wt + 4, F - 42, x);
+      // French doors (drawn by drawBack so they can swing); the porch light beside them
+      const lx = S + 126, ly = this.door.y0 + 8; rect(g, lx - 3, ly - 5, 6, 7, Y.trim[2]); ell(g, lx + 2, ly, 3, 3, '#2a2724'); ell(g, lx + 5, ly + 2, 2, 2, nt ? '#fff1c0' : '#d8d2c2');
+      if (nt) for (let k = 1; k <= 4; k++) ell(g, lx + 5, ly + 2, 4 + k * 5, 3 + k * 4, 'rgba(255,220,150,0.07)');
+      rect(g, S + 168, F - 52, 4, 6, '#e2e2dc'); rect(g, S + 169, F - 51, 2, 2, '#9a9a94'); // an outdoor outlet
+      // a downspout at the right
+      const dx = Math.min(W - 6, S + 212); rect(g, dx, eave, 3, F - eave, Y.trim[2]); rect(g, dx, eave, 1, F - eave, Y.trim[4]);
+      void r;
+    }
+    // ── ground: lawn on the left running into the litter, flagstones with moss on the right ──
+    paintGround(g, W, H, F) {
+      const S = this.S, r = BZ.rng(2626), top = F + 1;
+      const edge = (y) => S - 28 - (y - top) * 0.32 + Math.sin(y * 0.19) * 4 + Math.sin(y * 0.061) * 9; // lawn | patio, the patio widening a little toward you
+      const seeds = []; let row = 0; // flagstone seeds on a jittered grid, bigger toward the front
+      for (let y = top - 6; y < H + 16; row++) { const sh = 9 + ((y - top) / (H - top)) * 13, sw = sh * 2.5; for (let x = -10 + (row & 1) * sw * 0.5; x < W + sw; x += sw) seeds.push([x + (r() - 0.5) * sw * 0.8, y + (r() - 0.5) * sh * 0.7, sh, r(), r()]); y += sh; }
+      const grid = new Map(); for (const sd of seeds) { const k = Math.floor(sd[0] / 30) + ',' + Math.floor(sd[1] / 14); (grid.get(k) || grid.set(k, []).get(k)).push(sd); }
+      const near = (x, y) => { let a = null, da = 1e9, db = 1e9; const gx = Math.floor(x / 30), gy = Math.floor(y / 14); for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) for (const sd of grid.get((gx + i) + ',' + (gy + j)) || []) { const d = Math.hypot((x - sd[0]) / 2.5, y - sd[1]); if (d < da) { db = da; da = d; a = sd; } else if (d < db) db = d; } return [a, da, db]; };
+      for (let y = top; y < H; y++) {
+        const ex = edge(y), v = (y - top) / (H - top);
+        for (let x = 0; x < W; x++) {
+          const q = r();
+          if (x < ex - 2 || (x < S - 6 && y < top + 4)) { // lawn: blades, darker under the tree, leaf litter drifting in at the back
+            let L = 3 + v * 1.4 + Math.sin(x * 1.7 + y * 0.9) * 0.55 + (q < 0.16 ? 1.1 : 0) - Math.max(0, top + 12 - y) * 0.18 + Math.sin(x * 0.05 + y * 0.11) * 0.5;
+            const dt = Math.hypot((x - this.tree.x) / 46, (y - this.tree.base) / 12); if (dt < 1) L -= (1 - dt) * 1.5;
+            const litter = y < top + 16 && q < 0.35 * (1 - (y - top) / 16);
+            px(g, x, y, litter ? Y.litter[1 + Math.floor(r() * 4)] : q < 0.008 ? Y.litter[2 + ((x + y) & 1)] : rampAt(Y.lawn, L, x, y)); continue;
+          }
+          if (x < ex + 2) { px(g, x, y, q < 0.45 ? Y.lawn[2 + (q < 0.2 ? 1 : 0)] : q < 0.75 ? '#5f7a3a' : '#5a4a32'); continue; } // moss and dirt along the seam
+          const [a, da, db] = near(x, y), gap = db - da;
+          if (gap < 1.5 + v * 0.9) { px(g, x, y, q < 0.62 ? (q < 0.4 ? '#5c7838' : '#76944a') : q < 0.85 ? '#5a4a36' : '#4a3c2c'); continue; } // moss and soil in the joints
+          let L = 3.1 + (a[3] - 0.5) * 1.5 + v * 0.7 + Math.sin(x * 0.45 + y * 0.8 + a[3] * 9) * 0.3 + (q < 0.04 ? -0.8 : q > 0.96 ? 0.7 : 0);
+          if (gap < 2.6 + v) L += (y - a[1]) < 0 ? 0.6 : -0.7; // a soft lip on each slab
+          let c = rampAt(Y.stone, L, x, y);
+          c = a[4] < 0.35 ? mix(c, '#8e98a3', 0.32) : a[4] > 0.78 ? mix(c, '#b4a283', 0.24) : c; // bluestone, buff
+          if (q < 0.008) c = Y.litter[2 + ((x * 3 + y) % 3)]; else if (q < 0.025 && a[3] > 0.5) c = mix(c, '#6f8a42', 0.55); // a leaf, lichen
+          px(g, x, y, c);
+        }
+      }
+      for (let i = 0; i < 5; i++) rect(g, S, F + 1 + i, W - S, 1, `rgba(20,14,6,${0.3 - i * 0.06})`); // contact shadow at the foundation
+    }
+    // ── beds: a stone-edged bed along the wall, a kidney bed in the lawn, two turf patches in the patio ──
+    paintPlots(g) {
+      const X = this.st.x, Yo = this.st.y, r = BZ.rng(77);
+      for (const p of this.plots) {
+        const inside = p.shape === 'rect' ? (x, y) => x >= p.x0 && x <= p.x1 && y >= p.y0 && y <= p.y1 : (x, y) => ((x - p.cx) / p.rx) ** 2 + ((y - p.cy) / p.ry) ** 2 <= 1;
+        const bx0 = p.shape === 'rect' ? p.x0 - 3 : p.cx - p.rx - 3, bx1 = p.shape === 'rect' ? p.x1 + 3 : p.cx + p.rx + 3, by0 = p.shape === 'rect' ? p.y0 - 3 : p.cy - p.ry - 3, by1 = p.shape === 'rect' ? p.y1 + 3 : p.cy + p.ry + 3;
+        for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
+          if (!inside(x, y)) continue;
+          if (p.kind === 'bed') px(g, x, y, rampAt(Y.soil, 1.8 + Math.sin(x * 1.3 + y * 2.1) * 0.7 + (r() < 0.08 ? 1.5 : 0) + (y - by0) / (by1 - by0) * 0.8, x, y));
+          else px(g, x, y, r() < 0.12 ? Y.soil[2] : rampAt(Y.lawn, 3.6 + Math.sin(x * 1.9 + y) * 0.8 + (r() < 0.2 ? 1.2 : 0), x, y));
+        }
+        // the edging: rounded river stones (beds) or a thin dark rim (turf)
+        const pts = []; if (p.shape === 'rect') { for (let x = p.x0 - 2; x <= p.x1 + 2; x += 4) pts.push([x, p.y1 + 2]); for (let x = p.x0 - 1; x <= p.x1 + 1; x += 5) pts.unshift([x, p.y0 - 1]); }
+        else for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2; pts.push([p.cx + Math.cos(a) * (p.rx + 2), p.cy + Math.sin(a) * (p.ry + 1.5)]); }
+        if (p.kind === 'bed') for (const [x, y] of pts.sort((a, b) => a[1] - b[1])) { const c = Y.stone[2 + Math.floor(r() * 4)]; ell(g, x, y, 2.6, 1.6, mix(c, '#000000', 0.25)); ell(g, x - 0.5, y - 0.6, 2.1, 1.2, c); px(g, x - 1, y - 1, Y.stone[6]); }
+        else for (const [x, y] of pts) px(g, x, y, '#4a3a28');
+      }
+      void X; void Yo;
+    }
+    // ── the plant-care corner: wire shelving with pots and jugs, a rake, a wire stand, a bag of soil, the stone bunny ──
+    paintCorner(g, F) {
+      const sh = this.shelf, nt = this.night(), navy = '#2a303d', navyL = '#465066', r = BZ.rng(31);
+      ell(g, (sh.x0 + sh.x1) / 2, sh.foot + 1, (sh.x1 - sh.x0) * 0.55, 3, 'rgba(20,14,6,0.25)');
+      const unit = (x0, x1) => {
+        for (const x of [x0, x1 - 2]) { rect(g, x, sh.top - 2, 2, sh.foot - sh.top + 2, navy); rect(g, x, sh.top - 2, 1, sh.foot - sh.top + 2, navyL); }
+        for (const y of [sh.top, sh.mid, sh.foot - 6]) { rect(g, x0, y, x1 - x0, 2, navy); for (let x = x0 + 1; x < x1 - 1; x += 3) { px(g, x, y, navyL); px(g, x + 1, y + 1, navyL); } rect(g, x0, y + 2, x1 - x0, 1, 'rgba(0,0,0,0.25)'); }
+      };
+      const m = Math.round((sh.x0 + sh.x1) / 2); unit(sh.x0, m - 1); unit(m + 1, sh.x1);
+      const pot = (x, y, w, h, c) => { BZ.fillPoly(g, [[x - w, y - h], [x + w, y - h], [x + w - 1, y], [x - w + 1, y]], c[0]); rect(g, x - w - 1, y - h - 1, w * 2 + 2, 2, c[1]); px(g, x - w + 1, y - h + 2, c[2]); };
+      const terra = ['#b8643a', '#cf7a50', '#e09068'], gray = ['#6e6a62', '#8a857a', '#a29d90'];
+      // top shelf: an iron wreath frame, a saucer, a stack of pots, a bottle
+      BZ.ellRing(g, sh.x0 + 12, sh.top - 6, 7, 4, '#2a2622'); BZ.ellRing(g, sh.x0 + 12, sh.top - 6, 4, 2, '#3a3530'); BZ.drawThin(g, sh.x0 + 6, sh.top - 6, sh.x0 + 18, sh.top - 6, '#2a2622');
+      ell(g, sh.x0 + 25, sh.top - 1, 6, 1.5, '#a85a34'); pot(m + 6, sh.top, 4, 5, terra); pot(m + 6, sh.top - 5, 3, 3, terra);
+      rect(g, sh.x1 - 9, sh.top - 9, 3, 9, 'rgba(210,225,205,0.65)'); rect(g, sh.x1 - 8, sh.top - 12, 1, 3, 'rgba(210,225,205,0.75)'); px(g, sh.x1 - 9, sh.top - 8, '#ffffff');
+      // middle: a gallon jug, a green spray bottle, glass jars, a clay pot with a dead stalk
+      rect(g, sh.x0 + 5, sh.mid - 11, 8, 11, '#ecebe4'); rect(g, sh.x0 + 5, sh.mid - 11, 2, 11, '#ffffff'); rect(g, sh.x0 + 9, sh.mid - 14, 3, 3, '#d8d6cc'); rect(g, sh.x0 + 11, sh.mid - 10, 2, 5, '#c8c6bc');
+      rect(g, sh.x0 + 18, sh.mid - 8, 3, 8, '#3fa058'); rect(g, sh.x0 + 18, sh.mid - 11, 3, 3, '#e8e8e0'); px(g, sh.x0 + 21, sh.mid - 11, '#e8e8e0');
+      for (let k = 0; k < 3; k++) { rect(g, m + 4 + k * 5, sh.mid - 6, 4, 6, 'rgba(200,215,210,0.6)'); px(g, m + 4 + k * 5, sh.mid - 5, '#ffffff'); }
+      pot(sh.x1 - 7, sh.mid, 4, 5, gray); BZ.drawThin(g, sh.x1 - 7, sh.mid - 6, sh.x1 - 9, sh.mid - 15, '#8a7a4a');
+      // bottom: pots in a row, a bag of potting soil leaning on the post
+      pot(sh.x0 + 9, sh.foot - 6, 5, 6, terra); pot(sh.x0 + 21, sh.foot - 6, 4, 5, gray); pot(m + 10, sh.foot - 6, 5, 6, terra);
+      BZ.fillPoly(g, [[sh.x0 - 4, sh.foot + 3], [sh.x0 + 12, sh.foot + 3], [sh.x0 + 11, sh.foot - 4], [sh.x0 - 3, sh.foot - 5]], '#8cc04a'); rect(g, sh.x0 - 2, sh.foot - 2, 10, 2, '#e8e2c8'); px(g, sh.x0 + 9, sh.foot - 4, '#a8d85a');
+      // the rake, leaning against the shelf, green handle, steel tines on the stones
+      const rk = [sh.x1 - 4, sh.top - 6], rb = [sh.x0 + 30, F + 14];
+      BZ.drawThin(g, rk[0], rk[1], rb[0], rb[1], '#4caa3c'); BZ.drawThin(g, rk[0] + 1, rk[1], rb[0] + 1, rb[1], '#2f7a2a');
+      BZ.drawThin(g, rb[0] - 6, rb[1] + 1, rb[0] + 6, rb[1] - 1, '#5a5e64'); for (let k = -5; k <= 5; k += 2) BZ.drawThin(g, rb[0] + k, rb[1] - k * 0.15, rb[0] + k - 1, rb[1] + 3 - k * 0.15, '#7a7e84');
+      // the wire plant stand with a jug on it, scrolled feet
+      const st = this.stand; BZ.drawThin(g, st.x - 6, st.top, st.x + 6, st.top, '#1e1c1a'); BZ.drawThin(g, st.x - 5, st.top + 2, st.x + 5, st.top + 2, '#1e1c1a');
+      for (const sd of [-1, 1]) { BZ.drawThin(g, st.x + sd * 5, st.top, st.x + sd * 4, st.foot, '#1e1c1a'); BZ.ellRing(g, st.x + sd * 5, st.foot - 1, 1.6, 1.6, '#1e1c1a'); }
+      BZ.drawThin(g, st.x, st.top + 2, st.x, st.foot - 3, '#1e1c1a'); BZ.ellRing(g, st.x, st.top + 12, 3, 3, '#2a2724');
+      rect(g, st.x - 5, st.top - 9, 8, 9, '#ecebe4'); rect(g, st.x - 5, st.top - 9, 2, 9, '#ffffff'); rect(g, st.x - 2, st.top - 12, 3, 3, '#d8d6cc'); rect(g, st.x - 4, st.top - 6, 5, 3, '#c94a3a'); // a jug with a red label
+      void nt; void r;
+    }
+    // ── the landing and steps: weathered deck boards, posts, balusters, a top rail ──
+    paintDeck(g, F) {
+      const L = this.landing, D = Y.deck;
+      rect(g, L.x0, L.front, L.x1 - L.x0, L.foot - L.front, D[1]); for (let x = L.x0; x < L.x1; x += 5) rect(g, x, L.front, 1, L.foot - L.front, D[0]); // skirt boards
+      for (let y = L.top; y < L.front; y++) { rect(g, L.x0, y, L.x1 - L.x0, 1, (y - L.top) % 3 === 2 ? D[2] : D[4]); }
+      rect(g, L.x0, L.top, L.x1 - L.x0, 1, D[5]); rect(g, L.x0, L.front - 1, L.x1 - L.x0, 1, D[5]); // nosing
+      for (const s of this.steps) { rect(g, s.x0, s.top, s.x1 - s.x0 + 2, 3, D[4]); rect(g, s.x0, s.top, s.x1 - s.x0 + 2, 1, D[5]); rect(g, s.x0, s.top + 3, s.x1 - s.x0 + 2, L.foot - s.top - 3 + 2, D[1]); rect(g, s.x0, s.top + 3, 1, L.foot - s.top - 1, D[0]); }
+      rect(g, L.x0 - 2, L.foot, L.x1 - L.x0 + 30, 3, 'rgba(20,14,6,0.25)');
+      // railing: posts at the corners, balusters along the front, a rail stepping down the stairs
+      const post = (x, y0, y1) => { rect(g, x, y0, 3, y1 - y0, D[3]); rect(g, x, y0, 1, y1 - y0, D[5]); rect(g, x + 2, y0, 1, y1 - y0, D[1]); };
+      const railY = L.front - 20; post(L.x0, railY, L.foot); post(L.x1 - 3, railY, L.front + 2);
+      rect(g, L.x0, railY, L.x1 - L.x0, 2, D[4]); rect(g, L.x0, railY, L.x1 - L.x0, 1, D[5]);
+      for (let x = L.x0 + 6; x < L.x1 - 4; x += 5) rect(g, x, railY + 2, 1, L.front - railY - 2, D[2]);
+      const end = this.steps[2]; post(end.x1, end.top - 16, L.foot + 1); BZ.drawThin(g, L.x1 - 2, railY, end.x1 + 1, end.top - 16, D[4]); BZ.drawThin(g, L.x1 - 2, railY + 1, end.x1 + 1, end.top - 15, D[2]);
+      for (let k = 1; k < 4; k++) { const x = L.x1 + (end.x1 - L.x1) * (k / 4), y = railY + (end.top - 16 - railY) * (k / 4); rect(g, x, y + 1, 1, this.steps[Math.min(2, k - 1)].top - y - 1, D[2]); }
+      // a shepherd's hook with a hanging lantern beside the steps
+      const hx = L.x1 + 30; BZ.drawThin(g, hx, F + 8, hx, F - 40, '#2a2622'); BZ.drawThin(g, hx, F - 40, hx - 5, F - 44, '#2a2622'); BZ.drawThin(g, hx - 5, F - 44, hx - 8, F - 40, '#2a2622'); rect(g, hx - 10, F - 38, 5, 6, '#3a3632'); rect(g, hx - 9, F - 37, 3, 4, this.night() ? '#f8d888' : '#c8d4d8');
+    }
+    // the dapple: a still texture of leaf shadows; drawn twice, a hair apart, so it shimmers
+    paintDapple(W, H, F) {
+      const g = this.dap.getContext('2d'), r = BZ.rng(1212); g.clearRect(0, 0, W, H);
+      if (this.night()) return;
+      const shadeTop = (x) => x > this.S - 6 ? this.wallTop - 6 : F - 10;
+      g.fillStyle = 'rgba(12,24,8,0.2)'; for (let x = 0; x < W; x++) g.fillRect(x, shadeTop(x), 1, H);
+      g.globalCompositeOperation = 'destination-out';
+      for (const p of this.pools) { const cx = p.x - this.st.x, cy = p.y - this.st.y; for (let k = 0; k < 9; k++) BZ.ellipse(g, cx + (r() - 0.5) * p.rx * 1.2, cy + (r() - 0.5) * p.ry, p.rx * (0.35 + r() * 0.3), p.ry * (0.45 + r() * 0.3), '#000'); }
+      for (let i = 0; i < (W * H) / 90; i++) { const x = r() * W, y = shadeTop(x) + r() * (H - shadeTop(x)), big = r() < 0.15, rx = big ? 3 + r() * 4 : 1 + r() * 2, ry = rx * (y > F ? 0.45 : 0.9); BZ.ellipse(g, x, y, rx, ry, '#000'); } // the flecks
+      g.globalCompositeOperation = 'source-over';
+    }
+    // overhanging boughs across the top (and the big tree's crown)
+    paintCanopy(W, H, F) {
+      const g = this.fg.getContext('2d'), r = BZ.rng(5150), nt = this.night(), C = nt ? ['#0f1a14', '#15231b', '#1b2c22', '#213428'] : ['#2c4a26', '#3b5f30', '#4f7a3c', '#6a9a4c', '#8ab35e', '#b8c96a'];
+      const bough = (x0, y0, x1, y1, n) => { BZ.drawLine(g, x0, y0, 4.5, (x0 + x1) / 2, (y0 + y1) / 2 + 3, 2.6, nt ? '#151210' : '#3a322a', null, 0); BZ.drawLine(g, (x0 + x1) / 2, (y0 + y1) / 2 + 3, 2.6, x1, y1, 1.2, nt ? '#151210' : '#3a322a', null, 0); for (let i = 0; i < n; i++) { const t = r(), x = x0 + (x1 - x0) * t + (r() - 0.5) * 22, y = y0 + (y1 - y0) * t + 4 + r() * 16; leaf(g, x, y, 4 + r() * 3, 2.6 + r() * 1.4, Math.PI / 2 + (r() - 0.5) * 1.6, C[Math.floor(r() * (C.length - (nt ? 0 : 1)))], null, { hi: nt ? null : C[C.length - 1] }); } };
+      bough(this.tree.x, 0, this.tree.x + 140, 22, 110); bough(this.tree.x + 30, 4, Math.min(W, this.S + 150), 30, 120); bough(W + 10, 0, this.S + 90, 18, 90);
+      for (let i = 0; i < 140; i++) { const x = r() * W, y = r() * (x < this.S ? 18 : 12); leaf(g, x, y, 5 + r() * 2, 3, Math.PI / 2 + (r() - 0.5) * 2, C[Math.floor(r() * 4)], null); }
+      // foreground grass tufts in the lower-left corner
+      for (let i = 0; i < 18; i++) { const x = r() * 40, y = H + 1; BZ.drawThin(g, x, y, x + (r() - 0.5) * 6, y - 8 - r() * 10, nt ? '#1c2a1c' : Y.lawn[3 + (i % 3)]); }
+    }
+
+    // ── fixtures the cats use, surfaces things can go on, props that sort with the cats ──
+    fixtures() {
+      const X = this.st.x, Yo = this.st.y, L = this.landing, sh = this.shelf, T = this.tire;
+      return [
+        { key: 'stoop', type: 'stoop', x: X + (L.x0 + L.x1) / 2 - 6, y: Yo + L.front - 2, rootPx: L.front - 2 - L.top - 2, frontPt: [X + (L.x0 + L.x1) / 2 + 4, Yo + L.foot + 9], face: Math.PI / 2 + 0.3, surf: 'landing' },
+        { key: 'potTop', type: 'ledge', x: X + sh.x0 + 14, y: Yo + sh.foot + 1, rootPx: sh.foot + 1 - sh.top, face: Math.PI / 2 - 0.3, surf: 'shelfTop', front: [X + sh.x0 + 18, Yo + sh.foot + 12] },
+        { key: 'tire', type: 'tire', x: X + T.x, y: Yo + T.ground, cy: Yo + T.cy, R: T.R, r: T.r, ropeY: Yo + T.ropeY },
+        { key: 'adk', type: 'adk', x: X + this.adk.x, y: Yo + this.adk.y, draw: true },
+      ];
+    }
+    surfaces() {
+      const X = this.st.x, Yo = this.st.y, sh = this.shelf, L = this.landing, F = this.F, back = Yo + F + 1;
+      return [
+        { key: 'shelfTop', x0: X + sh.x0 + 20, x1: X + sh.x1 - 12, y: Yo + sh.top, ground: back - 3 },
+        { key: 'shelfMid', x0: X + sh.x0 + 24, x1: X + sh.x1 - 14, y: Yo + sh.mid, ground: back - 2.8 },
+        { key: 'stand', x0: X + this.stand.x - 2, x1: X + this.stand.x + 2, y: Yo + this.stand.top, ground: back - 2.6 },
+        { key: 'landing', x0: X + L.x0 + 4, x1: X + L.x1 - 4, y: Yo + L.top + 4, ground: Yo + L.front - 2.5 },
+      ];
+    }
+    plotSlot(x, y) { // the free slot nearest the pointer, if the pointer is over a bed
+      let best = null, bd = 1e9;
+      for (const p of this.plots) p.slots.forEach(([sx, sy], i) => { const d = Math.hypot(x - sx, (y - sy) * 1.6); if (d < 14 && d < bd) { bd = d; best = { plot: p.key, slot: i, x: sx, y: sy, kind: p.kind }; } });
+      return best;
+    }
+    slotPos(plot, slot) { const p = this.plots.find((q) => q.key === plot); return p && p.slots[slot] ? p.slots[slot] : null; }
+    props() {
+      const X = this.st.x, Yo = this.st.y, t = this.tree, b = this.bunny;
+      return [
+        { y: Yo + t.base, draw: (ctx) => this.drawTrunk(ctx, X + t.x, Yo + t.base) },
+        { y: Yo + b.y, draw: (ctx) => this.drawStoneBunny(ctx, X + b.x, Yo + b.y) },
+      ];
+    }
+    statueSpot() { return [this.st.x + this.bunny.x - 15, this.st.y + this.bunny.y + 3]; }
+    drawTrunk(ctx, x, base) {
+      const w = this.tree.w, r = BZ.rng(99), nt = this.night();
+      if (!this.trunkC) { // painted once: bark plates, fissures, moss on the north side, a flared base, the rope ring
+        const c = document.createElement('canvas'), H = base + 2, W = w * 3; c.width = W; c.height = H; const g = c.getContext('2d'), cx = W / 2;
+        for (let y = 0; y < H; y++) { const flare = y > H - 14 ? (y - (H - 14)) * 0.9 : 0, hw = w / 2 + flare; for (let xx = Math.round(cx - hw); xx < cx + hw; xx++) { const u = (xx - (cx - hw)) / (hw * 2); let L = 1.4 + u * 2.6 - (u > 0.85 ? 1.6 : 0) + (Math.sin(xx * 1.9 + Math.floor(y / 4) * 2.3) > 0.6 ? -1.2 : 0) + (r() < 0.1 ? 0.8 : 0); px(g, xx, y, u < 0.18 && r() < 0.5 && y > H * 0.3 ? '#5f7a3a' : rampAt(Y.bark, L, xx, y)); } }
+        for (let k = 0; k < 2; k++) rect(g, cx - w / 2 - 1, Math.round(H * 0.55) + k * 2, w + 2, 1, '#b9a57a'); // rope tied round the trunk
+        this.trunkC = c;
+      }
+      ctx.drawImage(this.trunkC, Math.round(x - w * 1.5), 0);
+      if (nt) { ctx.fillStyle = 'rgba(10,16,40,0.35)'; ctx.fillRect(Math.round(x - w), 0, w * 2, base); }
+      void r;
+    }
+    drawStoneBunny(ctx, x, y) {
+      ell(ctx, x + 1, y, 9, 2.4, 'rgba(20,14,6,0.25)');
+      const S = Y.stone; ell(ctx, x, y - 6, 8, 6, S[2]); ell(ctx, x - 2, y - 7, 5, 4, S[4]); // haunch
+      ell(ctx, x + 5, y - 11, 4.5, 4, S[3]); ell(ctx, x + 4, y - 12, 3, 2.6, S[5]); // head
+      BZ.drawLine(ctx, x + 4, y - 14, 1.6, x + 3, y - 22, 1, S[3], null, 0); BZ.drawLine(ctx, x + 7, y - 14, 1.6, x + 8, y - 21, 1, S[2], null, 0); // ears
+      px(ctx, x + 7, y - 12, '#4a4842'); ell(ctx, x - 7, y - 5, 2, 2, S[5]); // eye, tail
+      px(ctx, x - 3, y - 4, '#6f8a42'); px(ctx, x - 2, y - 3, '#6f8a42'); px(ctx, x + 2, y - 2, '#7a9a48'); // moss
+    }
+    drawDoors(ctx, X, Yo) {
+      const d = this.door, nt = this.night(), T = Y.trim, open = this.doorT > 0 ? Math.min(1, this.doorT / 10, (this.doorT) / 10) : 0;
+      rect(ctx, X + d.x0 - 3, Yo + d.y0 - 3, d.x1 - d.x0 + 6, d.y1 - d.y0 + 3, T[3]); rect(ctx, X + d.x0 - 3, Yo + d.y0 - 3, d.x1 - d.x0 + 6, 1, T[4]);
+      const mid = Math.round((d.x0 + d.x1) / 2), glass = nt ? '#e6b868' : '#3a463e';
+      rect(ctx, X + d.x0, Yo + d.y0, d.x1 - d.x0, d.y1 - d.y0, nt ? '#c89048' : '#2a2a26'); // the room behind
+      if (!nt) { for (let y = d.y0 + 2; y < d.y1; y += 9) rect(ctx, X + d.x0 + 2, Yo + y, d.x1 - d.x0 - 4, 1, '#4a4a42'); rect(ctx, X + d.x0 + 4, Yo + d.y0 + 30, 10, 14, '#6a5a44'); } // inside: shelves, an easel
+      const panel = (x0, x1, shut) => { rect(ctx, X + x0, Yo + d.y0, x1 - x0, d.y1 - d.y0, T[2]); rect(ctx, X + x0 + 2, Yo + d.y0 + 2, x1 - x0 - 4, d.y1 - d.y0 - 4, glass); if (!nt) BZ.fillPoly(ctx, [[X + x0 + 3, Yo + d.y0 + 40], [X + x0 + 6, Yo + d.y0 + 40], [X + x1 - 3, Yo + d.y0 + 8], [X + x1 - 3, Yo + d.y0 + 3]], 'rgba(255,255,255,0.12)'); if (shut) px(ctx, X + (x0 < mid ? x1 - 2 : x0 + 1), Yo + (d.y0 + d.y1) / 2, '#c9a24a'); };
+      panel(d.x0, mid, true);
+      if (open > 0) { const w = Math.round((d.x1 - mid) * (1 - 0.7 * open)); panel(d.x1 - w, d.x1, false); } else panel(mid, d.x1, true);
+    }
+
+    // ── life: butterflies (fireflies at night), leaves letting go, a squirrel ──
+    tick() {
+      const W = this.st.w, H = this.st.h, F = this.F, X = this.st.x, Yo = this.st.y, nt = this.night();
+      if (this.doorT > 0) this.doorT--;
+      const want = nt ? 0 : 2; while (this.bflies.length < want) this.bflies.push({ x: Math.random() * W, y: F + 10 + Math.random() * (H - F - 30), z: 14 + Math.random() * 20, vx: 0, vy: 0, t: Math.random() * 100, col: ['#f6f3e6', '#f0a03c', '#f2d45a', '#8fb0e0'][Math.floor(Math.random() * 4)], tx: 0, ty: 0, k: Math.random().toString(36).slice(2, 6) });
+      if (nt) this.bflies.length = 0;
+      const blooms = this.w.items.filter((i) => i.type === 'sprout' && i.stage >= 3 && BZ.GARDEN[i.kind] && !BZ.GARDEN[i.kind].graze);
+      for (const b of this.bflies) {
+        b.t++;
+        if (b.t % 140 === 1 || !b.tx) { const f = blooms.length && Math.random() < 0.7 ? blooms[Math.floor(Math.random() * blooms.length)] : null; b.tx = f ? f.x - X : Math.random() * W; b.ty = f ? f.y - Yo : F + 12 + Math.random() * (H - F - 30); b.tz = f ? 10 + Math.random() * 6 : 12 + Math.random() * 30; }
+        const c = this.w.nearestCat(X + b.x, Yo + b.y, (q) => !q.asleep); if (c && dist(c.x, c.y, X + b.x, Yo + b.y) < 22 * this.w.size) { b.vx += (b.x + X - c.x) * 0.02; b.tz = 40; b.vy -= 0.1; } // spooked
+        b.vx += ((b.tx - b.x) * 0.004 + (Math.random() - 0.5) * 0.35); b.vy += ((b.ty - b.y) * 0.004 + (Math.random() - 0.5) * 0.25); b.vx *= 0.9; b.vy *= 0.9;
+        b.x = Math.max(4, Math.min(W - 4, b.x + b.vx)); b.y = Math.max(F + 6, Math.min(H - 3, b.y + b.vy)); b.z += ((b.tz || 20) - b.z) * 0.03 + Math.sin(b.t * 0.3) * 0.6;
+      }
+      if (!nt && Math.random() < 0.004 && this.leaves.length < 6) this.leaves.push({ x: Math.random() * W, y: F + 10 + Math.random() * (H - F - 20), z: 70 + Math.random() * 40, t: 0, life: 900, col: Y.litter[2 + Math.floor(Math.random() * 3)], ph: Math.random() * 6, k: Math.random().toString(36).slice(2, 6) });
+      for (const l of this.leaves) { l.t++; if (l.z > 0) { l.z -= 0.35; l.x += Math.sin(l.t * 0.06 + l.ph) * 0.7; } else l.z = 0; } this.leaves = this.leaves.filter((l) => l.t < l.life);
+      // the squirrel: down the trunk, out onto the lawn, a nibble, back up
+      const T = this.tree;
+      if (!this.squirrel) { if (!nt && --this.sqWait <= 0) this.squirrel = { st: 'down', x: T.x + 4, y: 30, t: 0, gx: T.x + 30 + Math.random() * 60, gy: T.base + 10 + Math.random() * 30 }; }
+      else {
+        const q = this.squirrel; q.t++;
+        if (q.st === 'down') { q.y += 1.6; if (q.y >= T.base - 2) { q.st = 'out'; q.y = T.base; } }
+        else if (q.st === 'out') { const dx = q.gx - q.x, dy = q.gy - q.y, d = Math.hypot(dx, dy); if (d < 2) { q.st = 'sit'; q.t = 0; } else { q.x += (dx / d) * 2.2; q.y += (dy / d) * 1.2; } }
+        else if (q.st === 'sit') { const c = this.w.nearestCat(X + q.x, Yo + q.y); if (q.t > 260 || (c && dist(c.x, c.y, X + q.x, Yo + q.y) < 70 * this.w.size)) { q.st = 'home'; } }
+        else if (q.st === 'home') { const dx = T.x + 4 - q.x, dy = T.base - q.y, d = Math.hypot(dx, dy); if (d < 3) { q.st = 'up'; } else { q.x += (dx / d) * 3.2; q.y += (dy / d) * 1.8; } }
+        else if (q.st === 'up') { q.y -= 2.4; if (q.y < 20) { this.squirrel = null; this.sqWait = 1800 + Math.random() * 2600; } }
+      }
+      for (const f of this.ffl) { f.p += 0.05; f.x += Math.sin(f.p * 0.7) * f.v; f.y += Math.cos(f.p * 0.5) * f.v * 0.5; if (f.x < 0) f.x = W; if (f.x > W) f.x = 0; }
+    }
+    // what's moving out here that a cat could care about
+    stimuli() {
+      const X = this.st.x, Yo = this.st.y, out = [];
+      this.bflies.forEach((b) => { if (b.z < 34) out.push({ key: 'bfly' + b.k, x: X + b.x, y: Yo + b.y, air: b.z, vx: b.vx, vy: b.vy, speed: Math.hypot(b.vx, b.vy) * 1.3 + 0.3, wand: true }); }); // only when it dips low enough to bother with
+      for (const l of this.leaves) if (l.z < 30 && l.t < 600) out.push({ key: 'leaf' + l.k, x: X + l.x, y: Yo + l.y, air: l.z, vx: Math.sin(l.t * 0.06 + l.ph) * 0.7, vy: 0, speed: l.z > 0 ? 1.6 : 0.3 });
+      const q = this.squirrel; if (q && (q.st === 'out' || q.st === 'sit' || q.st === 'home')) out.push({ key: 'squirrel', x: X + q.x, y: Yo + q.y, vx: 0, vy: 0, speed: q.st === 'sit' ? 0.6 : 3.2 });
+      return out;
+    }
+    birdSpot() { const q = this.squirrel; if (!q || q.st === 'up' || (q.st === 'down' && q.y < 40)) return null; return [this.st.x + q.x, this.st.y + q.y - 6]; }
+    drawLife(ctx, X, Yo, t) {
+      for (const l of this.leaves) { const x = X + l.x, y = Yo + l.y - l.z, a = l.t * 0.15 + l.ph; if (l.z > 0) ell(ctx, X + l.x, Yo + l.y, 2, 0.8, 'rgba(20,14,6,0.12)'); ctx.globalAlpha = Math.min(1, (l.life - l.t) / 120); px(ctx, x, y, l.col); px(ctx, x + Math.cos(a), y + Math.sin(a) * 0.5, l.col); px(ctx, x - Math.cos(a), y - Math.sin(a) * 0.5, mix(l.col, '#000000', 0.25)); ctx.globalAlpha = 1; }
+      for (const b of this.bflies) { const x = X + b.x, y = Yo + b.y - b.z, up = (b.t >> 1) & 1; ell(ctx, X + b.x, Yo + b.y, 1.5, 0.6, 'rgba(20,14,6,0.12)'); px(ctx, x, y, '#2a2420'); px(ctx, x - 1, y - (up ? 1 : 0), b.col); px(ctx, x + 1, y - (up ? 1 : 0), b.col); if (up) { px(ctx, x - 2, y - 2, b.col); px(ctx, x + 2, y - 2, b.col); } else { px(ctx, x - 1, y + 1, b.col); px(ctx, x + 1, y + 1, b.col); } }
+      const q = this.squirrel;
+      if (q) {
+        const x = X + q.x, y = Yo + q.y, onTrunk = q.st === 'down' || q.st === 'up', run = q.st !== 'sit' && (q.t >> 2) & 1, f = q.st === 'home' ? -1 : 1, body = '#8a8276', dark = '#5e584e', belly = '#d8d2c4';
+        if (onTrunk) { const d = q.st === 'down' ? 1 : -1; ell(ctx, x, y, 2.2, 3.6, body); ell(ctx, x, y + d * 4, 2, 2, body); px(ctx, x, y + d * 5, '#1a1612'); BZ.drawLine(ctx, x, y - d * 3, 2, x + 2, y - d * 8, 3, dark, null, 0); }
+        else { ell(ctx, x, y, 2, 0.8, 'rgba(20,14,6,0.15)'); ell(ctx, x, y - 3 - run, 3.4, 2.4, body); ell(ctx, x + f * 3, y - 5 - run, 2, 2, body); px(ctx, x + f * 4, y - 6 - run, '#1a1612'); px(ctx, x + f * 2, y - 7 - run, dark); px(ctx, x + f, y - 2, belly); BZ.drawLine(ctx, x - f * 3, y - 3, 2.4, x - f * 4, y - 10 - (q.st === 'sit' ? Math.sin(q.t * 0.3) : 0), 3.4, dark, null, 0); ell(ctx, x - f * 4, y - 10, 2.6, 2.6, body); if (q.st === 'sit' && (q.t >> 4) & 1) px(ctx, x + f * 4, y - 4, '#b88a4a'); }
+      }
+      if (this.night()) for (const f of this.ffl) { const on = Math.sin(t * 0.04 + f.p * 3) > 0.55; if (on) { ctx.fillStyle = 'rgba(220,240,120,0.28)'; ctx.fillRect(Math.round(X + f.x) - 1, Math.round(Yo + f.y) - 1, 3, 3); px(ctx, X + f.x, Yo + f.y, '#f2ff9a'); } }
+    }
+    drawPools(ctx, t) {
+      if (this.night()) return; const P = PHASES[this.phase], tint = this.phase === 'dusk' ? '255,190,130' : '255,236,170';
+      for (const p of this.pools) { for (let k = 3; k >= 1; k--) BZ.ellipse(ctx, p.x + Math.sin(t * 0.01 + k) * 0.6, p.y, p.rx * (0.6 + k * 0.17), p.ry * (0.6 + k * 0.17), `rgba(${tint},${0.07 * P.beam})`); }
+    }
+    drawBack(ctx) {
+      const X = this.st.x, Yo = this.st.y, t = this.w.frame || 0;
+      if (t % 900 === 0 && phaseNow() !== this.phase) this.paint();
+      this.tick();
+      ctx.drawImage(this.bg, X, Yo);
+      this.drawDoors(ctx, X, Yo);
+      const sx = Math.round(Math.sin(t * 0.021) * 1.2), sy = Math.round(Math.sin(t * 0.017 + 1) * 0.6); // the leaves move; the light through them shimmers
+      ctx.globalAlpha = 0.6; ctx.drawImage(this.dap, X + sx, Yo + sy); ctx.drawImage(this.dap, X - sx, Yo); ctx.globalAlpha = 1;
+      this.drawPools(ctx, t);
+    }
+    drawFront(ctx) {
+      const X = this.st.x, Yo = this.st.y, t = this.w.frame || 0;
+      this.drawLife(ctx, X, Yo, t);
+      ctx.drawImage(this.fg, X + Math.round(Math.sin(t * 0.013) * 1), Yo);
+      const tint = { night: 'rgba(14,22,58,0.34)', dusk: 'rgba(120,60,40,0.10)', dawn: 'rgba(230,170,170,0.07)' }[this.phase];
+      if (tint) { ctx.fillStyle = tint; ctx.fillRect(X, Yo, this.st.w, this.st.h); }
+    }
+    sunSpots() { const s = this.w.size; return this.pools.map((p) => ({ item: null, yard: true, slots: [[p.x - 15 * s, p.y], [p.x + 16 * s, p.y - 2]], has: (x, y) => ((x - p.x) / (p.rx + 6)) ** 2 + ((y - p.y) / (p.ry + 4)) ** 2 < 1 })); }
+  }
+  BZ.Yard = Yard;
+  BZ.Jungle = Jungle; BZ.PHASES = PHASES; BZ.phaseNow = phaseNow;
+})();

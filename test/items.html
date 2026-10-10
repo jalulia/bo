@@ -1,0 +1,16 @@
+<!doctype html><html><body style="margin:0;background:#c9cdbf">
+<canvas id="c"></canvas>
+<script src="../src/raster.js"></script><script src="../src/rex.js"></script><script src="../src/cat.js"></script><script src="../src/items.js"></script>
+<script>
+const types = BZ.ITEM_ORDER.filter(t => !BZ.ITEMS[t].tool && t !== 'sun');
+const cols = 6, cw = 120, ch = 90, PX = 3, cv = document.getElementById('c');
+cv.width = cols * cw; cv.height = Math.ceil(types.length / cols) * ch + 60; cv.style.width = cv.width * PX + 'px'; cv.style.imageRendering = 'pixelated';
+const g = cv.getContext('2d');
+types.forEach((t, i) => { const x = (i % cols) * cw + cw / 2, y = Math.floor(i / cols) * ch + ch - 12; g.fillStyle = (i % 2) ? '#8a5b34' : '#93643c'; g.fillRect((i % cols) * cw, Math.floor(i / cols) * ch + ch - 22, cw, 22);
+  const it = BZ.newItem(t, x, y); if (t === 'blanket') it.lump = { x: x + 4, y, dir: 1, peek: 1, tail: '#2b2420' }; if (t === 'box') it.scratches = 8; BZ.drawItem(g, it, 1.2, 40);
+  g.fillStyle = '#000'; g.font = '7px monospace'; g.fillText(t, (i % cols) * cw + 2, Math.floor(i / cols) * ch + 8); });
+// icons row
+const iy = Math.ceil(types.length / cols) * ch + 10; BZ.ITEM_ORDER.forEach((t, i) => { const ic = document.createElement('canvas'); ic.width = 32; ic.height = 22; BZ.drawIcon(ic, t); g.drawImage(ic, 4 + (i % 22) * 33, iy + Math.floor(i / 22) * 24); });
+// tools
+BZ.drawBrush(g, 40, iy + 52, 1.2, 0); BZ.drawWand(g, { hx: 100, hy: iy + 30, fx: 110, fy: iy + 52, vx: 1, vy: 2 }, 1.2); BZ.drawSunWindow(g, { x: 200, y: iy + 140 }, 1, 40);
+</script></body></html>

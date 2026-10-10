@@ -1,0 +1,189 @@
+{
+  "$schema_note": "Machine-readable spec of the PF.Magic 'Ballz' pet-rendering technique (Ballz 1994 -> Dogz 1995 / Catz 1996). provenance: read_out = disassembled from the original engine by the dogz-reverse project; measured = observed pixel/file data; inferred = their inference; ours = choice made in this reimplementation.",
+  "sources": [
+    {
+      "title": "petz.js / dogz-reverse knowledge base (CC BY-SA 4.0)",
+      "url": "https://github.com/wilkie/petz.js",
+      "files": [
+        "kb/topics/drawing-a-dog.md",
+        "kb/formats/lnz.md",
+        "kb/formats/bhd.md",
+        "kb/formats/bdt.md",
+        "kb/topics/behaviour.md"
+      ]
+    },
+    {
+      "title": "petz-file-formats",
+      "url": "https://github.com/thenickdude/petz-file-formats"
+    },
+    {
+      "title": "Dogz and Catz - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Dogz_and_Catz"
+    },
+    {
+      "title": "PF.Magic - Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/PF.Magic"
+    },
+    {
+      "title": "catz-recomp: static recompilation of Catz (1996)",
+      "url": "https://github.com/sp00nznet/catz-recomp"
+    }
+  ],
+  "caveat": "The petz.js/dogz-reverse kb used here documents Dogz (1995) in depth. Catz (1996) runs on the same engine and its binary is widely archived; catz-recomp (github.com/sp00nznet/catz-recomp) has statically recompiled the whole CATZDLL.DLL engine to playable C, and the Petz hexing community has mapped cat breedfiles (LNZ) for years. Cat-specific rules in this file were not taken from those sources yet, so treat them as extrapolated until checked against them.",
+  "style_elements": [
+    "Body = flat-filled circles in 3D, sorted far-to-near, no gradients, no lighting",
+    "Thick tapered 'linez' join balls (ears, tail, legs, snout) and carry the first ball's color",
+    "Fur = ragged row-starts (fuzz) + one stray pixel per row in the upper half (speckle)",
+    "Outlines are partial: a single left-edge pixel ('half outline') or N-px rim; never a vector stroke",
+    "Coat colors come from 6-shade palette ramps; the speckle is the mirror shade in the same ramp",
+    "Eyes = ball + separately drawn iris that eases toward a look-target, clamped inside the eye; eyelid = cut circle in coat color",
+    "Low frame rate (~22 fps) and integer pixels; reads as chunky, hand-made, alive",
+    "Pet walks on the actual desktop; cursor is the hand (pet, poke, scruff, give)"
+  ],
+  "pipeline": [
+    {
+      "step": "skeleton",
+      "provenance": "read_out",
+      "detail": "One shared skeleton per species (Dogz: 65 balls). Animations store only 3D ball centers per frame; breed files store only looks."
+    },
+    {
+      "step": "scale",
+      "provenance": "read_out",
+      "detail": "coord' = coord * petScale >> 8; radius = size * ballScale >> 9. Scales interpolate puppy->adult by age: age*(adult-puppy)/100 + puppy. Puppy: positions 140/256, balls 200/256 (smaller body, bigger balls)."
+    },
+    {
+      "step": "rotate",
+      "provenance": "read_out",
+      "detail": "Yaw about the vertical axis by facing; then pitch tilt = -7 - |64 - |yaw|| / 10 (angles in 1/256 turn): 13 when facing viewer, 7 side-on."
+    },
+    {
+      "step": "project",
+      "provenance": "ours",
+      "detail": "Orthographic: x across, y down, larger z farther."
+    },
+    {
+      "step": "sort",
+      "provenance": "read_out",
+      "detail": "Every ball and line drawn in depth order, farthest first. A line's depth = average of its two ends."
+    },
+    {
+      "step": "raster_ball",
+      "provenance": "read_out",
+      "ref": "raster.ball"
+    },
+    {
+      "step": "raster_line",
+      "provenance": "read_out+ours",
+      "ref": "raster.line"
+    },
+    {
+      "step": "eyes",
+      "provenance": "read_out",
+      "ref": "raster.eye"
+    },
+    {
+      "step": "bonus_draw",
+      "provenance": "read_out",
+      "detail": "A held object is drawn as a per-ball callback right after its anchor ball (chin/paw), so nearer balls overdraw it."
+    }
+  ],
+  "raster": {
+    "circle_table": {
+      "provenance": "read_out",
+      "detail": "For each diameter d in 1..119: row width w(r) = sqrt(d^2 - (d - 2r)^2), r = 1..d. Plus a fixed random spot per row (speckle position) and 8 fuzz tables of row-start shifts."
+    },
+    "ball": {
+      "modes": {
+        "-1": "no outline: fill each row in ball color; each row in the upper half gets 1 pixel at a random x (from the fixed table) in the speckle color",
+        "0": "half outline: same as -1, plus each row's leftmost pixel in outline color",
+        ">0": "outline N px thick: top N rows fully outline color, then N px of outline at each end of every row; no speckles",
+        "-2": "partial circle cut along an angled line (eyelids)",
+        "-4": "fill from a color ramp down the rows (eyes)"
+      },
+      "fuzz": {
+        "provenance": "read_out",
+        "range": [
+          0,
+          7
+        ],
+        "detail": "Level picks a table that shifts each row's start right by a random 0..7 px; row width unchanged. Fixed per diameter, so the raggedness is stable, not flickering."
+      },
+      "speckle_color": {
+        "provenance": "read_out",
+        "formula": "s + (s + R - 1 - c)",
+        "detail": "s = first index of c's ramp, R = ramp length (6). Reflects the shade within its ramp: shade k -> shade R-1-k."
+      },
+      "shading": {
+        "provenance": "measured",
+        "detail": "None. Each ball is one flat palette index."
+      }
+    },
+    "line": {
+      "provenance": "read_out",
+      "detail": "Drawn in the first ball's color. Each end's thickness = that ball's radius * 256/300. LNZ row: start ball, end ball, fuzz.",
+      "ours": "Scanline-filled tapered quad with per-row fuzz shift and 1-px edge pixels in outline color, so it matches the ball raster."
+    },
+    "eye": {
+      "provenance": "read_out",
+      "iris_position": "relative to eye from frame, or toward a look-target, or centered (by state); eased 0.6 px/frame; clamped per axis to eyeRadius - 0.8*irisRadius",
+      "iris_fill": "flat iris color, no fuzz/speckle/outline; if iris > 7 px across, inset 2 px and refill in pupil color",
+      "eyelid": "covering share of the eye by a circle cut along a line at the angle between the eyes, in eyelid color",
+      "ours": "cat pupils are vertical slits whose width tracks excitement"
+    }
+  },
+  "breed_file_LNZ": {
+    "provenance": "measured",
+    "syntax": "Windows profile style [Section] headers; one line per entry; values comma-separated before first tab; after tab = comment",
+    "per_ball_sections": {
+      "256 Ball Color": "palette index (coat = 6-shade ramp)",
+      "Speckle Color": "-1 none, or >=0 enables speckles",
+      "Ball Size Diffs": "added (halved) to skeleton size",
+      "Puppy Balls": "extra size when young (halved, * puppiness/100)",
+      "Outline Type": "-1 none, 0 half, >0 thickness",
+      "Outline Color": "palette index",
+      "Fuzz": "0 none .. 3 'boocoo' (engine clamps to 8)"
+    },
+    "other_sections": [
+      "Eyes (eye balls, iris balls)",
+      "Eyelid/Iris Color",
+      "Key Balls (head, chest)",
+      "Head Balls",
+      "Omissions (hide without deleting)",
+      "Linez (start, end, fuzz)",
+      "Default Scales (adult pet, adult ball, young pet, young ball)",
+      "Default Factors (11 personality centers+spreads)",
+      "Sound List"
+    ],
+    "later_versions": [
+      "Add Ball (extra balls anchored to skeleton)",
+      "Paint Ballz (spots/textures on balls)",
+      "Texture List",
+      "Color/Outline Color Override"
+    ]
+  },
+  "animation": {
+    "provenance": "measured",
+    "BHD": "header: ball count, per-ball diameters, animation count, per-animation end-frame, per-frame byte offsets",
+    "BDT": "per frame: bbox (6 words), flags (1 sequence start, 2 end), then x,y,z signed words per ball, then up to 6 (ball, signed byte) extras",
+    "frame_rate": "a frame every 45 ms at most (~22 fps)",
+    "ours": "No original animation data is used. Poses are procedural (gait cycles, sit, loaf, groom, stalk, pounce, beg, scruffed) and eased toward each frame, which plays the role of BDT keyframes."
+  },
+  "behavior": {
+    "provenance": "read_out (Dogz PetModule), adapted to cats by us",
+    "structure": "state machine pushing scripts onto a queue; every choice is rand() % n",
+    "personality": "11 factors 1..100, each = center moved by spread - sqrt(rand() % spread^2) (clusters near center)",
+    "excitement": "100 * ((1 + sin(phi + pi*t/24000)) / 2) ^ ((100 - c)/25), t in 17 ms ticks: about a 13-minute mood cycle; calm breeds spend longer low",
+    "idle_plan": "rand() % (13 - e/10) + 6 - e/20 items; each a trick if rand()%100 <= e else 1-4 runs of pants/look-abouts; then sleep if rand()%30+30 > e else wander",
+    "locomotion": "walk/trot/run index = ((rand()%21 + e - 10) * 3) / 100; target >= 400 px away, 60 px inside stage edges; turn rate 6/256 turn per frame",
+    "petting": "button held over pet 4 frames with movement = stroke; preferred spot chest 20 / belly 30 / rump 50; enjoyment accumulates to 16; high enjoyment + calm -> roll/sleep",
+    "poke": "click on face/leg/tail without stroking -> flinch/snap; annoyance factor +5",
+    "ball_physics": "held: velocity = half cursor delta; released: lose 1/40 speed per frame, stop < 1 px/frame, bounce off stage edges; pet steers at position 4 frames ahead",
+    "hit_test": "balls tested nearest first, each as a square as wide as drawn; each ball maps to a body region (head, face, legs, tail, chest/belly, rump)"
+  },
+  "ours_habitat": {
+    "silhouette_pass": "Bo only: balls/lines drawn without rims into an offscreen buffer, then one 1px outline around the whole cat's alpha",
+    "curls": "Bo only: rex coat as staggered 2px dash rows every 3rd ball row, one shade darker",
+    "pod_clip": "cat inside the pod is clipped to the opening ellipse; the pod's lower lip is drawn after the cat",
+    "habitat": "stage-bounded world; jungle scene painted with the same raster vocabulary (scanline polys, row-filled ellipses, speckles)"
+  }
+}

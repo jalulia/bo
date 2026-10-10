@@ -1,0 +1,12 @@
+<!doctype html><html><body style="margin:0;background:transparent">
+<canvas id="c" width="128" height="128" style="width:1024px;height:1024px;image-rendering:pixelated"></canvas>
+<script src="../src/raster.js"></script><script src="../src/rex.js"></script><script src="../src/cat.js"></script><script src="../src/items.js"></script><script src="../src/world.js"></script><script src="../src/panel.js"></script>
+<script>
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+ctx.fillStyle='#3a3030'; const r=26;
+for(let y=6;y<122;y++){let inset=0; const dy=Math.min(y-6,121-y); if(dy<r){inset=Math.round(r-Math.sqrt(r*r-(r-dy)*(r-dy)));} ctx.fillRect(6+inset,y,116-2*inset,1);}
+ctx.fillStyle='#70b8a0'; for(let y=10;y<118;y++){let inset=0; const dy=Math.min(y-10,117-y); const rr=23; if(dy<rr){inset=Math.round(rr-Math.sqrt(rr*rr-(rr-dy)*(rr-dy)));} ctx.fillRect(10+inset,y,108-2*inset,1);}
+const tmp=document.createElement('canvas'); tmp.width=128; tmp.height=128;
+BZ.portrait(tmp,'bo',{scale:1.9, headY:0.6});
+ctx.save(); ctx.beginPath(); ctx.rect(10,10,108,108); ctx.clip(); ctx.drawImage(tmp,0,0); ctx.restore();
+</script></body></html>
