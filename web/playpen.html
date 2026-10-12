@@ -4272,7 +4272,7 @@ var BZ = window.BZ || (window.BZ = {});
       for (let i = 0; i < 40; i++) px(g, bx - 12 + r() * 24, bpY - 10 + r() * 18, '#d8d6d0');
       ell(g, bx, bpY - 12, 15, 3, '#1c1b1e'); ell(g, bx, bpY - 12, 13, 2, '#3a2a1e');
       // split-leaf philodendron on an iron stand by the window, porcelain pot
-      const fx = Math.min(W - 8, this.win.x1 + 30), standTop = F - 6, potY = standTop - 12; // beside the window, not in front of the sill
+      const fx = W - 28, standTop = F - 6, potY = standTop - 12; // in the corner past the window, not in front of the sill
       ell(g, fx, F + 24, 18, 3, 'rgba(20,10,0,0.22)');
       BZ.drawThin(g, fx - 10, standTop, fx - 14, F + 22, '#2a2826'); BZ.drawThin(g, fx + 10, standTop, fx + 14, F + 22, '#2a2826'); BZ.drawThin(g, fx, standTop, fx, F + 24, '#2a2826');
       ellRing(g, fx - 15, F + 22, 2, 2, '#2a2826'); ellRing(g, fx + 15, F + 22, 2, 2, '#2a2826');
