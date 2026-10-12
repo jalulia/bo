@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated": "2026-10-10",
+ "updated": "2026-10-12",
  "note": "Every reference Julia has sent. Photos downscaled to 2000px JPEG, videos to 720p H.264 (no audio). Add new ones here and in refs/README.md.",
  "refs": [
   {
@@ -506,6 +506,54 @@
    "shows": "screenshot of the app sent as feedback",
    "informs": "blanket lump doesn't read",
    "source": "6295c072-image.png"
+  },
+  {
+   "file": "refs/juno/juno-lawn-lying-legs-out.jpg",
+   "category": "juno",
+   "received": "2026-10-12",
+   "shows": "Juno, Julia's mom's Saluki, lying on a lawn: grizzle-sable back, cream-white face with a white blaze, long blonde feathered ears, white chest and long white forelegs stretched straight out, feathered curled tail, brown collar, mouth open in a smile",
+   "informs": "Juno's coat, the lying pose (front legs straight out), the feathering",
+   "source": "169584ba-image.png"
+  },
+  {
+   "file": "refs/juno/juno-lawn-sitting-woods.jpg",
+   "category": "juno",
+   "received": "2026-10-12",
+   "shows": "Juno sitting in long grass in front of the woods, side view: deep chest, tucked waist, ears blowing, an ornate leather collar with brass, tongue out",
+   "informs": "side profile, proportions, the collar",
+   "source": "ece712ca-image.jpg"
+  },
+  {
+   "file": "refs/juno/juno-dog-bed-sombrero.jpg",
+   "category": "juno",
+   "received": "2026-10-12",
+   "shows": "Juno on a dog bed indoors with a tiny sombrero, forelegs crossed straight out, head up, eyebrows raised",
+   "informs": "the crossed-forelegs lie, the expressive brow, face markings",
+   "source": "1b0ab563-IMG_0417.heic"
+  },
+  {
+   "file": "refs/motion/juno-dog-bed-ears-eyes.mp4",
+   "category": "motion",
+   "received": "2026-10-12",
+   "shows": "Juno lying on a cushion by the door, chin down, then a slow lift of the head toward the camera: ear and eyebrow movement, eye tracking",
+   "informs": "how much she says with her eyebrows, eyes and ears; the languid head lift",
+   "source": "IMG_0579.mov"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-12-2e136709.png",
+   "category": "app-feedback",
+   "received": "2026-10-12",
+   "shows": "the backyard with red marker notes",
+   "informs": "where the bird feeder (BF) and bushes go (back left by the tree line), and the easel/pottery wheel (right, by the studio)",
+   "source": "2e136709-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-12-1df1d696.png",
+   "category": "app-feedback",
+   "received": "2026-10-12",
+   "shows": "the hover name tag over Bunny on the dragonfly chair",
+   "informs": "\"things like this pop up i think are unnecessary\": the hover tag is gone",
+   "source": "1df1d696-image.png"
   }
  ]
 }

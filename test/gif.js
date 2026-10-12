@@ -32,6 +32,9 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
       let f = 0; window.__script = () => { f++; const tgt = f < 40 ? bo : bu; P.x = tgt.x + 2; P.y = tgt.y - 16; world.onMove();
         if (f === 14) world.dress(bo); if (f === 44) world.dress(bu); if (f === 60) world.cmd('carry', 'sweater');
         if (f === 64) { lt.occupant = bo.id; bo.setState('toBed'); bo.bedItem = lt; } if (f === 80) { seat.occupant = bu.id; bu.setState('toBed'); bu.bedItem = seat; } }; }
+    if (sc === 'juno') { world.cmd('scene', 'yard'); for (const c of world.cats) c.hidden = false; const Y = world.scene; for (let i = 0; i < 40; i++) world.tick();
+      rest(bo, st.x + st.w * 0.62, st.y + st.h * 0.7, Math.PI); rest(bu, st.x + st.w * 0.7, st.y + st.h * 0.85, 0.3); Y.dog.x = Y.dogHome[0] + 20; Y.dog.y = Y.dogHome[1] + 10; Y.dog.st = 'rest'; Y.dog.t = 340; Y.dog.T = 9999; Y.dog.anim = 'chin'; Y.dog.cool = 0; Y.birdWait = 1e9; Y.squirrel = null; Y.sqWait = 24;
+      window.__crop = [st.x, st.y + Y.F - 60, Math.min(st.w, 300), 170]; window.__scale = 3; }
     if (sc === 'swing') { world.cmd('scene', 'yard'); for (const c of world.cats) c.hidden = false; for (let i = 0; i < 60; i++) world.tick();
       const T = world.items.find((i) => i.type === 'tire'); bu.placeInBed(T); bu.placedT = 0; bu.bedPlan = { watch: 0, end1: 0, end2: 0, it: T }; bu.napStyle = 'loaf'; T.ang = 0.14; T.av = 0; for (const c of world.cats) c.hidden = false;
       const A = world.items.find((i) => i.type === 'adk'), S = world.items.find((i) => i.type === 'seat' && i.parent === A); bo.placeInBed(A); bo.placedT = 0; bo.bedPlan = { end1: 0, end2: 0, it: A }; bo.napStyle = 'dangle'; bo.st = 300;
@@ -42,7 +45,7 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     window.__grab = () => { const [x, y, w, h] = window.__crop.map(Math.round), c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(world.cv, x, y, w, h, 0, 0, w, h); return c.toDataURL('image/png'); };
     return 'ok';
   }, sc);
-  const N = { doors: 120, garden: 190, knock: 110, swing: 120, cubby: 120, sweaters: 150 }[sc] || 120;
+  const N = { doors: 120, garden: 190, knock: 110, swing: 120, cubby: 120, sweaters: 150, juno: 170 }[sc] || 120;
   for (let i = 0; i < N; i++) { const url = await p.evaluate(() => { window.__script(); world.tick(); window.__script(); world.tick(); return window.__grab(); }); fs.writeFileSync(path.join(tmp, String(i).padStart(4, '0') + '.png'), Buffer.from(url.split(',')[1], 'base64')); }
   const sc2 = await p.evaluate(() => window.__scale); await b.close();
   execSync(`ffmpeg -v error -y -framerate 15 -i ${tmp}/%04d.png -vf "scale=iw*${sc2}:ih*${sc2}:flags=neighbor,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=none" -loop 0 ${out}`);

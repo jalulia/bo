@@ -8,6 +8,7 @@ Everything Julia has sent as reference, organized by subject. Photos are downsca
 
 - **Bo**: seal point & white Cornish Rex, 19, small and aloof, sleepy, a grass lover. Eyes bright, light, shiny teal-blue. Dark seal mask, ears and tail; cream-white chest, legs and muzzle. Marcel-wave coat.
 - **Bunny**: all white Cornish Rex, older and tinier than Bo, gold/yellow eyes, feisty. Wallops and body-slams Bo; they chase and brawl, but mostly nap and chill together. Wore a brown ribbon bow on her harness.
+- **Juno**: Julia's mom's Saluki, always in the backyard. Grizzle-sable feathered coat, cream face with a white blaze, long blonde silky ears, white chest and legs, feathered tail, an ornate leather collar. Sweet, chill, languid on those long legs; very expressive eyebrows, eyes and ears. Bee-lines for squirrels at lightning speed. She and Bo didn't get along: she just trots off when Bo comes close, no fear, no animosity.
 
 ## Bo
 
@@ -41,6 +42,14 @@ Everything Julia has sent as reference, organized by subject. Photos are downsca
 | [both-sweaters-lamp-2.jpg](together/both-sweaters-lamp-2.jpg) | 2026-10-10 | Same scene, closer | sweaters, bows |
 | [both-sweaters-lamp-3.jpg](together/both-sweaters-lamp-3.jpg) | 2026-10-10 | Same scene, another angle | sweaters, bows |
 
+## Juno (Julia's mom's Saluki)
+
+| File | Received | What it shows | What it informs |
+|---|---|---|---|
+| [juno-lawn-lying-legs-out.jpg](juno/juno-lawn-lying-legs-out.jpg) | 2026-10-12 | Juno, Julia's mom's Saluki, lying on a lawn: grizzle-sable back, cream-white face with a white blaze, long blonde feathered ears, white chest and long white forelegs stretched straight out, feathered curled tail, brown collar, mouth open in a smile | Juno's coat, the lying pose (front legs straight out), the feathering |
+| [juno-lawn-sitting-woods.jpg](juno/juno-lawn-sitting-woods.jpg) | 2026-10-12 | Juno sitting in long grass in front of the woods, side view: deep chest, tucked waist, ears blowing, an ornate leather collar with brass, tongue out | side profile, proportions, the collar |
+| [juno-dog-bed-sombrero.jpg](juno/juno-dog-bed-sombrero.jpg) | 2026-10-12 | Juno on a dog bed indoors with a tiny sombrero, forelegs crossed straight out, head up, eyebrows raised | the crossed-forelegs lie, the expressive brow, face markings |
+
 ## Motion (video)
 
 | File | Received | What it shows | What it informs |
@@ -48,6 +57,7 @@ Everything Julia has sent as reference, organized by subject. Photos are downsca
 | [bunny-walk-harness-bow.mp4](motion/bunny-walk-harness-bow.mp4) | 2026-10-10 | Bunny walking around the living room in a harness with a brown ribbon bow; Persian rug, carved coffee table, patterned chair | Bunny's walk, tail carriage (up, hooked); the bow; living room |
 | [bo-play-bed-string.mp4](motion/bo-play-bed-string.mp4) | 2026-10-10 | Bo playing with a string on a white duvet: crouch, wiggle, pounce, long stretched lunge | pounce/lunge timing and the long reach |
 | [bo-play-couch-crab.mp4](motion/bo-play-couch-crab.mp4) | 2026-10-10 | Bo on the couch: arched back, high hips, tail up in an S, sideways hops and swats | crab hop, arched play posture, long hind legs, tail S-curve |
+| [juno-dog-bed-ears-eyes.mp4](motion/juno-dog-bed-ears-eyes.mp4) | 2026-10-12 | Juno lying on a cushion by the door, chin down, then a slow lift of the head toward the camera: ear and eyebrow movement, eye tracking | how much she says with her eyebrows, eyes and ears; the languid head lift |
 
 ## Furniture
 
@@ -111,3 +121,5 @@ Everything Julia has sent as reference, organized by subject. Photos are downsca
 | [2026-10-10-905df7ad.png](app-feedback/2026-10-10-905df7ad.png) | 2026-10-10 | screenshot of the app sent as feedback | room: pod size, fixtures, bookcase |
 | [2026-10-10-bbbf37fe.png](app-feedback/2026-10-10-bbbf37fe.png) | 2026-10-10 | screenshot of the app sent as feedback | poppy chair: make taller |
 | [2026-10-10-6295c072.png](app-feedback/2026-10-10-6295c072.png) | 2026-10-10 | screenshot of the app sent as feedback | blanket lump doesn't read |
+| [2026-10-12-2e136709.png](app-feedback/2026-10-12-2e136709.png) | 2026-10-12 | the backyard with red marker notes | where the bird feeder (BF) and bushes go (back left by the tree line), and the easel/pottery wheel (right, by the studio) |
+| [2026-10-12-1df1d696.png](app-feedback/2026-10-12-1df1d696.png) | 2026-10-12 | the hover name tag over Bunny on the dragonfly chair | "things like this pop up i think are unnecessary": the hover tag is gone |

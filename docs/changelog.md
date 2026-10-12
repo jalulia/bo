@@ -2,6 +2,13 @@
 
 What Julia can see, by round. Newest first.
 
+## 2026-10-12g · Clean UI, phones, Juno
+- **UX/UI pass** (web and app): the hover name tag is gone; the toy box has an "in hand" strip that says what you're holding and what to do with it, with a Put down button; bigger touch targets, labels that wrap, tap/click-aware hints; a tidier desktop layout.
+- **Phones and tablets** (the browser version): touch works everywhere (pet, pick up, place, drag, laser, brush, wand, water, plant); on a phone the toy box is a sheet you pull up from the bottom and it drops away when you pick a thing; the room is wider than the screen and a camera follows the cats (drag the ground to look around); portrait tablets get the window on top and the toy box open below. Add to Home Screen works (standalone, no browser chrome).
+- **Backyard**: a bird feeder at the tree line with Northern Virginia birds by season (cardinals, blue jay, Carolina chickadee, tufted titmouse, goldfinch, house finch, Carolina wren, downy woodpecker, white-breasted nuthatch, mourning dove, robin on the lawn, juncos in winter); the squirrel raids the feeder and the birds scatter; cats chatter at them and stalk the ground feeders. A rhododendron and a hydrangea by the feeder. The easel and the kick wheel on the patio by the steps. The corner of the sandbox, bottom left, with the yellow dump truck and backhoe.
+- **Juno**: Julia's mom's Saluki lives in the backyard. She lies on the lawn with her forelegs out (chin down when she dozes), lifts her head when a bird lands or a cat crosses, all eyebrows and ears; wanders languidly, sits, suns; bolts for the squirrel at lightning speed and then stands at the trunk looking up, wagging; trots off when Bo comes close, with one look back.
+- GIFs: `gifs/juno.gif`.
+
 ## 2026-10-10f · Sweaters
 - **Sweaters** (Comfort → Sweaters): click a cat to dress her in a cream knit sweater with a satin ribbon bow, green for Bo and brown for Bunny; click again to take it off. Bo sits down in it, unimpressed. It stays on between sessions.
 - **Felted bag**: hand-knit burgundy wool with a leather strap, a bone button and a kraft tag on a clothespin. She climbs in and peeks out.

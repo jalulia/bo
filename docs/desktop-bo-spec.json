@@ -1,6 +1,6 @@
 {
  "name": "Desktop Bo",
- "version": "2.6.0",
+ "version": "2.7.0",
  "provenance_note": "breed_standard = CFA Cornish Rex standard (cfa.org/?p=21290); photos = Julia's reference photos of Bo; read_out = PF.Magic engine rules via petz.js kb; ours = choices made here",
  "body": {
   "source": "breed_standard + photos",
@@ -353,5 +353,32 @@
  "items_new_2026_10_10f": {
   "bag": "box-type bed (periscope peeks, ambush), felt ramp, strap, button, kraft tag",
   "lamptable": "paired bed (two slots at rootPx 27.5), cached painting, live glow pool; nap weight up at night"
+ },
+ "input": {
+  "source": "ours",
+  "events": "pointerdown/move/up/cancel on document; touch pointers only move while down; a lifted touch clears pointer.inside and parks the pointer at -999",
+  "pan": "touch on empty ground (no cat, item, tool or carry) drags cam.x; hold 240 frames before auto-follow resumes",
+  "hover_tag": "removed 2026-10-12 at Julia's request"
+ },
+ "camera": {
+  "source": "ours",
+  "when": "host stageRect.minW > window width (phones: minW = clamp(1.6*h, w, 900) CSS px)",
+  "follow": "mean x of awake visible cats, else all; the held cat, dragged item or carried thing when there is one; lerp 0.06"
+ },
+ "yard_2026_10_12": {
+  "feeder": "pole at S-30 (left of the shelves), hopper with copper roof, tray at top+16, baffle; slots: tray L/R, roof, side L/R, pole x2, ground x4, trunk x2, lawn x3",
+  "birds": "13 kinds weighted by season (junco Nov-Mar, goldfinch bright Apr-Sep); max 3; fly in from a side, perch stay 350-1200 frames, peck every 90 frames; flee when a cat is within 44-64*size, when the squirrel raids, or when a blue jay comes in; ground and lawn birds are stimuli",
+  "bushes": "rhododendron at S-54 r22 (glossy long leaves, pink trusses), hydrangea at S-12 r15 (serrated leaves, blue mopheads)",
+  "easel_wheel": "props on the patio right of the steps at (S+214, F+36) and (S+186, F+56), cached 60x60",
+  "sandbox": "corner at x -30..84, y H-44..H-8; cedar frame, sand ramp, tire ruts, a dug hole, yellow dump truck (bed tipped) and backhoe, a shovel"
+ },
+ "juno": {
+  "source": "photos (refs/juno/*) + ours",
+  "scale": "1.55 x world.size",
+  "frame": "hip (-16,36) back (-3,39.5) chest (12,37) belly (-1,31) head (30,50); forelegs ik 16+17 elbow back; hind ik 15+17 hock back; nose 14 ahead of the head, eyes at (5.5,2.4,\u00b13.4), brows as short dark lines that lift with pose.brow, ears hanging from (-2,4.5,\u00b14.8) to (-6,-11) lifting with pose.ear, feathered tips",
+  "poses": "stand, trot, gallop, sit, sphinx (forelegs poured out, one crossing), chin (head on the ground, lids down), point (head up, ears forward)",
+  "palette": "sable #4a4036..#a99680 (saddle), cream #b8a382..#f3ead8 (sides, head), white #c9c1b3..#f6f2ea (chest, legs, muzzle), blonde #b89a68..#ebd9b0 (ears), collar #6a4a2a + brass",
+  "behavior": "rest -> chin after 320 frames; head lifts for a landing bird, a moving cat within 140*size, or at random (brow 0.5-1, ear 0.4-0.9, 90-180 frames); wander trot 1.3*size; sit; sun (lawn pool unless a cat is on it); chase when the squirrel is out: gallop 6.2*size, the squirrel bolts home at 4.6 px/frame, then 150-270 frames at the trunk looking up (point, wag), cooldown 900; avoid Bo within 62*size: trot 2.6*size the other way, ears back, then sit and look back with brows up",
+  "bounds": "lawn only: x in [26, lawnEdge(y)-34], y in [F+46, H-50]; chase ignores bounds"
  }
 }

@@ -8,6 +8,8 @@
 
 ## Cats (`src/cat.js`, `src/world.js`)
 
+(Juno the dog is `BZ.Dog` at the end of `cat.js`: her own skeleton and poses in the same Ballz vocabulary, drawn through the shared `BZ.drawOutlined` pass; her behavior is `Yard.tickDog` in `jungle.js`, since she only exists out back.)
+
 - **Skeleton**: balls and tapered lines (`LINES`), placed by `buildSkeleton` from a pose. Front legs: IK 12+12 from the shoulder. Hind legs: thigh 7.5, shank 10.5, hock 11 above the paw. Roll about the spine with a ground-rest lift weighted by `min(1, |roll|/35)`.
 - **Poses**: `BZ.POSES` (stand, sit, loaf, sphinx, baguette, crescent, dangle, lounge, flop, crouch, beg, eat, graze, stretch, stretchBack, slink, rear, tussle, wallStretch, bellyup, lunge, crabArch, leap, pin, kick, flinch, held, ...). Keys: hip/chest positions, back lift, head offsets and angles, paw targets `[forward, up, side]` with leg modes `ik | flat | tuck | sit | hide`, tail shape, ears, lids.
 - **Gait**: `applyGait` layers flex, girdles, stride and lead yaw onto a base pose; any gait on a base with `hipY < 29` falls back to stand; creep/crouch/slink use the slink pose.
@@ -17,6 +19,8 @@
 
 ## Places, items, fixtures, surfaces (`src/world.js`)
 
+- **Input**: pointer events (mouse, pen, touch). On touch, a lifted finger means no pointer (the laser dot goes away, cats stop staring at it). A finger dragged on empty ground pans the camera when there is one.
+- **Camera**: when the host passes `minW` in the stage rect and the window is narrower, the stage becomes `minW` wide and `World.view` holds the window; `cam.x` follows the awake cats (or the thing you're holding), with a hold after a manual pan. Rendering clips to the view and translates by `-cam.x`; input adds `cam.x`.
 - **Places**: `room`, `yard`, `desk`. `World.sets[place]` holds each place's placeable items; `swapPlace` stashes and restores them. `sceneKey` is room or yard; the habitat window shows that scene; roam mode is `desk`.
 - **Items**: `BZ.ITEMS` (registry), one per type per place. Flags: `bed`, `soft`, `burrow`, `box`, `ball`, `tool`, `snack`, `consumable`, `plant`, `garden`, `fixed`, `places` (where the toy box offers it).
 - **Fixtures**: objects a scene provides that aren't saved or dragged (`fixed: true`): window ledges, the daybed's second seat, the room's daybed and coffee table, the felt cube, the yard's steps, potting-shelf perch, tire swing, Adirondack chair. `syncFixtures()` rebuilds them on layout and keeps the same objects so a cat sitting on one isn't knocked off. Fixtures with `draw: true` render through `drawItem`.
@@ -36,10 +40,18 @@ Both scenes implement: `layout(stage)`, `paint()`, `drawBack(ctx)`, `drawFront(c
 ```
 Older saves (`items`, v3) load into both `room` and `desk`. The daybed and coffee table are dropped from room/yard sets because the room owns them.
 
+## Hosts
+
+- `web/playpen.src.html`: desktop layout (window + toy box beside it), phone layout (window on top, toy box as a bottom sheet that drops when you pick a thing), portrait-tablet layout (window on top, toy box open below). Media queries: `(max-width: 820px), (max-height: 560px)` is small; `(min-width: 600px) and (max-aspect-ratio: 4/5)` is the tablet case.
+- `desktop/`: the Electron app, unchanged in shape; the toy box popover uses the same `BZ.Panel`.
+
 ## Testing
 
 | Harness | Use |
 |---|---|
+| `node test/ux.js phone|tablet|desktop out.png` | A scripted walkthrough (pick, place, pet, laser, put down, switch to the yard) with touch or mouse; prints what happened. |
+| `node test/juno.js out.png` | Juno's pose sheet. |
+| `xvfb-run -a npx electron --no-sandbox test/electron-smoke.js` | Boots the Mac app's windows headlessly and screenshots them. |
 | `node test/one.js "t=<type>&s=1.6&px=4" out.png` | Close-up of one item (`&lump=1&peek=30` for the blanket lump). |
 | `node test/scene.js room|yard out.png [ticks] [w] [h]` | The habitat window after N ticks. |
 | `node test/moments.js out.png` | Staged contact sheet of key behaviors. |

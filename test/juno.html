@@ -1,0 +1,10 @@
+<!doctype html><html><body style="margin:0;background:#8aa86a"><canvas id="c"></canvas>
+<script src="../src/raster.js"></script><script src="../src/rex.js"></script><script src="../src/cat.js"></script>
+<script>
+const q = new URLSearchParams(location.search), PX = +(q.get('px') || 3);
+const cv = document.getElementById('c'); cv.width = 520; cv.height = 300; cv.style.width = cv.width * PX + 'px'; cv.style.imageRendering = 'pixelated';
+const g = cv.getContext('2d'); g.fillStyle = '#7f9c5e'; g.fillRect(0, 0, 520, 300);
+const fake = { size: 1.2, frame: 0 };
+const set = [['stand', Math.PI / 2 + 0.5, null], ['trot', 0.2, 'trot'], ['gallop', 0.1, 'gallop'], ['sit', Math.PI / 2 + 0.6, null], ['sphinx', Math.PI / 2 + 0.3, null], ['chin', 0.6, null], ['point', Math.PI - 0.4, null], ['stand', Math.PI / 2, null]];
+set.forEach(([a, th, gait], i) => { const d = new BZ.Dog(fake, 70 + (i % 4) * 125, 125 + Math.floor(i / 4) * 140); d.anim = a; d.theta = th; d.gait = gait; d.phase = 0.3; if (i === 7) { d.browT = 999; d.browTo = 0.9; d.earT = 999; d.earTo = 0.8; d.look = [d.x + 30, d.y - 90]; d.mouthT = 999; } if (i === 3) { d.look = [d.x - 60, d.y - 40]; d.wag = 999; } for (let k = 0; k < 40; k++) d.animate(); d.draw(g); });
+</script></body></html>

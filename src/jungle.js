@@ -335,7 +335,7 @@ var BZ = window.BZ || (window.BZ = {});
       for (let i = 0; i < 40; i++) px(g, bx - 12 + r() * 24, bpY - 10 + r() * 18, '#d8d6d0');
       ell(g, bx, bpY - 12, 15, 3, '#1c1b1e'); ell(g, bx, bpY - 12, 13, 2, '#3a2a1e');
       // split-leaf philodendron on an iron stand by the window, porcelain pot
-      const fx = Math.min(W - 8, this.win.x1 + 30), standTop = F - 6, potY = standTop - 12; // beside the window, not in front of the sill
+      const fx = W - 28, standTop = F - 6, potY = standTop - 12; // in the corner past the window, not in front of the sill
       ell(g, fx, F + 24, 18, 3, 'rgba(20,10,0,0.22)');
       BZ.drawThin(g, fx - 10, standTop, fx - 14, F + 22, '#2a2826'); BZ.drawThin(g, fx + 10, standTop, fx + 14, F + 22, '#2a2826'); BZ.drawThin(g, fx, standTop, fx, F + 24, '#2a2826');
       ellRing(g, fx - 15, F + 22, 2, 2, '#2a2826'); ellRing(g, fx + 15, F + 22, 2, 2, '#2a2826');
@@ -482,8 +482,18 @@ var BZ = window.BZ || (window.BZ = {});
       this.steps = [0, 1, 2].map((i) => ({ x0: S + 172 + i * 8, x1: S + 180 + i * 8, top: F - 11 + i * 5 }));
       this.shelf = { x0: S + 6, x1: S + 62, top: F - 48, mid: F - 26, foot: F + 3 };
       this.stand = { x: S + 76, top: F - 22, foot: F + 4 };
-      this.bunny = { x: S + 204, y: F + 12 };
+      this.bunny = { x: S + 204, y: F + 14 };
       this.tree = { x: Math.round(W * 0.15), base: F + 36, w: 15 };
+      this.easel = { x: S + 214, foot: F + 36 }; this.wheel = { x: S + 186, foot: F + 56 }; // the studio spills out onto the patio: an easel and the kick wheel, right of the steps
+      this.sandbox = { x0: -30, x1: 84, y0: H - 44, y1: H - 8 }; // the corner of the sandbox, bottom left
+      this.feeder = { x: S - 30, base: F - 2, top: F - 64 }; // the bird feeder on its pole at the tree line, left of the shelves
+      this.bushes = [{ kind: 'rhodo', x: S - 54, y: F - 1, r: 22 }, { kind: 'hydrangea', x: S - 12, y: F + 2, r: 15 }];
+      this.birds = []; this.birdWait = 120 + Math.random() * 300;
+      // Juno lives out here. Her spot is the lawn under the big tree
+      this.lawnEdge = (y) => S - 28 - (y - (F + 1)) * 0.32 + Math.sin(y * 0.19) * 4 + Math.sin(y * 0.061) * 9; // where the lawn meets the patio (stage y)
+      this.dogHome = [st.x + Math.max(30, this.tree.x - 18), st.y + F + 74];
+      if (!this.dog) { this.dog = new BZ.Dog(this.w, this.dogHome[0], this.dogHome[1]); this.dog.theta = 0.3; this.dog.anim = 'sphinx'; this.dog.st = 'rest'; this.dog.t = 0; this.dog.cool = 0; for (let i = 0; i < 30; i++) this.dog.animate(); }
+      else { this.dog.x = this.dogHome[0]; this.dog.y = this.dogHome[1]; }
       this.tire = { x: Math.round(W * 0.15) + 46, ropeY: 16, cy: F + 2, R: 19, r: 11, ground: F + 40 };
       const fy = (v) => F + 8 + (H - F - 8) * v;
       this.plots = [
@@ -506,7 +516,7 @@ var BZ = window.BZ || (window.BZ = {});
       this.phase = phaseNow(); const P = PHASES[this.phase], { w: W, h: H } = this.st, F = this.F;
       for (const c of [this.bg, this.fg, this.dap]) { c.width = W; c.height = H; }
       const g = this.bg.getContext('2d');
-      this.paintSky(g, W, F, P); this.paintWoods(g, W, F); this.paintStudio(g, W, F); this.paintGround(g, W, H, F); this.paintPlots(g); this.paintCorner(g, F); this.paintDeck(g, F);
+      this.paintSky(g, W, F, P); this.paintWoods(g, W, F); this.paintStudio(g, W, F); this.paintGround(g, W, H, F); this.paintPlots(g); this.paintBushes(g); this.paintFeeder(g); this.paintCorner(g, F); this.paintDeck(g, F); this.paintSandbox(g);
       this.paintDapple(W, H, F); this.paintCanopy(W, H, F);
     }
     night() { return this.phase === 'night'; }
@@ -565,7 +575,7 @@ var BZ = window.BZ || (window.BZ = {});
       win(S + 12, S + 50, wt, F - 54, 1);
       win(S + 96, S + 122, wt + 4, F - 40, 2);
       win(S + 180, S + 200, wt + 4, F - 42, 3);
-      for (let x = S + 238; x + 22 < W - 4; x += 64) win(x, x + 22, wt + 4, F - 42, x);
+      for (let x = S + 290; x + 22 < W - 4; x += 64) win(x, x + 22, wt + 4, F - 42, x);
       // French doors (drawn by drawBack so they can swing); the porch light beside them
       const lx = S + 126, ly = this.door.y0 + 8; rect(g, lx - 3, ly - 5, 6, 7, Y.trim[2]); ell(g, lx + 2, ly, 3, 3, '#2a2724'); ell(g, lx + 5, ly + 2, 2, 2, nt ? '#fff1c0' : '#d8d2c2');
       if (nt) for (let k = 1; k <= 4; k++) ell(g, lx + 5, ly + 2, 4 + k * 5, 3 + k * 4, 'rgba(255,220,150,0.07)');
@@ -658,6 +668,86 @@ var BZ = window.BZ || (window.BZ = {});
       rect(g, st.x - 5, st.top - 9, 8, 9, '#ecebe4'); rect(g, st.x - 5, st.top - 9, 2, 9, '#ffffff'); rect(g, st.x - 2, st.top - 12, 3, 3, '#d8d6cc'); rect(g, st.x - 4, st.top - 6, 5, 3, '#c94a3a'); // a jug with a red label
       void nt; void r;
     }
+    // ── the bushes at the tree line: a rhododendron (big glossy leaves, pink trusses in spring) and a mophead hydrangea (blue to lavender) ──
+    paintBushes(g) {
+      const r = BZ.rng(606), m = new Date().getMonth(), nt = this.night();
+      for (const b of this.bushes) {
+        const rh = b.kind === 'rhodo', R = b.r, L = rh ? ['#1f3a22', '#2a4d2c', '#366338', '#457a45', '#5a9352'] : ['#2e4a2a', '#3d6137', '#4f7a46', '#659457', '#7faa68'];
+        ell(g, b.x + 2, b.y + 2, R * 1.05, R * 0.28, 'rgba(20,14,6,0.28)');
+        for (let i = 0; i < 9; i++) { const a = r() * 6.28, d = r() * R * 0.55; ell(g, b.x + Math.cos(a) * d, b.y - R * 0.55 + Math.sin(a) * d * 0.6, R * (0.45 + r() * 0.25), R * (0.4 + r() * 0.2), L[1 + (i % 2)]); } // the mass
+        if (rh) for (let i = 0; i < R * 2.2; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * R * 0.95, x = b.x + Math.cos(a) * d, y = b.y - R * 0.55 + Math.sin(a) * d * 0.62; if (y > b.y) continue; leaf(g, x, y, 7 + r() * 3, 2.6, r() * 6.28, L[2 + Math.floor(r() * 3)], L[4], { hi: Math.sin(a) < 0 ? L[4] : null }); } // long glossy leaves
+        else for (let i = 0; i < R * 3; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * R * 0.95, x = b.x + Math.cos(a) * d, y = b.y - R * 0.55 + Math.sin(a) * d * 0.62; if (y > b.y) continue; leaf(g, x, y, 4 + r() * 2, 2.6, r() * 6.28, L[2 + Math.floor(r() * 3)], null, { notch: true }); } // broad serrated leaves
+        const bloom = rh ? (m >= 3 && m <= 5) : (m >= 5 && m <= 9);
+        if (bloom || true) { // trusses / mopheads (we keep a few on all year: the yard is a memory, and it was always May out there)
+          const n = rh ? 5 : 6, C = rh ? ['#c94a8a', '#e07ab0', '#f2a9cf', '#f9d3e6'] : ['#5a6cc0', '#7f8fd8', '#a7b2e8', '#c9cff2', '#b48ad0'];
+          for (let i = 0; i < n; i++) { const a = -Math.PI + (i + 0.5) / n * Math.PI + (r() - 0.5) * 0.4, d = R * (0.55 + r() * 0.35), x = b.x + Math.cos(a) * d, y = b.y - R * 0.5 + Math.sin(a) * d * 0.7, rr = rh ? 4.5 : 5.5;
+            ell(g, x, y, rr, rr * 0.8, C[0]); ell(g, x - 1, y - 1, rr * 0.75, rr * 0.6, C[1]); for (let q = 0; q < (rh ? 7 : 12); q++) { const qa = r() * 6.28, qd = r() * rr * 0.9; px(g, x + Math.cos(qa) * qd, y + Math.sin(qa) * qd * 0.8, C[2 + Math.floor(r() * (C.length - 2))]); } }
+        }
+        if (nt) { ctx_dark(g, b.x - R, b.y - R * 1.3, R * 2, R * 1.4); }
+      }
+      function ctx_dark(g, x, y, w, h) { g.fillStyle = 'rgba(10,16,40,0.3)'; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+    }
+    // ── the feeder: a cedar hopper with a copper roof on a black pole, a squirrel baffle, seed on the ground below ──
+    paintFeeder(g) {
+      const f = this.feeder, x = f.x, nt = this.night(), r = BZ.rng(707);
+      ell(g, x + 1, f.base + 1, 6, 1.6, 'rgba(20,14,6,0.3)');
+      rect(g, x - 1, f.top + 20, 3, f.base - f.top - 20, '#2a2724'); rect(g, x - 1, f.top + 20, 1, f.base - f.top - 20, '#4a4642'); // the pole
+      ell(g, x, f.base - 26, 7, 2.4, '#3a3632'); ell(g, x, f.base - 27, 7, 1.6, '#6a6560'); // the baffle
+      rect(g, x - 9, f.top + 16, 18, 3, '#7a5a3a'); rect(g, x - 9, f.top + 16, 18, 1, '#a0825c'); rect(g, x - 8, f.top + 15, 16, 1, '#d8b864'); // the tray, with seed
+      rect(g, x - 6, f.top + 5, 12, 11, '#9a7a52'); rect(g, x - 6, f.top + 5, 2, 11, '#b8966a'); rect(g, x - 2, f.top + 7, 5, 6, '#2a2420'); for (let i = 0; i < 10; i++) px(g, x - 2 + r() * 5, f.top + 8 + r() * 5, r() < 0.5 ? '#d8b864' : '#4a3a2a'); // the hopper, seed showing through the window
+      BZ.fillPoly(g, [[x - 10, f.top + 6], [x + 10, f.top + 6], [x, f.top - 1]], nt ? '#4a3a2a' : '#8a5a3a'); BZ.fillPoly(g, [[x - 8, f.top + 5], [x, f.top], [x + 8, f.top + 5]], nt ? '#5a4a3a' : '#5f8a74'); px(g, x - 3, f.top + 3, '#8fb8a0'); // the copper roof, gone green
+      for (let i = 0; i < 14; i++) px(g, x - 12 + r() * 24, f.base + 2 + r() * 7, r() < 0.4 ? '#d8b864' : '#3a2a1a'); // spilled seed
+    }
+    // ── the studio spills out: an easel with a half-done canvas, the kick wheel with a pot on it ──
+    drawStudioStuff(ctx, X, Yo, which) {
+      if (!this.stuffC) { this.stuffC = {}; for (const k of ['easel', 'wheel']) { const c = document.createElement('canvas'); c.width = 60; c.height = 60; this.paintStudioStuff(c.getContext('2d'), k); this.stuffC[k] = c; } }
+      const o = which === 'easel' ? this.easel : this.wheel; ctx.drawImage(this.stuffC[which], Math.round(X + o.x - 30), Math.round(Yo + o.foot - 52));
+    }
+    paintStudioStuff(g, which) {
+      const e = { x: 30, foot: 52 }, w = { x: 24, foot: 52 }, nt = this.night(), WD = ['#5a4028', '#7a5838', '#9a7450', '#b89066'];
+      if (which === 'easel') {
+      ell(g, e.x + 1, e.foot + 1, 9, 2, 'rgba(20,14,6,0.25)');
+      BZ.drawThin(g, e.x - 7, e.foot, e.x - 1, e.foot - 42, WD[1]); BZ.drawThin(g, e.x + 7, e.foot, e.x + 1, e.foot - 42, WD[1]); BZ.drawThin(g, e.x + 4, e.foot + 2, e.x, e.foot - 40, WD[0]); // three legs
+      rect(g, e.x - 8, e.foot - 20, 16, 2, WD[2]); rect(g, e.x - 8, e.foot - 20, 16, 1, WD[3]); // the ledge
+      rect(g, e.x - 7, e.foot - 38, 14, 18, '#efe9dc'); rect(g, e.x - 7, e.foot - 38, 1, 18, '#cfc8ba'); rect(g, e.x - 7, e.foot - 21, 14, 1, '#cfc8ba'); // the canvas
+      for (let i = 0; i < 5; i++) { const cy = e.foot - 35 + i * 3; rect(g, e.x - 5 + (i % 2), cy, 6 + i, 1, ['#6f9a8a', '#c9a24a', '#b5583c', '#3f6f6a', '#e6d9bf'][i]); } rect(g, e.x - 2, e.foot - 30, 5, 4, '#d8c4a0'); px(g, e.x, e.foot - 29, '#b5583c'); // a painting in progress: bands of color, something cat-shaped
+      rect(g, e.x - 5, e.foot - 40, 10, 2, WD[2]); // the top clamp
+      return; }
+      // the kick wheel: a heavy flywheel low down, the wheel head on top, a stool, a pot half-thrown
+      ell(g, w.x + 2, w.foot + 1, 13, 3, 'rgba(20,14,6,0.25)');
+      ell(g, w.x, w.foot - 4, 12, 4, '#3a3a40'); ell(g, w.x, w.foot - 5, 12, 3.4, '#55555c'); ell(g, w.x - 3, w.foot - 6, 6, 1.4, '#7a7a82'); // the flywheel
+      rect(g, w.x - 1, w.foot - 24, 3, 19, '#4a4a50'); rect(g, w.x - 1, w.foot - 24, 1, 19, '#6a6a72'); // the shaft
+      ell(g, w.x, w.foot - 24, 7, 2.4, '#8a8a90'); ell(g, w.x, w.foot - 25, 7, 1.8, '#b0b0b6'); // the wheel head
+      BZ.fillPoly(g, [[w.x - 4, w.foot - 26], [w.x + 4, w.foot - 26], [w.x + 3, w.foot - 33], [w.x - 3, w.foot - 33]], '#b07a5a'); ell(g, w.x, w.foot - 33, 3.4, 1.4, '#8a5a40'); px(g, w.x - 2, w.foot - 30, '#d09a78'); // a pot on it, wet clay
+      BZ.fillPoly(g, [[w.x + 12, w.foot - 2], [w.x + 24, w.foot - 2], [w.x + 23, w.foot - 5], [w.x + 13, w.foot - 5]], WD[2]); for (const lx of [w.x + 14, w.x + 22]) rect(g, lx, w.foot - 2, 1, 8, WD[0]); // the stool
+      rect(g, w.x - 16, w.foot - 1, 6, 1, '#8a8a90'); ell(g, w.x - 14, w.foot - 6, 3, 4.5, '#c0c4c8'); ell(g, w.x - 14, w.foot - 10, 3, 1, '#9aa0a4'); // a bucket of slip
+      void nt;
+    }
+    // ── the corner of the sandbox: a cedar frame, sand, a yellow dump truck and a backhoe left out ──
+    paintSandbox(g) {
+      const s = this.sandbox, r = BZ.rng(909), W = ['#6a4a2c', '#8a6438', '#a67c48', '#c09a62'], SAND = ['#b8a06c', '#cbb27e', '#dcc48f', '#e8d3a2', '#f0dfb4'];
+      for (let y = s.y0 + 3; y < s.y1 - 2; y++) for (let x = Math.max(0, s.x0 + 3); x < s.x1 - 3; x++) px(g, x, y, rampAt(SAND, 2 + Math.sin(x * 0.9 + y * 1.4) * 0.6 + (r() < 0.1 ? 1 : 0) + (y - s.y0) / (s.y1 - s.y0) * 0.6, x, y));
+      // tire ruts and a dug hole
+      for (let i = 0; i < 20; i++) { px(g, s.x0 + 36 + i * 2, s.y0 + 14 + (i & 1), SAND[0]); px(g, s.x0 + 38 + i * 2, s.y0 + 18 + (i & 1), SAND[0]); }
+      ell(g, s.x0 + 90, s.y0 + 20, 6, 3, SAND[0]); ell(g, s.x0 + 90, s.y0 + 19, 4.5, 2, '#8a7450'); ell(g, s.x0 + 70, s.y0 + 8, 5, 2, SAND[4]); // tire ruts, the hole, a heap
+      // the frame: top rail with a lit edge, the front rail, corner post
+      rect(g, s.x0, s.y0, s.x1 - s.x0, 4, W[1]); rect(g, s.x0, s.y0, s.x1 - s.x0, 1, W[3]); rect(g, s.x1 - 3, s.y0, 3, s.y1 - s.y0, W[0]); rect(g, s.x1 - 3, s.y0, 1, s.y1 - s.y0, W[2]);
+      rect(g, s.x0, s.y1 - 3, s.x1 - s.x0, 3, W[1]); rect(g, s.x0, s.y1 - 3, s.x1 - s.x0, 1, W[2]); rect(g, s.x1 - 5, s.y0 - 2, 5, 3, W[2]);
+      // the dump truck: yellow, bed tipped up, a black cab window, fat wheels
+      const tx = s.x0 + 52, ty = s.y1 - 12; ell(g, tx + 1, ty + 2, 13, 2.2, 'rgba(20,14,6,0.25)');
+      BZ.fillPoly(g, [[tx - 11, ty - 3], [tx + 2, ty - 3], [tx + 4, ty - 12], [tx - 13, ty - 9]], '#e8b520'); BZ.fillPoly(g, [[tx - 10, ty - 4], [tx + 1, ty - 4], [tx + 2, ty - 9], [tx - 11, ty - 7]], '#f2c640'); rect(g, tx - 11, ty - 3, 13, 1, '#b8880f'); // the bed, tipped, with its lip
+      rect(g, tx + 2, ty - 8, 9, 8, '#f0c030'); rect(g, tx + 3, ty - 7, 5, 3, '#2a3a44'); rect(g, tx + 2, ty - 8, 9, 1, '#f8d860'); rect(g, tx + 10, ty - 6, 2, 6, '#d8a010'); // cab, window, grille
+      for (const wx of [tx - 8, tx, tx + 8]) { ell(g, wx, ty, 2.6, 2.6, '#1a1a1a'); ell(g, wx, ty, 1.2, 1.2, '#6a6a6a'); }
+      // the backhoe: cab on tracks, the boom reaching into the hole, a toothed bucket
+      const bx = s.x0 + 76, by = s.y0 + 22; ell(g, bx + 1, by + 2, 10, 1.8, 'rgba(20,14,6,0.25)');
+      rect(g, bx - 8, by - 2, 16, 3, '#2a2a2a'); for (let i = 0; i < 8; i++) px(g, bx - 7 + i * 2, by, '#5a5a5a'); // tracks
+      rect(g, bx - 7, by - 9, 10, 7, '#e8b520'); rect(g, bx - 6, by - 8, 5, 3, '#2a3a44'); rect(g, bx - 7, by - 9, 10, 1, '#f8d860'); // cab
+      BZ.drawLine(g, bx + 2, by - 7, 2, bx + 9, by - 15, 1.6, '#d8a410', null, 0); BZ.drawLine(g, bx + 9, by - 15, 1.6, bx + 14, by - 7, 1.4, '#d8a410', null, 0); // boom, dipper
+      BZ.fillPoly(g, [[bx + 12, by - 7], [bx + 17, by - 7], [bx + 17, by - 2], [bx + 11, by - 3]], '#3a3a3a'); for (let i = 0; i < 3; i++) px(g, bx + 12 + i * 2, by - 2, '#8a8a8a'); // the bucket, teeth
+      // a little sand spilled over the front rail, and a shovel
+      for (let i = 0; i < 8; i++) px(g, s.x0 + 20 + r() * 30, s.y1 - 1 + (r() < 0.5 ? 0 : 1), SAND[3]);
+      BZ.drawThin(g, s.x1 - 14, s.y0 + 6, s.x1 - 9, s.y0 - 8, '#c84a3a'); rect(g, s.x1 - 17, s.y0 + 5, 7, 3, '#d8d8d8'); px(g, s.x1 - 9, s.y0 - 9, '#e86a5a'); // a little shovel
+    }
     // ── the landing and steps: weathered deck boards, posts, balusters, a top rail ──
     paintDeck(g, F) {
       const L = this.landing, D = Y.deck;
@@ -727,6 +817,9 @@ var BZ = window.BZ || (window.BZ = {});
       return [
         { y: Yo + t.base, draw: (ctx) => this.drawTrunk(ctx, X + t.x, Yo + t.base) },
         { y: Yo + b.y, draw: (ctx) => this.drawStoneBunny(ctx, X + b.x, Yo + b.y) },
+        { y: this.dog.y + 0.2, draw: (ctx) => this.dog.draw(ctx) },
+        { y: Yo + this.easel.foot, draw: (ctx) => this.drawStudioStuff(ctx, X, Yo, 'easel') },
+        { y: Yo + this.wheel.foot, draw: (ctx) => this.drawStudioStuff(ctx, X, Yo, 'wheel') },
       ];
     }
     statueSpot() { return [this.st.x + this.bunny.x - 15, this.st.y + this.bunny.y + 3]; }
@@ -779,16 +872,133 @@ var BZ = window.BZ || (window.BZ = {});
       for (const l of this.leaves) { l.t++; if (l.z > 0) { l.z -= 0.35; l.x += Math.sin(l.t * 0.06 + l.ph) * 0.7; } else l.z = 0; } this.leaves = this.leaves.filter((l) => l.t < l.life);
       // the squirrel: down the trunk, out onto the lawn, a nibble, back up
       const T = this.tree;
-      if (!this.squirrel) { if (!nt && --this.sqWait <= 0) this.squirrel = { st: 'down', x: T.x + 4, y: 30, t: 0, gx: T.x + 30 + Math.random() * 60, gy: T.base + 10 + Math.random() * 30 }; }
+      this.tickBirds(); this.tickDog();
+      if (!this.squirrel) { if (!nt && --this.sqWait <= 0) { const raid = Math.random() < 0.4; this.squirrel = { st: 'down', x: T.x + 4, y: 30, t: 0, gx: raid ? this.feeder.x - 2 : T.x + 30 + Math.random() * 60, gy: raid ? this.feeder.base + 4 : T.base + 10 + Math.random() * 30 }; } }
       else {
         const q = this.squirrel; q.t++;
         if (q.st === 'down') { q.y += 1.6; if (q.y >= T.base - 2) { q.st = 'out'; q.y = T.base; } }
         else if (q.st === 'out') { const dx = q.gx - q.x, dy = q.gy - q.y, d = Math.hypot(dx, dy); if (d < 2) { q.st = 'sit'; q.t = 0; } else { q.x += (dx / d) * 2.2; q.y += (dy / d) * 1.2; } }
-        else if (q.st === 'sit') { const c = this.w.nearestCat(X + q.x, Yo + q.y); if (q.t > 260 || (c && dist(c.x, c.y, X + q.x, Yo + q.y) < 70 * this.w.size)) { q.st = 'home'; } }
-        else if (q.st === 'home') { const dx = T.x + 4 - q.x, dy = T.base - q.y, d = Math.hypot(dx, dy); if (d < 3) { q.st = 'up'; } else { q.x += (dx / d) * 3.2; q.y += (dy / d) * 1.8; } }
+        else if (q.st === 'sit') { const c = this.w.nearestCat(X + q.x, Yo + q.y), d = this.dog; if (q.t > 260 || (c && dist(c.x, c.y, X + q.x, Yo + q.y) < 70 * this.w.size) || (d && d.st === 'chase' && dist(d.x, d.y, X + q.x, Yo + q.y) < 150)) { q.st = 'home'; } }
+        else if (q.st === 'home') { const dx = T.x + 4 - q.x, dy = T.base - q.y, d = Math.hypot(dx, dy), v = this.dog && this.dog.st === 'chase' ? 4.6 : 3.2; if (d < 3) { q.st = 'up'; } else { q.x += (dx / d) * v; q.y += (dy / d) * v * 0.56; } }
         else if (q.st === 'up') { q.y -= 2.4; if (q.y < 20) { this.squirrel = null; this.sqWait = 1800 + Math.random() * 2600; } }
       }
       for (const f of this.ffl) { f.p += 0.05; f.x += Math.sin(f.p * 0.7) * f.v; f.y += Math.cos(f.p * 0.5) * f.v * 0.5; if (f.x < 0) f.x = W; if (f.x > W) f.x = 0; }
+    }
+    // ── the birds at the feeder: Northern Virginia regulars, by season ──
+    birdKinds() {
+      const m = new Date().getMonth(), winter = m >= 10 || m <= 2, summer = m >= 3 && m <= 8;
+      const K = [
+        { k: 'cardinal', w: 5, body: '#c8282e', head: '#c8282e', breast: '#b51e24', wing: '#a31a20', mask: '#1a1212', bill: '#e8903a', crest: true, size: 1.15, perch: ['tray', 'ground'] },
+        { k: 'cardinalF', w: 3, body: '#b9a07a', head: '#b59a76', breast: '#c9b08a', wing: '#a2423a', mask: '#5a4a3a', bill: '#e8903a', crest: true, size: 1.1, perch: ['tray', 'ground'] },
+        { k: 'bluejay', w: 3, body: '#4f7fc9', head: '#5a88d4', breast: '#e8e8ee', wing: '#2f5aa8', bar: '#ffffff', necklace: '#1a1a26', bill: '#2a2a2a', crest: true, size: 1.25, perch: ['tray', 'ground'], boss: true },
+        { k: 'chickadee', w: 5, body: '#9a9a96', head: '#1a1a1a', cheek: '#f4f4f0', breast: '#e8e2d2', wing: '#7a7a76', bib: '#1a1a1a', bill: '#2a2a2a', size: 0.75, perch: ['tray', 'side'] },
+        { k: 'titmouse', w: 4, body: '#8f8f94', head: '#9a9aa0', breast: '#e6e2da', wing: '#7a7a80', flank: '#d9a070', bill: '#2a2a2a', crest: true, size: 0.85, perch: ['tray', 'side'] },
+        { k: 'goldfinch', w: summer ? 5 : 2, body: summer ? '#f2d21e' : '#b8a860', head: summer ? '#f2d21e' : '#b8a860', breast: summer ? '#f6dc3a' : '#d8cfa0', wing: '#1a1a1a', bar: '#f4f4f0', cap: summer ? '#1a1a1a' : null, bill: '#e8a060', size: 0.75, perch: ['tray', 'side'] },
+        { k: 'housefinch', w: 4, body: '#8a7a68', head: '#c84a3a', breast: '#d05a46', wing: '#6e6054', streak: '#5a4e44', bill: '#8a7a6a', size: 0.85, perch: ['tray', 'ground'] },
+        { k: 'wren', w: 3, body: '#a2663a', head: '#9a6038', breast: '#d9b58a', wing: '#8a5430', brow: '#f4ecd8', bill: '#5a4a3a', tailUp: true, size: 0.8, perch: ['side', 'ground', 'lawn'] },
+        { k: 'downy', w: 3, body: '#1a1a1a', head: '#1a1a1a', breast: '#f4f4f0', wing: '#1a1a1a', bar: '#f4f4f0', cheek: '#f4f4f0', nape: '#d8262a', bill: '#2a2a2a', size: 0.9, perch: ['pole', 'trunk'], cling: true },
+        { k: 'nuthatch', w: 3, body: '#6f86a8', head: '#1a1a24', breast: '#f2f0ea', wing: '#5a7090', cheek: '#f2f0ea', bill: '#2a2a2a', size: 0.8, perch: ['trunk', 'pole'], cling: true, headDown: true },
+        { k: 'dove', w: 3, body: '#c2ab96', head: '#b8a18c', breast: '#d8c2ac', wing: '#a89080', spot: '#4a3a30', bill: '#2a2a2a', size: 1.35, perch: ['ground'], slow: true },
+        { k: 'robin', w: 4, body: '#5a5450', head: '#3a3634', breast: '#e0702a', wing: '#4a4542', eyering: '#f4f4f0', bill: '#e8c040', size: 1.2, perch: ['lawn'], hops: true },
+        { k: 'junco', w: winter ? 5 : 0, body: '#5a5e68', head: '#4a4e58', breast: '#f0f0ec', wing: '#4a4e58', bill: '#f0d8d0', size: 0.85, perch: ['ground', 'lawn'] },
+      ];
+      return K.filter((b) => b.w > 0);
+    }
+    birdSlots() { // where a bird can land, in stage coords
+      const f = this.feeder, T = this.tree, out = [];
+      out.push({ k: 'tray', x: f.x - 7, y: f.top + 18, f: 1 }, { k: 'tray', x: f.x + 7, y: f.top + 18, f: -1 }, { k: 'tray', x: f.x, y: f.top - 1, f: Math.random() < 0.5 ? 1 : -1, roof: true });
+      out.push({ k: 'side', x: f.x - 5, y: f.top + 12, f: 1 }, { k: 'side', x: f.x + 5, y: f.top + 12, f: -1 });
+      out.push({ k: 'pole', x: f.x + 1, y: f.base - 22, f: 1 }, { k: 'pole', x: f.x - 1, y: f.base - 32, f: -1 });
+      for (let i = 0; i < 4; i++) out.push({ k: 'ground', x: f.x - 16 + i * 10 + Math.random() * 6, y: f.base + 4 + Math.random() * 6, f: Math.random() < 0.5 ? 1 : -1 });
+      out.push({ k: 'trunk', x: T.x - 7, y: T.base - 40 - Math.random() * 30, f: 1 }, { k: 'trunk', x: T.x + 7, y: T.base - 30 - Math.random() * 30, f: -1 });
+      for (let i = 0; i < 3; i++) out.push({ k: 'lawn', x: 30 + Math.random() * (this.S - 80), y: this.F + 24 + Math.random() * (this.st.h - this.F - 50), f: Math.random() < 0.5 ? 1 : -1 });
+      return out;
+    }
+    tickBirds() {
+      const X = this.st.x, Yo = this.st.y, W = this.st.w, nt = this.night(), B = this.birds;
+      const sq = this.squirrel, sqAtFeeder = sq && sq.st === 'sit' && Math.abs(sq.x - this.feeder.x) < 14;
+      if (!nt && B.length < 3 && --this.birdWait <= 0) {
+        const kinds = this.birdKinds(), tot = kinds.reduce((a, k) => a + k.w, 0); let r = Math.random() * tot, kind = kinds[0]; for (const k of kinds) { r -= k.w; if (r <= 0) { kind = k; break; } }
+        const used = new Set(B.map((b) => b.slot && b.slot.k + ':' + Math.round(b.slot.x))), slots = this.birdSlots().filter((s) => kind.perch.includes(s.k) && !used.has(s.k + ':' + Math.round(s.x)) && !(sqAtFeeder && s.k !== 'lawn' && s.k !== 'trunk'));
+        if (slots.length) { const slot = slots[Math.floor(Math.random() * slots.length)], fromLeft = Math.random() < 0.5; B.push({ kind, slot, st: 'in', t: 0, x: fromLeft ? -10 : W + 10, y: Math.random() * 30, stay: (kind.slow ? 700 : 350) + Math.random() * 500, f: slot.f, k: Math.random().toString(36).slice(2, 6), hop: 0 }); }
+        this.birdWait = 200 + Math.random() * 500;
+      }
+      for (const b of B) {
+        b.t++;
+        if (b.st === 'in') { const dx = b.slot.x - b.x, dy = b.slot.y - b.y, d = Math.hypot(dx, dy); if (d < 3) { b.st = 'perch'; b.t = 0; b.x = b.slot.x; b.y = b.slot.y; b.f = b.slot.f; } else { const v = Math.min(3.2, 0.6 + d * 0.06); b.x += (dx / d) * v; b.y += (dy / d) * v - (d > 40 ? 0.4 : 0); b.f = dx > 0 ? 1 : -1; } }
+        else if (b.st === 'perch') {
+          const c = this.w.nearestCat(X + b.x, Yo + b.y, (q) => !q.asleep && !q.hidden), near = c && dist(c.x, c.y, X + b.x, Yo + b.y) < (b.slot.k === 'lawn' || b.slot.k === 'ground' ? 64 : 44) * this.w.size;
+          const bossed = B.some((o) => o !== b && o.kind.boss && o.st === 'in' && b.slot.k === 'tray');
+          if (b.t > b.stay || near || (sqAtFeeder && b.slot.k !== 'lawn' && b.slot.k !== 'trunk') || bossed) { b.st = 'out'; b.t = 0; b.vx = (Math.random() < 0.5 ? -1 : 1) * 2.4; b.f = b.vx > 0 ? 1 : -1; }
+          else if (b.kind.hops && b.t % 50 === 0 && Math.random() < 0.7) { b.hop = 8; b.hx = (Math.random() - 0.5) * 16; } // the robin: a few hops, a listen, a tug at the lawn
+          if (b.hop > 0) { b.hop--; b.x += (b.hx || 0) / 8; b.x = Math.max(10, Math.min(this.S - 30, b.x)); }
+        }
+        else if (b.st === 'out') { b.x += b.vx; b.y -= 1.4 + b.t * 0.02; if (b.x < -14 || b.x > W + 14 || b.y < -10) b.gone = true; }
+      }
+      this.birds = B.filter((b) => !b.gone);
+    }
+    drawBirds(ctx, X, Yo) {
+      for (const b of this.birds) {
+        const K = b.kind, s = K.size, x = Math.round(X + b.x), y = Math.round(Yo + b.y), f = b.f, fly = b.st !== 'perch', up = fly && ((b.t >> 1) & 1), cling = K.cling && b.st === 'perch', hd = K.headDown && cling;
+        const peck = b.st === 'perch' && (b.slot.k === 'ground' || b.slot.k === 'lawn' || b.slot.k === 'tray') && b.t % 90 > 70 && !K.slow;
+        if (!fly && !cling) ell(ctx, x, y + 1, 3.5 * s, 1, 'rgba(20,14,6,0.18)');
+        if (cling) { // flat against the pole or the trunk, head up (or down, for the nuthatch)
+          const d = hd ? 1 : -1; ell(ctx, x, y, 2.2 * s, 3.6 * s, K.body); ell(ctx, x, y + d * 3 * s, 2 * s, 2 * s, K.head); if (K.cheek) px(ctx, x + f, y + d * 3 * s, K.cheek);
+          px(ctx, x + f * 1.5, y + d * 2.5 * s, '#111'); if (K.nape) px(ctx, x - f, y + d * 4 * s, K.nape); for (let i = -1; i <= 1; i++) px(ctx, x + i, y - d * 1 * s, K.bar || K.wing); BZ.drawThin(ctx, x + f * 2 * s, y + d * 4 * s, x + f * 3.5 * s, y + d * 4.5 * s, K.bill); continue;
+        }
+        const bl = 3.6 * s, bh = (fly ? 2.2 : 2.6) * s, hy = y - (peck ? 0.5 : 2.6) * s, hx = x + f * (peck ? 3.4 : 2.6) * s;
+        BZ.drawThin(ctx, x - f * 3 * s, y, x - f * (K.tailUp ? 5 : 6.5) * s, y - (K.tailUp ? 3.5 : 0.6) * s, K.wing); // tail
+        ell(ctx, x, y - 0.5, bl, bh, K.body); ell(ctx, x + f * 0.5, y + 0.3, bl * 0.75, bh * 0.75, K.breast); // body, breast
+        if (K.streak) for (let i = -2; i <= 2; i += 2) px(ctx, x + i, y + 1, K.streak);
+        if (K.flank) px(ctx, x - f * 1.5, y + 0.8, K.flank); if (K.spot) px(ctx, x - f * 1.5, y - 1, K.spot);
+        if (up) { BZ.drawThin(ctx, x, y - 1, x - f * 1 * s, y - 5.5 * s, K.wing); BZ.drawThin(ctx, x + 1, y - 1, x + 1 - f * 1 * s, y - 5.5 * s, K.wing); } // wings up
+        else { ell(ctx, x - f * 0.8 * s, y - 1.2 * s, bl * 0.62, bh * 0.55, K.wing); if (K.bar) for (let i = 0; i < 3; i++) px(ctx, x - f * (0.5 + i) * s, y - 1 * s + (i & 1), K.bar); } // the folded wing, a wing bar
+        ell(ctx, hx, hy, 1.9 * s, 1.8 * s, K.head); // head
+        if (K.mask) { px(ctx, hx + f * 1, hy, K.mask); px(ctx, hx + f * 1, hy + 1, K.mask); } if (K.cheek) px(ctx, hx, hy + 0.5, K.cheek); if (K.bib) px(ctx, hx - f * 0.5, hy + 1.5, K.bib);
+        if (K.brow) BZ.drawThin(ctx, hx - f * 1.5, hy - 1, hx + f * 1.5, hy - 1, K.brow); if (K.cap) px(ctx, hx - f * 0.5, hy - 1.5 * s, K.cap); if (K.necklace) BZ.drawThin(ctx, hx - 1.5, hy + 1.6, hx + 1.5, hy + 1.6, K.necklace); if (K.eyering) px(ctx, hx + f * 0.5, hy - 0.5, K.eyering);
+        if (K.crest) { px(ctx, hx - f * 0.5, hy - 2 * s, K.head); px(ctx, hx - f * 1, hy - 2.6 * s, K.head); } // the crest
+        px(ctx, hx + f * 0.8, hy - 0.3, '#111'); BZ.drawThin(ctx, hx + f * 1.8 * s, hy + (peck ? 0.6 : 0.1), hx + f * 3 * s, hy + (peck ? 1.2 : 0.3), K.bill); // eye, bill
+      }
+    }
+    // ── Juno: languid on the lawn, all eyebrows and ears, and a missile when the squirrel shows ──
+    tickDog() {
+      const d = this.dog, w = this.w, X = this.st.x, Yo = this.st.y, S = this.S, F = this.F, H = this.st.h, T = this.tree, size = w.size, Ds = d.petScale;
+      d.t++; if (d.cool > 0) d.cool--;
+      const q = this.squirrel, sqOut = q && (q.st === 'out' || q.st === 'sit') && !this.night();
+      const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep), boD = bo ? dist(bo.x, bo.y, d.x, d.y) : 1e9;
+      const lawnY = (y) => Math.max(Yo + F + 46, Math.min(Yo + H - 50, y)), lawnX = (x, y) => Math.max(X + 26, Math.min(X + this.lawnEdge((y != null ? y : d.y) - Yo) - 34, x));
+      const go = (tx, ty, gait, v) => { const dx = tx - d.x, dy = (ty - d.y) / 0.56, dd = Math.hypot(dx, dy); if (dd < v + 1) { d.x = tx; d.y = ty; d.gait = null; return true; } const want = Math.atan2(dy, dx); let diff = Math.atan2(Math.sin(want - d.theta), Math.cos(want - d.theta)); d.theta += Math.max(-0.22, Math.min(0.22, diff)); d.x += Math.cos(d.theta) * v; d.y += Math.sin(d.theta) * v * 0.56; d.gait = gait; d.phase = (d.phase + v / (gait === 'gallop' ? 34 : 22)) % 1; d.anim = gait; return false; };
+      const set = (st, T2) => { d.st = st; d.t = 0; d.T = T2 || 0; };
+      // reflexes, in order of how much she cares
+      if (sqOut && d.st !== 'chase' && d.cool === 0 && !this.night()) { set('chase'); d.browT = 20; d.browTo = 1; d.earT = 20; d.earTo = 1; d.look = [X + q.x, Yo + q.y]; }
+      else if (bo && boD < 62 * size && d.st !== 'chase' && d.st !== 'avoid' && d.st !== 'tree') { set('avoid'); d.away = bo.x > d.x ? -1 : 1; d.earT = 60; d.earTo = -0.35; d.look = [bo.x, bo.y - 20]; }
+      switch (d.st) {
+        case 'chase': { // lightning: straight at it, no matter what
+          const tgt = q && q.st !== 'up' ? [X + q.x, Yo + q.y] : [X + T.x + 26, Yo + T.base + 12]; d.look = tgt; d.mouthT = 4;
+          if (go(tgt[0], tgt[1], 'gallop', 6.2 * size) || !q || q.st === 'up' || (q.st === 'down' && q.y < T.base - 30)) { if (dist(d.x, d.y, X + T.x + 26, Yo + T.base + 12) < 30) { set('tree', 150 + Math.random() * 120); d.wag = 200; } else { if (go(X + T.x + 26, Yo + T.base + 12, 'gallop', 6.2 * size)) { set('tree', 150 + Math.random() * 120); d.wag = 200; } } }
+          break; }
+        case 'tree': { // she lost it up the tree. again. a long look up, a wag, a sneeze of a bark
+          d.gait = null; d.anim = 'point'; d.look = [X + T.x, Yo + 20]; const face = d.x > X + T.x ? Math.PI - 0.35 : 0.35; d.theta += Math.atan2(Math.sin(face - d.theta), Math.cos(face - d.theta)) * 0.15; if (d.t === 30) d.mouthT = 10; // side-on to the trunk, nose up it
+          if (d.t > d.T) { d.cool = 900; set('wander'); d.wty = lawnY(Yo + F + 40 + Math.random() * 60); d.wtx = lawnX(X + T.x + 20 + Math.random() * 80, d.wty); } break; }
+        case 'avoid': { // not her favorite cat. a brisk trot elsewhere, one look back
+          const ty = lawnY(d.y + (Math.random() - 0.5) * 10), tx = lawnX(d.x + d.away * 150 * size, ty);
+          if (go(tx, ty, 'trot', 2.6 * size) || (bo && boD > 130 * size) || d.t > 160) { set('sit', 120 + Math.random() * 160); d.look = bo ? [bo.x, bo.y - 20] : null; d.browT = 40; d.browTo = 0.7; d.earT = 40; d.earTo = -0.2; }
+          break; }
+        case 'wander': { if (go(d.wtx, d.wty, 'trot', 1.3 * size) || d.t > 600) { const r = Math.random(); if (r < 0.45) set('rest', 500 + Math.random() * 900); else if (r < 0.7) set('sit', 200 + Math.random() * 300); else set('sun'); } if (d.t % 40 === 0) d.look = Math.random() < 0.5 ? null : [d.x + Math.cos(d.theta) * 80, d.y - 30]; break; }
+        case 'sun': { const p = this.pools[1]; const c = w.nearestCat(p.x, p.y); if (c && dist(c.x, c.y, p.x, p.y) < 40 * size) { set('wander'); d.wtx = this.dogHome[0]; d.wty = this.dogHome[1]; break; } if (go(lawnX(p.x, p.y + 4), lawnY(p.y + 4), 'trot', 1.3 * size)) set('rest', 900 + Math.random() * 900); break; }
+        case 'sit': { d.gait = null; d.anim = 'sit'; if (d.t % 90 === 45) { const c = w.nearestCat(d.x, d.y, (o) => !o.hidden); d.look = c && Math.random() < 0.6 ? [c.x, c.y - 20] : null; if (Math.random() < 0.4) { d.earT = 24; d.earTo = 0.5; } }
+          if (d.t > d.T) { if (Math.random() < 0.6) set('rest', 600 + Math.random() * 900); else { set('wander'); d.wty = lawnY(d.y + (Math.random() - 0.5) * 60); d.wtx = lawnX(d.x + (Math.random() - 0.5) * 160, d.wty); } } break; }
+        default: { // rest: sphinx, then the chin goes down; things lift the head (a bird landing, a cat crossing); eventually she gets up
+          d.gait = null; const drowsy = d.t > 320 && !(d.liftT > 0); d.anim = drowsy ? 'chin' : 'sphinx';
+          if (d.liftT > 0) d.liftT--;
+          const bird = this.birds.find((b) => b.st === 'in' && b.t < 4), c = w.nearestCat(d.x, d.y, (o) => !o.hidden && o.gait), near = c && dist(c.x, c.y, d.x, d.y) < 140 * size;
+          if ((bird || near || Math.random() < 0.004) && !(d.liftT > 0)) { d.liftT = 90 + Math.random() * 90; d.look = bird ? [X + bird.x, Yo + bird.y] : c ? [c.x, c.y - 20] : [d.x + (Math.random() - 0.5) * 200, d.y - 40]; d.browT = 50; d.browTo = 0.5 + Math.random() * 0.5; d.earT = 50; d.earTo = 0.4 + Math.random() * 0.5; }
+          else if (d.liftT === 0 && d.t % 70 === 0) { d.look = null; if (Math.random() < 0.3) { d.earT = 18; d.earTo = 0.35; } }
+          if (d.t > d.T + 300) { const r = Math.random(); if (r < 0.4) { set('wander'); d.wty = lawnY(d.y + (Math.random() - 0.5) * 80); d.wtx = lawnX(d.x + (Math.random() - 0.5) * 200, d.wty); } else if (r < 0.6) set('sun'); else set('sit', 150 + Math.random() * 250); }
+        }
+      }
+      if (d.st !== 'chase') { d.y = lawnY(d.y); d.x = lawnX(d.x, d.y); }
+      d.animate();
     }
     // what's moving out here that a cat could care about
     stimuli() {
@@ -796,10 +1006,12 @@ var BZ = window.BZ || (window.BZ = {});
       this.bflies.forEach((b) => { if (b.z < 34) out.push({ key: 'bfly' + b.k, x: X + b.x, y: Yo + b.y, air: b.z, vx: b.vx, vy: b.vy, speed: Math.hypot(b.vx, b.vy) * 1.3 + 0.3, wand: true }); }); // only when it dips low enough to bother with
       for (const l of this.leaves) if (l.z < 30 && l.t < 600) out.push({ key: 'leaf' + l.k, x: X + l.x, y: Yo + l.y, air: l.z, vx: Math.sin(l.t * 0.06 + l.ph) * 0.7, vy: 0, speed: l.z > 0 ? 1.6 : 0.3 });
       const q = this.squirrel; if (q && (q.st === 'out' || q.st === 'sit' || q.st === 'home')) out.push({ key: 'squirrel', x: X + q.x, y: Yo + q.y, vx: 0, vy: 0, speed: q.st === 'sit' ? 0.6 : 3.2 });
+      for (const b of this.birds) if (b.st === 'perch' && (b.slot.k === 'lawn' || b.slot.k === 'ground')) out.push({ key: 'bird' + b.k, x: X + b.x, y: Yo + b.y, vx: 0, vy: 0, speed: b.hop > 0 ? 1.8 : 0.5 }); // a bird on the ground: something to stalk
       return out;
     }
-    birdSpot() { const q = this.squirrel; if (!q || q.st === 'up' || (q.st === 'down' && q.y < 40)) return null; return [this.st.x + q.x, this.st.y + q.y - 6]; }
+    birdSpot() { const b = this.birds.find((o) => o.st === 'perch'); if (b) return [this.st.x + b.x, this.st.y + b.y - 2]; const q = this.squirrel; if (!q || q.st === 'up' || (q.st === 'down' && q.y < 40)) return null; return [this.st.x + q.x, this.st.y + q.y - 6]; }
     drawLife(ctx, X, Yo, t) {
+      this.drawBirds(ctx, X, Yo);
       for (const l of this.leaves) { const x = X + l.x, y = Yo + l.y - l.z, a = l.t * 0.15 + l.ph; if (l.z > 0) ell(ctx, X + l.x, Yo + l.y, 2, 0.8, 'rgba(20,14,6,0.12)'); ctx.globalAlpha = Math.min(1, (l.life - l.t) / 120); px(ctx, x, y, l.col); px(ctx, x + Math.cos(a), y + Math.sin(a) * 0.5, l.col); px(ctx, x - Math.cos(a), y - Math.sin(a) * 0.5, mix(l.col, '#000000', 0.25)); ctx.globalAlpha = 1; }
       for (const b of this.bflies) { const x = X + b.x, y = Yo + b.y - b.z, up = (b.t >> 1) & 1; ell(ctx, X + b.x, Yo + b.y, 1.5, 0.6, 'rgba(20,14,6,0.12)'); px(ctx, x, y, '#2a2420'); px(ctx, x - 1, y - (up ? 1 : 0), b.col); px(ctx, x + 1, y - (up ? 1 : 0), b.col); if (up) { px(ctx, x - 2, y - 2, b.col); px(ctx, x + 2, y - 2, b.col); } else { px(ctx, x - 1, y + 1, b.col); px(ctx, x + 1, y + 1, b.col); } }
       const q = this.squirrel;

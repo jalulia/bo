@@ -1257,17 +1257,26 @@ var BZ = window.BZ || (window.BZ = {});
       this.wand = { hx: 0, hy: 0, fx: 0, fy: 0, vx: 0, vy: 0, caught: null, init: false };
       this.callT = 0; this.callId = 0; this.carrying = null; this.press = null; this.drag = null; this.heldCat = null;
       this.interactive = null; this.frame = 0; this.hover = null; this.hoverT = 0;
+      this.cam = { x: 0, tx: 0, hold: 0 }; this.view = null; // on a narrow screen the stage is wider than the window and a camera follows the cats
       this.resize();
       addEventListener('resize', () => this.resize());
       const pt = (e) => [e.clientX / this.PX, e.clientY / this.PX];
-      document.addEventListener('mousemove', (e) => this.moveTo(e.clientX, e.clientY));
-      document.addEventListener('mousedown', (e) => { if (e.button !== 0 || e.target.closest('[data-ui]')) return; this.sound.unlock(); const [x, y] = pt(e); Object.assign(this.pointer, { x, y, inside: true, down: true }); this.onDown(); });
-      document.addEventListener('mouseup', (e) => { if (e.button !== 0) return; this.pointer.down = false; this.onUp(); });
-      document.documentElement.addEventListener('mouseleave', () => { this.pointer.inside = false; });
+      this.touch = false; this.pid = null;
+      document.addEventListener('pointermove', (e) => { if (this.pid != null && e.pointerId !== this.pid) return; if (e.pointerType === 'touch' && !this.pointer.down) return; if (this.pan) { const dx = e.clientX - this.pan.x0; if (Math.abs(dx) > 6) this.pan.moved = true; if (this.pan.moved) { this.cam.x = this.cam.tx = clamp(this.pan.cam0 - dx / this.PX, 0, this.stage.w - this.view.w); this.cam.hold = 240; this.press = null; return; } } this.moveTo(e.clientX, e.clientY); });
+      document.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || e.target.closest('[data-ui]') || this.pid != null) return;
+        this.pid = e.pointerId; this.touch = e.pointerType === 'touch'; this.sound.unlock();
+        const [x, y] = [e.clientX / this.PX + this.cam.x, e.clientY / this.PX]; Object.assign(this.pointer, { x, y, inside: true, down: true }); this.onDown();
+        if (this.touch && this.view && !this.drag && !this.press && !this.carrying && !this.tool) this.pan = { x0: e.clientX, cam0: this.cam.x, moved: false }; // a finger on empty ground pans the room
+        if (this.touch && !this.drag && !this.press && !this.carrying && !this.tool) this.onMove();
+      });
+      const up = (e) => { if (e.pointerId !== this.pid) return; this.pid = null; this.pointer.down = false; this.pan = null; this.onUp(); if (this.touch) { this.pointer.inside = false; this.pointer.x = -999; this.pointer.y = -999; } };
+      document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+      document.documentElement.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') this.pointer.inside = false; });
       this.timer = setInterval(() => this.tick(), FRAME);
     }
     moveTo(cx, cy) {
-      const x = cx / this.PX, y = cy / this.PX;
+      const x = cx / this.PX + this.cam.x, y = cy / this.PX;
       this.pointer.inside = cx >= 0 && cy >= 0 && cx < innerWidth && cy < innerHeight;
       if (x === this.pointer.x && y === this.pointer.y) return;
       this.pointer.x = x; this.pointer.y = y; this.onMove();
@@ -1284,6 +1293,8 @@ var BZ = window.BZ || (window.BZ = {});
     layoutStage() {
       const r = this.stageRect ? this.stageRect() : null;
       this.stage = r ? { x: Math.round(r.x / this.PX), y: Math.round(r.y / this.PX), w: Math.round(r.w / this.PX), h: Math.round(r.h / this.PX) } : { x: 0, y: 0, w: this.W, h: this.H };
+      const minW = r && r.minW ? Math.round(r.minW / this.PX) : 0;
+      if (minW > this.stage.w) { this.view = { x: this.stage.x, w: this.stage.w }; this.stage.w = minW; this.cam.x = clamp(this.cam.x, 0, minW - this.view.w); } else { this.view = null; this.cam.x = this.cam.tx = 0; }
       if (this.scene) { this.scene.layout(this.stage); this.floorTop = this.stage.y + this.scene.floorY + 4; }
       else this.floorTop = this.stage.y + Math.round(this.stage.h * 0.22);
       for (const c of this.cats) if (!c.inBed && c.state !== 'bedHop') c.clampToStage();
@@ -1595,6 +1606,13 @@ var BZ = window.BZ || (window.BZ = {});
         if (this.scene) { c.x = clamp(c.x, st.x + 20, st.x + st.w - 20); c.y = clamp(c.y, st.y + 60 * c.petScale, st.y + st.h + 30); }
       }
       for (const c of this.cats) { c.think(); c.animate(); }
+      if (this.view) { // the camera: follow what matters, gently
+        const V = this.view, maxX = this.stage.w - V.w;
+        if (this.cam.hold > 0) this.cam.hold--;
+        else { let fx; if (this.heldCat) fx = this.heldCat.x; else if (this.drag) fx = this.drag.it.x; else if (this.carrying && this.pointer.inside) fx = this.pointer.x; else { const live = this.cats.filter((c) => !c.hidden); const awake = live.filter((c) => !c.asleep); const pool = awake.length ? awake : live; fx = pool.length ? pool.reduce((a, c) => a + c.x, 0) / pool.length : this.stage.x + this.stage.w / 2; }
+          this.cam.tx = clamp(fx - this.stage.x - V.w / 2, 0, maxX); }
+        this.cam.x += (this.cam.tx - this.cam.x) * 0.06; if (Math.abs(this.cam.tx - this.cam.x) < 0.05) this.cam.x = this.cam.tx;
+      }
       if (this.frame % 30 === 0 && this.host.onChange) this.host.onChange(this.summary());
       if (this.frame % 1800 === 0) this.save();
       this.render();
@@ -1604,13 +1622,12 @@ var BZ = window.BZ || (window.BZ = {});
       const p = this.pointer;
       const over = !!(this.drag || this.heldCat || this.press || this.carrying || (p.inside && (this.catAt(p.x, p.y) || this.itemAt(p.x, p.y))));
       if (over !== this.interactive) { this.interactive = over; if (this.host.setInteractive) this.host.setInteractive(over); }
-      const h = p.inside ? this.catAt(p.x, p.y) : null;
-      if (h) { this.hover = h.cat; this.hoverT = 45; } else if (this.hoverT > 0) this.hoverT--; else this.hover = null;
       document.body.style.cursor = this.carrying ? 'copy' : this.drag || this.heldCat ? 'grabbing' : over ? 'grab' : '';
     }
     render() {
       const ctx = this.ctx; ctx.clearRect(0, 0, this.W, this.H);
-      const s = this.size, sc = this.scene, st = this.stage, ents = [];
+      const s = this.size, sc = this.scene, st = this.stage, ents = [], V = this.view;
+      if (V) { ctx.save(); ctx.beginPath(); ctx.rect(V.x, st.y, V.w, st.h); ctx.clip(); ctx.translate(-Math.round(this.cam.x), 0); }
       for (const c of this.cats) if (c !== this.heldCat && !c.hidden) ents.push({ y: c.sortY != null ? c.sortY : c.y, c });
       if (sc && sc.props) for (const pr of sc.props()) ents.push({ y: pr.y, prop: pr });
       for (const it of this.items) if (it.type === 'tire') { ents.push({ y: it.y - 0.2, tireBack: it }); ents.push({ y: it.y + 0.3, tireFront: it }); }
@@ -1651,19 +1668,10 @@ var BZ = window.BZ || (window.BZ = {});
         ctx.fillStyle = 'rgba(255,40,40,0.35)'; ctx.fillRect(x - 2, y - 1, 5, 3); ctx.fillRect(x - 1, y - 2, 3, 5);
         ctx.fillStyle = '#ff2020'; ctx.fillRect(x - 1, y - 1, 3, 3); ctx.fillStyle = '#ffd0d0'; ctx.fillRect(x, y, 1, 1);
       }
-      const o = this.octx; o.clearRect(0, 0, innerWidth, innerHeight);
-      const c = this.hover;
-      if (c && c.bbox && this.hoverT > 0) {
-        const txt = c.name + ' · ' + c.moodLabel;
-        o.font = '600 12px ui-rounded, "SF Pro Rounded", system-ui, sans-serif';
-        const w = o.measureText(txt).width + 18, x = ((c.bbox[0] + c.bbox[2]) / 2) * this.PX - w / 2, y = Math.max(4, c.bbox[1] * this.PX - 18);
-        o.globalAlpha = Math.min(1, this.hoverT / 10);
-        o.fillStyle = '#3a3030'; rrect(o, x, y, w, 22, 6); o.fill();
-        o.fillStyle = '#f2ebdc'; o.fillText(txt, x + 9, y + 15); o.globalAlpha = 1;
-      }
+      if (V) ctx.restore();
+      if (this.octx && this.ovDirty) { this.octx.clearRect(0, 0, innerWidth, innerHeight); this.ovDirty = false; }
     }
   }
-  function rrect(o, x, y, w, h, r) { o.beginPath(); o.moveTo(x + r, y); o.arcTo(x + w, y, x + w, y + h, r); o.arcTo(x + w, y + h, x, y + h, r); o.arcTo(x, y + h, x, y, r); o.arcTo(x, y, x + w, y, r); o.closePath(); }
 
   BZ.Cat = Cat; BZ.World = World; BZ.FRAME = FRAME;
 })();

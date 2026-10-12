@@ -5,65 +5,71 @@ var BZ = window.BZ || (window.BZ = {});
 (function () {
   const CSS = `
   @font-face { font-family: 'BoPixel'; src: url(${'${FONT}'}) format('truetype'); font-display: block; }
-  .bo-panel { --paper:#f4eee4; --paper2:#ebe2d3; --ink:#3a3030; --muted:#7d6f66; --line:#d8ccba; --fawn:#d0c0a0; --teal:#5fa58d; --pink:#e39aa1; --leaf:#6f9c3e;
-    width: 100%; max-width: 340px; box-sizing: border-box; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 14px;
-    box-shadow: 0 2px 0 var(--ink), 0 18px 40px rgba(30,20,15,.28); font: 13px/1.35 ui-rounded, "SF Pro Rounded", system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .bo-panel { --paper:#f4eee4; --paper2:#ebe2d3; --ink:#3a3030; --muted:#7d6f66; --line:#d8ccba; --fawn:#d0c0a0; --teal:#5fa58d; --pink:#e39aa1; --leaf:#6f9c3e; --amber:#d39a52;
+    width: 100%; max-width: 360px; box-sizing: border-box; background: var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 14px;
+    box-shadow: 0 2px 0 var(--ink), 0 18px 40px rgba(30,20,15,.28); font: 13px/1.35 ui-rounded, "SF Pro Rounded", system-ui, sans-serif; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   .bo-panel * { box-sizing: border-box; }
+  .bo-panel button { touch-action: manipulation; }
   .bo-pix { font-family: 'BoPixel', ui-monospace, monospace; letter-spacing: .02em; }
-  .bo-head { display: grid; grid-template-columns: 76px 1fr; gap: 12px; padding: 14px 14px 10px; align-items: center; background: var(--paper2); border-bottom: 2px dotted var(--line); }
-  .bo-portrait { width: 76px; height: 76px; border-radius: 10px; background: #c9d3c4; border: 2px solid var(--ink); image-rendering: pixelated; display: block; }
+  .bo-head { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 12px 14px 10px; align-items: center; background: var(--paper2); border-bottom: 2px dotted var(--line); }
+  .bo-portrait { width: 64px; height: 64px; border-radius: 10px; background: #c9d3c4; border: 2px solid var(--ink); image-rendering: pixelated; display: block; }
   .bo-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .bo-name { font-size: 18px; line-height: 1; }
   .bo-brand { font-size: 9px; color: var(--muted); }
-  .bo-mood { margin: 4px 0 6px; color: var(--muted); min-height: 1.35em; }
-  .bo-meters { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; font-size: 10px; }
+  .bo-mood { margin: 3px 0 6px; color: var(--muted); min-height: 1.35em; }
+  .bo-meters { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; font-size: 10px; color: var(--muted); }
   .bo-meter { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; height: 8px; }
   .bo-meter i { background: var(--line); border-radius: 1px; }
-  .bo-meter[data-k="belly"] i.on { background: #d39a52; } .bo-meter[data-k="energy"] i.on { background: var(--teal); } .bo-meter[data-k="love"] i.on { background: var(--pink); }
+  .bo-meter[data-k="belly"] i.on { background: var(--amber); } .bo-meter[data-k="energy"] i.on { background: var(--teal); } .bo-meter[data-k="love"] i.on { background: var(--pink); }
   .bo-sec { padding: 10px 14px; border-bottom: 2px dotted var(--line); }
-  .bo-sec h3 { margin: 0 0 8px; font-size: 10px; font-weight: 400; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .bo-sec h3 { margin: 0 0 8px; font-size: 10px; font-weight: 400; color: var(--muted); display: flex; justify-content: space-between; align-items: center; min-height: 24px; }
   .bo-seg { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--paper2); border: 2px solid var(--ink); border-radius: 10px; padding: 2px; gap: 2px; }
-  .bo-seg button { border: 0; border-radius: 7px; padding: 7px 6px; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+  .bo-seg button { border: 0; border-radius: 7px; padding: 8px 4px; min-height: 36px; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
   .bo-seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-  .bo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-  .bo-tabs { display: flex; gap: 4px; margin: 0 0 8px; }
-  .bo-tabs button { flex: 1; border: 1.5px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 4px 2px; font: inherit; font-size: 11px; cursor: pointer; }
+  .bo-hand { display: none; align-items: center; gap: 8px; margin: 0 0 8px; padding: 6px 6px 6px 10px; border: 2px solid var(--teal); background: #e2efe6; border-radius: 10px; font-size: 12px; }
+  .bo-hand.on { display: flex; }
+  .bo-hand canvas { width: 32px; height: 22px; image-rendering: pixelated; flex: none; }
+  .bo-hand span { flex: 1; min-width: 0; }
+  .bo-hand b { display: block; }
+  .bo-hand small { display: block; color: var(--muted); font-size: 11px; }
+  .bo-tabs { display: flex; gap: 4px; margin: 0 0 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .bo-tabs::-webkit-scrollbar { display: none; }
+  .bo-tabs button { flex: 1 0 auto; border: 1.5px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 6px 10px; min-height: 32px; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .bo-tabs button[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .bo-tabs button:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
-  .bo-tile { position: relative; border: 2px solid transparent; background: var(--paper2); border-radius: 10px; padding: 4px 2px 5px; cursor: pointer; text-align: center; color: var(--ink); font: inherit; }
-  .bo-tile:hover { border-color: var(--line); }
+  .bo-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .bo-tile { position: relative; border: 2px solid transparent; background: var(--paper2); border-radius: 10px; padding: 4px 3px 5px; min-height: 76px; cursor: pointer; text-align: center; color: var(--ink); font: inherit; }
+  @media (hover: hover) { .bo-tile:hover { border-color: var(--line); } }
   .bo-tile:focus-visible, .bo-seg button:focus-visible, .bo-btn:focus-visible, .bo-chip:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
-  .bo-tile canvas { width: 64px; height: 44px; image-rendering: pixelated; display: block; margin: 0 auto 2px; }
-  .bo-tile span { font-size: 11px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bo-tile canvas { width: 64px; height: 44px; max-width: 100%; image-rendering: pixelated; display: block; margin: 0 auto 2px; }
+  .bo-tile span { font-size: 10.5px; line-height: 1.15; display: block; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .bo-tile.out { background: #fffaf2; border-color: var(--ink); }
   .bo-tile.carry { background: #e2efe6; border-color: var(--teal); }
-  .bo-tile .x { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 11px; line-height: 18px; display: none; }
-  .bo-tile.out .x { display: block; }
+  .bo-tile .x, .bo-chip .x { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 13px; line-height: 22px; text-align: center; font-style: normal; display: none; }
+  .bo-tile.out .x, .bo-chip .x { display: block; }
   .bo-hint { margin-top: 8px; font-size: 11px; color: var(--muted); min-height: 1.3em; }
   .bo-hint b { color: var(--ink); }
-  .bo-cats { display: flex; gap: 6px; flex-wrap: wrap; }
-  .bo-chip { display: flex; align-items: center; gap: 6px; border: 2px solid var(--line); background: var(--paper2); border-radius: 999px; padding: 2px 10px 2px 2px; cursor: pointer; font: inherit; color: var(--ink); }
+  .bo-cats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .bo-chip { position: relative; display: flex; align-items: center; gap: 6px; border: 2px solid var(--line); background: var(--paper2); border-radius: 999px; padding: 2px 12px 2px 2px; min-height: 36px; cursor: pointer; font: inherit; color: var(--ink); }
   .bo-chip canvas { width: 28px; height: 28px; border-radius: 50%; image-rendering: pixelated; background: #c9d3c4; }
   .bo-chip[aria-pressed="true"] { border-color: var(--ink); background: #fffaf2; }
-  .bo-chip.add { padding: 2px 10px; height: 36px; }
-  .bo-chip { position: relative; }
-  .bo-chip .x { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 11px; line-height: 18px; text-align: center; font-style: normal; }
+  .bo-chip.add { padding: 2px 12px; }
   .bo-adopt { display: none; margin-top: 8px; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .bo-adopt.open { display: grid; }
   .bo-adopt button { border: 2px solid var(--line); background: var(--paper2); border-radius: 10px; padding: 4px; cursor: pointer; font: inherit; color: var(--ink); }
-  .bo-adopt button:hover { border-color: var(--ink); }
+  @media (hover: hover) { .bo-adopt button:hover { border-color: var(--ink); } }
   .bo-adopt canvas { width: 56px; height: 56px; image-rendering: pixelated; display: block; margin: 0 auto; }
   .bo-adopt small { display: block; font-size: 10px; color: var(--muted); }
-  .bo-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .bo-btn { border: 2px solid var(--ink); background: var(--paper); color: var(--ink); border-radius: 9px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  .bo-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .bo-btn { border: 2px solid var(--ink); background: var(--paper); color: var(--ink); border-radius: 9px; padding: 6px 12px; min-height: 32px; font: inherit; cursor: pointer; }
   .bo-btn.primary { background: var(--ink); color: var(--paper); }
-  .bo-btn.small { padding: 3px 8px; font-size: 11px; border-width: 1.5px; }
-  .bo-foot { padding: 10px 14px 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
-  .bo-size { display: inline-flex; gap: 2px; }
-  .bo-size button { border: 1.5px solid var(--line); background: transparent; border-radius: 6px; width: 24px; height: 22px; font: inherit; cursor: pointer; color: var(--ink); }
+  .bo-btn.small { padding: 3px 10px; min-height: 26px; font-size: 11px; border-width: 1.5px; }
+  .bo-foot { padding: 10px 14px 12px; display: flex; gap: 10px 14px; flex-wrap: wrap; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  .bo-size { display: inline-flex; gap: 3px; }
+  .bo-size button { border: 1.5px solid var(--line); background: transparent; border-radius: 7px; width: 30px; height: 28px; font: inherit; cursor: pointer; color: var(--ink); }
   .bo-size button[aria-pressed="true"] { border-color: var(--ink); background: var(--paper2); }
-  .bo-check { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
-  .bo-check input { accent-color: #3a3030; margin: 0; }
+  .bo-check { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; min-height: 28px; }
+  .bo-check input { accent-color: #3a3030; margin: 0; width: 16px; height: 16px; }
   @media (prefers-reduced-motion: no-preference) { .bo-tile, .bo-chip, .bo-btn { transition: border-color .12s, background .12s; } }
   `;
 
@@ -109,14 +115,15 @@ var BZ = window.BZ || (window.BZ = {});
           <button data-mode="habitat" data-scene="room" aria-pressed="true">Bo's Jungle</button><button data-mode="habitat" data-scene="yard" aria-pressed="false">Backyard</button><button data-mode="roam" aria-pressed="false">My desktop</button>
         </div>
       </div>
-      <div class="bo-sec">
-        <h3 class="bo-pix"><span>Put out</span><button class="bo-btn small bo-away">Tidy up</button></h3>
+      <div class="bo-sec bo-put">
+        <h3 class="bo-pix"><span>Toy box</span><button class="bo-btn small bo-away" title="Put away everything except beds">Tidy up</button></h3>
+        <div class="bo-hand" role="status"><canvas width="32" height="22"></canvas><span><b></b><small></small></span><button class="bo-btn small bo-drop">Put down</button></div>
         <div class="bo-tabs" role="tablist"></div>
         <div class="bo-grid" role="tabpanel"></div>
-        <div class="bo-hint">Pick something, then click where it goes. Drag things to move them.</div>
+        <div class="bo-hint"></div>
       </div>
       <div class="bo-sec">
-        <h3 class="bo-pix"><span>Rexes</span><button class="bo-btn small primary bo-call">Call</button></h3>
+        <h3 class="bo-pix"><span>Rexes</span><button class="bo-btn small primary bo-call" title="Call them over to your cursor">Call</button></h3>
         <div class="bo-cats"></div>
         <div class="bo-adopt"></div>
       </div>
@@ -130,7 +137,9 @@ var BZ = window.BZ || (window.BZ = {});
     const meters = {};
     for (const m of el.querySelectorAll('.bo-meter')) { m.innerHTML = '<i></i>'.repeat(10); meters[m.dataset.k] = m; }
     // item tiles
-    const grid = $('.bo-grid'), tiles = {}, tabs = $('.bo-tabs');
+    const grid = $('.bo-grid'), tiles = {}, tabs = $('.bo-tabs'), TAP = (window.matchMedia && matchMedia('(hover: none)').matches) ? 'tap' : 'click', TAPC = TAP[0].toUpperCase() + TAP.slice(1);
+    const hand = $('.bo-hand'); let inHand = null;
+    $('.bo-drop').onclick = () => { if (inHand) { api.cmd('carry', inHand); refresh(); } };
     let tab = 0; try { tab = +(localStorage.getItem('bo-tab') || 0) || 0; } catch (e) {}
     const groups = BZ.ITEM_GROUPS || [['All', BZ.ITEM_ORDER]];
     let place = 'room'; const here = (t) => { const pl = BZ.ITEMS[t] && BZ.ITEMS[t].places; return !pl || pl.includes(place); }; // some things only make sense in some places
@@ -185,7 +194,10 @@ var BZ = window.BZ || (window.BZ = {});
       }
       for (const t in tiles) { tiles[t].classList.toggle('out', !!(s.placed && s.placed[t])); tiles[t].classList.toggle('carry', s.carrying === t); }
       const tl = s.tool || (s.placed && (s.placed.laser ? 'laser' : s.placed.brush ? 'brush' : s.placed.wand ? 'wand' : null)), TD = tl && BZ.ITEMS[tl];
-      $('.bo-hint').innerHTML = s.carrying ? `Click where the <b>${BZ.ITEMS[s.carrying].label.toLowerCase()}</b> should go.` : tl === 'laser' ? 'Laser is on. Move your cursor; click Laser again to stop.' : tl === 'brush' ? 'Brush in hand. Move it over a cat to groom her; click Brush again to put it down.' : tl === 'wand' ? 'Feather wand out. Dangle and swing it; click it again to put it away.' : TD && TD.seed ? `<b>${TD.label}</b> seeds: click a bed or a grass patch to plant. Water them to speed them up.` : tl === 'can' ? 'Watering can: hold the mouse down over the beds. (The cats would rather you didn’t.)' : tl === 'trowel' ? 'Trowel: click a plant to dig it back up.' : place === 'yard' ? 'Out back: plant seeds from the Garden tab, or put things out. Small things can go on the shelves and steps.' : 'Pick something, then click where it goes. Small things can go on the sill, shelves and table.';
+      const next = s.carrying || tl || null;
+      if (next !== inHand) { inHand = next; hand.classList.toggle('on', !!next); if (next) { BZ.drawIcon(hand.querySelector('canvas'), next); hand.querySelector('b').textContent = BZ.ITEMS[next].label; } }
+      hand.querySelector('small').textContent = s.carrying ? `${TAPC} where it goes` : tl === 'laser' ? 'Move it around; they chase the dot' : tl === 'brush' ? 'Move it over a cat to groom her' : tl === 'wand' ? 'Dangle and swing it' : TD && TD.seed ? `${TAPC} a bed or a grass patch to plant` : tl === 'can' ? 'Hold over the beds to water' : tl === 'trowel' ? `${TAPC} a plant to dig it up` : tl === 'sweater' ? `${TAPC} a cat to dress her` : '';
+      $('.bo-hint').textContent = next ? '' : place === 'yard' ? `Pick a thing, then ${TAP} where it goes. Seeds are in Garden. Small things can sit on the shelves and steps.` : place === 'desk' ? `Pick a thing, then ${TAP} where it goes on your desktop. Drag to move it.` : `Pick a thing, then ${TAP} where it goes. Drag to move it. Small things can sit on the sill, shelves and table.`;
       for (const b of el.querySelectorAll('.bo-seg button')) b.setAttribute('aria-pressed', String(b.dataset.mode === s.mode && (s.mode === 'roam' || b.dataset.scene === (s.scene || 'room'))));
       const np = s.place || (s.mode === 'roam' ? 'desk' : s.scene || 'room'); if (np !== place) { place = np; showTab(tab); }
       for (const b of el.querySelectorAll('.bo-size button')) b.setAttribute('aria-pressed', String(Math.abs(+b.dataset.s - s.size) < 0.01));
