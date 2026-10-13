@@ -8,7 +8,7 @@
 
 ## Cats (`src/cat.js`, `src/world.js`)
 
-(Juno the dog is `BZ.Dog` at the end of `cat.js`: her own skeleton and poses in the same Ballz vocabulary, drawn through the shared `BZ.drawOutlined` pass; her behavior is `Yard.tickDog` in `jungle.js`, since she only exists out back.)
+(Juno the dog is `BZ.Dog` at the end of `cat.js`: a lying dog in the same Ballz vocabulary (poses `sphinx`, `chin`, `sleep`; a 3D head that yaws and pitches toward `look`; `pet(region, x, y)`, `tap()`, `at(x, y)` hit test), drawn through the shared `BZ.drawOutlined` pass. Her behavior is `Yard.tickDog` in `jungle.js` (watch → doze → sleep, reactions to birds, the squirrel, cats, your hand). Her bed is the `dogbed` fixture (`items.js`: registry, `bedGeom` with Bunny's spot at the foot, `paintDogbed`). `World.dogAt` routes pointer presses to her; `Cat.s_skeptic` is Bo's reaction.)
 
 - **Skeleton**: balls and tapered lines (`LINES`), placed by `buildSkeleton` from a pose. Front legs: IK 12+12 from the shoulder. Hind legs: thigh 7.5, shank 10.5, hock 11 above the paw. Roll about the spine with a ground-rest lift weighted by `min(1, |roll|/35)`.
 - **Poses**: `BZ.POSES` (stand, sit, loaf, sphinx, baguette, crescent, dangle, lounge, flop, crouch, beg, eat, graze, stretch, stretchBack, slink, rear, tussle, wallStretch, bellyup, lunge, crabArch, leap, pin, kick, flinch, held, ...). Keys: hip/chest positions, back lift, head offsets and angles, paw targets `[forward, up, side]` with leg modes `ik | flat | tuck | sit | hide`, tail shape, ears, lids.
@@ -23,14 +23,14 @@
 - **Camera**: when the host passes `minW` in the stage rect and the window is narrower, the stage becomes `minW` wide and `World.view` holds the window; `cam.x` follows the awake cats (or the thing you're holding), with a hold after a manual pan. Rendering clips to the view and translates by `-cam.x`; input adds `cam.x`.
 - **Places**: `room`, `yard`, `desk`. `World.sets[place]` holds each place's placeable items; `swapPlace` stashes and restores them. `sceneKey` is room or yard; the habitat window shows that scene; roam mode is `desk`.
 - **Items**: `BZ.ITEMS` (registry), one per type per place. Flags: `bed`, `soft`, `burrow`, `box`, `ball`, `tool`, `snack`, `consumable`, `plant`, `garden`, `fixed`, `places` (where the toy box offers it).
-- **Fixtures**: objects a scene provides that aren't saved or dragged (`fixed: true`): window ledges, the daybed's second seat, the room's daybed and coffee table, the felt cube, the yard's steps, potting-shelf perch, tire swing, Adirondack chair. `syncFixtures()` rebuilds them on layout and keeps the same objects so a cat sitting on one isn't knocked off. Fixtures with `draw: true` render through `drawItem`.
+- **Fixtures**: objects a scene provides that aren't saved or dragged (`fixed: true`): window ledges, the daybed's second seat, the room's daybed and coffee table, the felt cube, the yard's steps, potting-shelf perch, tire swing, Adirondack chair, Juno's bed. `syncFixtures()` rebuilds them on layout and keeps the same objects so a cat sitting on one isn't knocked off. Fixtures with `draw: true` render through `drawItem`.
 - **Surfaces**: raised places small things can sit (`World.surfaces()`): sill, bookcase top, two shelves, coffee table; yard shelf top, shelf middle, wire stand, landing. Items on a surface carry `surf`, `su` (position along it) and `lift`. Cats on a bed with a surface may knock things off (`knockOff`); falling things use `z`/`vz`.
 - **Sweaters**: `cat.sweater = { bow }` (saved with the cat). `drawCatRaw` draws the torso balls and the topline and upper-foreleg lines in the `knit` ramp with the `knit` ball texture, and adds a bow item at the throat (front views only). Toggle with the `sweater` tool (`World.dress`).
 - **Garden**: plots and slots come from `BZ.Yard`; plants are `sprout` items with `kind, plot, slot, g (growth seconds), water`. `BZ.growSprout` sets `stage` 0–3. Growth continues while the app is closed (capped).
 
 ## Scenes (`src/jungle.js`)
 
-Both scenes implement: `layout(stage)`, `paint()`, `drawBack(ctx)`, `drawFront(ctx)`, `floorY`, `fixtures()`, `surfaces()`, `birdSpot()`, and optionally `sunSpots()`, `props()` (things sorted with the cats, like the tree trunk), `stimuli()` (butterflies, leaves, the squirrel), `plotSlot()`, `slotPos()`. Static art is painted once into offscreen canvases and repainted when the time-of-day phase changes.
+Both scenes implement: `layout(stage)`, `paint()`, `drawBack(ctx)`, `drawFront(ctx)`, `floorY`, `fixtures()`, `surfaces()`, `birdSpot()`, and optionally `sunSpots()`, `props()` (things sorted with the cats: the tree trunk, the stone bunny, Juno, the easel, the kick wheel), `stimuli()` (butterflies, leaves, the squirrel, ground birds), `plotSlot()`, `slotPos()`. Static art is painted once into offscreen canvases and repainted when the time-of-day phase changes. Scenery is drawn with the item technique: `shade(g, pts, fn)` (per-pixel polygon fill), `rampAt` (ramp + ordered dither), `ellPts`, `leafPts`; the yard's painters are `paintRhodo`, `paintHydrangea`, `paintFeeder`, `paintStudioStuff` (easel, wheel; cached), `paintSandbox`.
 
 ## Save format (v4)
 
@@ -50,7 +50,8 @@ Older saves (`items`, v3) load into both `room` and `desk`. The daybed and coffe
 | Harness | Use |
 |---|---|
 | `node test/ux.js phone|tablet|desktop out.png` | A scripted walkthrough (pick, place, pet, laser, put down, switch to the yard) with touch or mouse; prints what happened. |
-| `node test/juno.js out.png` | Juno's pose sheet. |
+| `node test/juno.js out.png` | Juno's pose sheet (resting, looking, alert, chin, asleep, petted). |
+| `node test/junoyard.js out.png` | Juno in the yard: Bunny on the bed, a hand on her head, Bo's look (three screenshots). |
 | `xvfb-run -a npx electron --no-sandbox test/electron-smoke.js` | Boots the Mac app's windows headlessly and screenshots them. |
 | `node test/one.js "t=<type>&s=1.6&px=4" out.png` | Close-up of one item (`&lump=1&peek=30` for the blanket lump). |
 | `node test/scene.js room|yard out.png [ticks] [w] [h]` | The habitat window after N ticks. |

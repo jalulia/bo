@@ -495,7 +495,7 @@ var BZ = window.BZ || (window.BZ = {});
       const hx = p.head[0] + this.lean * 1.5, hy = p.head[1] + br * 0.4, hz = this.lean * 2.5, rot = (v) => { // rotate a head-local offset by pitch (about z) then yaw (about y)
         const c = Math.cos(-pitch * Math.PI / 180), sn = Math.sin(-pitch * Math.PI / 180); let x = v[0] * c - v[1] * sn, y = v[0] * sn + v[1] * c, z = v[2];
         const cy = Math.cos(yaw), sy = Math.sin(yaw); const x2 = x * cy - z * sy, z2 = x * sy + z * cy; return [hx + x2, hy + y, hz + z2]; };
-      pts.head = [hx, hy, hz]; pts.dome = rot([0.5, 3, 0]); pts.bridge = rot([6.5, -1.4, 0]); pts.muzzle = rot([11.5, -3, 0]); pts.nose = rot([15.6, -3.6, 0]); pts.chin = rot([11.5, -5.6, 0]); pts.jaw = rot([7, -5.2, 0]);
+      pts.head = [hx, hy, hz]; pts.dome = rot([0.5, 3, 0]); pts.bridge = rot([6.5, -1.4, 0]); pts.muzzle = rot([11.5, -3, 0]); pts.nose = rot([15.6, -3.6, 0]); pts.chin = rot([11.2, -4.6, 0]); pts.jaw = rot([6.5, -4.6, 0]);
       pts.blaze0 = rot([1.5, 4.8, 0]); pts.blaze1 = rot([13.2, -2, 0]);
       for (const [nm, z] of [['L', 1], ['R', -1]]) {
         pts['eye' + nm] = rot([4.8, 1.2, z * 3.5]); pts['patch' + nm] = rot([4.3, 1.7, z * 3.7]);
@@ -540,7 +540,7 @@ var BZ = window.BZ || (window.BZ = {});
       for (const [a, b] of [['t1', 't2'], ['t2', 't3']]) items.push({ z: (S[a][2] + S[b][2]) / 2 + 0.25, kind: 'flag', A: S[a], B: S[b], c: col('cream', 3), c2: col('cream', 2) });
       // head: the dome, the long muzzle, the blaze, nose, chin, a mouth
       ball('head', 10.8, col('cream', 3)); ball('dome', 8, col('cream', 3)); line('head', 'bridge', 9, 7, col('cream', 3)); ball('bridge', 7.4, col('white', 2)); line('bridge', 'muzzle', 7, 5.4, col('white', 2)); ball('muzzle', 5.6, col('white', 2)); line('muzzle', 'nose', 5.4, 3.4, col('white', 3)); ball('nose', 2.6, C.nose, null, S.nose[2] - 0.6);
-      ball('chin', 3.6, col('white', 3), null, S.chin[2] - 0.3); thin('jaw', 'chin', col('cream', 0), S.chin[2] - 0.35);
+      ball('chin', 2.4, col('white', 3), null, S.chin[2] - 0.3); thin('jaw', 'chin', col('cream', 0), S.chin[2] - 0.35);
       items.push({ z: S.bridge[2] - 0.5, kind: 'blaze' });
       if ((this.pose.mouth || 0) > 0.25) { line('jaw', 'tongue', 2.6, 2, col('sable', 0), S.chin[2] - 0.4); ball('tongue', 2.6 * Math.min(1, this.pose.mouth * 1.4), C.tongue, null, S.tongue[2] - 0.5); }
       // eyes in their tan patches, eyebrows that lift and tilt

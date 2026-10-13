@@ -1,6 +1,6 @@
 {
  "name": "Desktop Bo",
- "version": "2.7.0",
+ "version": "2.8.0",
  "provenance_note": "breed_standard = CFA Cornish Rex standard (cfa.org/?p=21290); photos = Julia's reference photos of Bo; read_out = PF.Magic engine rules via petz.js kb; ours = choices made here",
  "body": {
   "source": "breed_standard + photos",
@@ -373,12 +373,32 @@
   "sandbox": "corner at x -30..84, y H-44..H-8; cedar frame, sand ramp, tire ruts, a dug hole, yellow dump truck (bed tipped) and backhoe, a shovel"
  },
  "juno": {
-  "source": "photos (refs/juno/*) + ours",
-  "scale": "1.55 x world.size",
-  "frame": "hip (-16,36) back (-3,39.5) chest (12,37) belly (-1,31) head (30,50); forelegs ik 16+17 elbow back; hind ik 15+17 hock back; nose 14 ahead of the head, eyes at (5.5,2.4,\u00b13.4), brows as short dark lines that lift with pose.brow, ears hanging from (-2,4.5,\u00b14.8) to (-6,-11) lifting with pose.ear, feathered tips",
-  "poses": "stand, trot, gallop, sit, sphinx (forelegs poured out, one crossing), chin (head on the ground, lids down), point (head up, ears forward)",
-  "palette": "sable #4a4036..#a99680 (saddle), cream #b8a382..#f3ead8 (sides, head), white #c9c1b3..#f6f2ea (chest, legs, muzzle), blonde #b89a68..#ebd9b0 (ears), collar #6a4a2a + brass",
-  "behavior": "rest -> chin after 320 frames; head lifts for a landing bird, a moving cat within 140*size, or at random (brow 0.5-1, ear 0.4-0.9, 90-180 frames); wander trot 1.3*size; sit; sun (lawn pool unless a cat is on it); chase when the squirrel is out: gallop 6.2*size, the squirrel bolts home at 4.6 px/frame, then 150-270 frames at the trunk looking up (point, wag), cooldown 900; avoid Bo within 62*size: trot 2.6*size the other way, ears back, then sit and look back with brows up",
-  "bounds": "lawn only: x in [26, lawnEdge(y)-34], y in [F+46, H-50]; chase ignores bounds"
+  "source": "photos (refs/juno/*, the sombrero one above all) + ours; Julia's feedback 2026-10-12 (refs/app-feedback/2026-10-12-juno-*.png)",
+  "status": "bed-bound; the walking build is parked",
+  "scale": "1.28 x world.size (units below are pre-scale)",
+  "poses": {
+   "sphinx": "hip (-14,8) back (-4,9.5) chest (7,9.5) throat (15,19.5) head (22,31); ear 0.45 (perked), brow 0.15, lid 0.1",
+   "chin": "head (28,13) pitch -8, ear -0.4 (lying back along the neck), lid 0.55, tail curled 0.6",
+   "sleep": "head (28,12) pitch -10, ear -0.5, lid 1, tail curled 1; breath 0.5 at 0.05 rad/frame"
+  },
+  "head": "skull ball 10.8, dome 8 at (0.5,3); bridge 7.4 at (6.5,-1.4); muzzle 5.6 at (11.5,-3); nose 2.6 at (15.6,-3.6); chin 2.4 at (11.2,-4.6) tucked into the jaw line (a bigger, lower chin read as a lump under the snout); blaze line (1.5,4.8)->(13.2,-2) white; eyes 3.3 at (4.8,1.2,+-3.5) in tan patches 5.2 at (4.3,1.7,+-3.7); brows (2.8,3.4)->(6.2,3.2) +- lifting with pose.brow (x0.8, x2); ears root (-2.8,3.6,+-3.9) ball 6, tip (-6+up-10hang, -6+13up+9hang, +-(5.8+2.6up+4hang)), feather end (-7.5-up-14hang, -12.5+15.5up+16hang, +-(5.6+3.6up+5hang)) where up = max(0, ear), hang = max(0, -ear); 3 feather strands at the tip",
+  "head_motion": "yaw toward look within +-1.1 rad (dy weighted 1.6), pitch += clamp((lookY - headY)/s * 0.28, -18, 14); lean toward a hand adds yaw 0.5*lean, head offset (1.5*lean, 0, 2.5*lean)",
+  "body": "balls hip 14.5, back 13, chest 15 (sable, sable, cream); belly band under the body in cream; crest line in sable/tan along the neck; forelegs root (chest+1, chest.y-1.5, +-4.4) elbow (chest+6, 3.4, +-5) paws (26.5,1.4,2.6) and (28.5,2.9,0.8) crossed; hind: haunch ball 10 at (hip-1, hip.y-1.5, +-5.4/5.8), hock (hip-8,2.4,7) / (hip-10,2,-8.5), paws (hip-2,1.2,8.5) / (hip-3,1.2,-10.5); tail root (hip-6.5, hip.y-1, 1) then (-9,2.8,2) (-18,1.8,2.5) (-26,3,1) straight back, curling forward with tailCurl; wag = sin(t*0.5)*5 sideways; plume as a tapered flag under the last two segments",
+  "palette": "sable #4a4036..#a99680, cream #b8a382..#f3ead8, white #c9c1b3..#f6f2ea, blonde #a8844e..#f0dfbd, tan #b58e5e..#dcbf93, eye #2c1e14, nose #1e1a18, brow #7a5a38, collar #6a4a2a, tag #4f8fd0",
+  "bed": "fixture dogbed at (tree.x+6, F+76) stage px; painter paintDogbed: RX 44k RY 16.5k (k = world.size), rolled rim ramp GR #3a3b3e..#848689, pad with a quatrefoil lattice (cell 9k, vertical half) in #b9bbbd/#d9dbdc/#eceeee, a hollow and creases; Bunny's spot (x-23k, y+5k) rootPx 3k sortY y+0.8 face pi/2+0.55; the dog's origin (bed.x - 1*size, bed.y + 0.5), theta 0.35",
+  "behavior": "watch (sphinx; idle glances every 110 frames, ear flicks; 700-1600 frames) -> doze (chin; 900-2000 by day, 500-1600 at night; a 35% yawn on the way) -> sleep (45% by day, 75% at night; 1800-4400 by day, 3000-5600 at night) -> doze -> watch. Head lifts (liftT) for: a bird landing (120), the squirrel (160, brows 0.9, ears 0.9, 40% boof), a held cat (3%/frame, 90), a moving cat within 190*size (60, ears 0.5 if within 70), your hand within 110*size of her head (40). Sleep breaks for a brawl within 120*size or the squirrel within 90*size. Bo within 85*size: Bo -> s_skeptic (70-160 frames, ears back 0.55, flick, maybe a meow, cooldown 700); Juno looks at her, brows 0.8, wag 50. Bunny arriving on the bed: wag 90, look, brows 0.6.",
+  "petting": "press on her (World.dogAt -> Dog.at hit regions head/back/leg/tail), every 5th moved frame -> pet(): ears -0.45 for 30, lids 0.6 for 30, wag 40, liftT 160, lean +-0.8 toward the hand (head) or 0.3; wakes her from sleep into chin for 200 frames. A quick tap -> tap(): liftT 120, brows 0.8, ears 0.7, look at the pointer, wag 20.",
+  "bed_choice": "startNap weight dogbed: Bo 0, others 5"
+ },
+ "yard_2026_10_12h": {
+  "layout": "tire.x = tree.x - 40 (left of the tree); easel (S+216, F+34), wheel (S+182, F+66) on the patio right of the steps, cached 80x76 canvases drawn as props; feeder pole at S-30, base F-2, top F-72; rhododendron (S-62, F-3, r 27) painted before the feeder, hydrangea (S-10, F+4, r 17) after it; sandbox corner (-30..84, H-44..H-8) rails 6 px; pools[1] at (0.3W, fy(0.5)); lawnBed at fy(0.66); adk at (max(0.36W, S-36), fy(0.3))",
+  "technique": "shade(g, pts, fn) per-pixel polygon fill; rampAt(ramp, L, x, y) with the 4x4 Bayer; ellPts for discs; leafPts for leaves; every piece lit from the upper right, lit top edges, dark undersides, contact shadows as rgba(20,14,6,0.28) ellipses",
+  "rhododendron": "26 whorls back-to-front, 6-8 leaves each (len 8-13, wid 2.4-3.2) ramp #17301b..#79ab6a, one half of each leaf a step darker, midrib #8fbb7c on upward leaves, a gloss pixel; 6 trusses r 5-6.5 ramp #a8336e..#ffffff lit upper right, 9 cross-shaped florets each with a dark throat; 3 buds; branches #5a4330",
+  "hydrangea": "2.2R leaves (len 6.5-10, wid 0.52 len) notched, ramp #2a4a26..#95c47a, serrated edge stitched a step lighter, midrib #a9d28e and two pairs of side veins; 7 mopheads r 5.5-7.3 (two pink): ramp blue #3f4fa8..#e4e8fb / pink #8a4a8c..#fbeefa, 10 four-petal florets each with a pale eye; woody stems #6b5236",
+  "feeder": "pole 3 px #2e2b28 with #5a554f edge; cone baffle 18 wide at base-30; hopper 18x15 at top+8: plexi panels (seed line, hulls #2a2420, millet #d8b864, reflections every 5 rows), cedar posts and divider #9a6b40/#b8864f, tray 24x3 with a lip; gable roof 26 wide ramp #3f6a58..#a6c3ad with the right slope lit, a copper ridge cap; suet cage 7x7 green grid #2a4a2a on a chain off the left eave; 22 seeds and hulls on the ground",
+  "easel": "A-frame 54 tall: front legs from x+-10 to x+-2.4, a rear leg, cross brace at foot-11, tray 24x4 at foot-25 with a rag and a brush; canvas 22x26 (foot-52..foot-26) on a stretcher: an abstract glacial valley: yellow sky band (v<0.14) ramp #b8860b..#fbeea0, river centered at u = 0.5 + 0.17 sin(4.6v+0.8) + 0.04 sin(9v), half-width 0.05+0.07v, pale blue ramp #1f2f6e..#c6e0f2 index 3.6+1.4(1-v); valley floor yellow within half-width 0.07+0.3v, walls blue darkening with distance from the floor and lit on the right, 6 pale snow strokes, 4 impasto whites; top clamp and mast; palette (6x7.5 oval with 5 paint blobs) leaning on the left leg; a coffee can with 5 brushes on the right. Oak ramp #4e3418..#d0ab70, grain by sin(1.7 along the grain)",
+  "kick_wheel": "flywheel: shadow disc at foot-3 then the lit top at foot-7 (17x5.2) ramp #3b3b40..#9a9aa0, rim #9a9aa0, clay spatter; shaft 3 px steel foot-30..foot-4 with a bearing collar; splash pan 11x3.6 dark green; wheel head 7.5x2.4 steel with rings; pot profile r(t) = 3.4 + 2.2 sin(pi min(1,1.25t)) - 0.6t, 10 tall, ramp #7a4a30..#e0b48e with throwing rings every 3 rows and a wet highlight; plank seat 16 wide at foot-16 on two legs with a towel; bucket of slip 10x11 at x-22 with a handle and a dribble; sponge #e8c860; wire tool",
+  "sandbox": "sand ramp #b49a66..#f6e6c0 in shadow under the rails; 4 paired footprints; two tire ruts; hole at (x0+66, y0+25) and heap at (x0+52, y0+11); rails 6 px cedar ramp #5a3c22..#d2a468 with grain, lit top, dark underside, a corner seat 11 wide with two screws; dump truck at (x0+24, y1-13): chassis, ribbed bed tipped (rim lit), cab with window/grille/headlight/bumper, three 6.4 px tires with silver hubs, yellow ramp #9c7210..#fff0a8; backhoe at (x0+52, y0+31): tracks with sprockets, cab with window and exhaust stack, boom to (bx+11, by-19), dipper to (bx+16, by-8), bucket with 3 teeth and sand in it; red shovel at the corner; blue bucket at (x0+63, y0+10)",
+  "birds": "drawn at 1.25 x kind.size"
  }
 }

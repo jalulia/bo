@@ -2,6 +2,15 @@
 
 Short records of choices someone might later undo by accident. Newest first.
 
+**2026-10-12 · Juno stays on her bed.** The walking Saluki (1.55x scale, IK legs, chase/avoid/wander) read as "terrifying" at this resolution; Julia paused the full build. `BZ.Dog` is now a lying dog only (poses `sphinx`, `chin`, `sleep`; head yaw/pitch, ears, brows, lids, tail, lean) at 1.28x world.size, and `Yard.tickDog` is a bed-bound state machine (watch → doze → sleep) with petting (`Dog.pet`, `Dog.tap`, hit test `Dog.at`) and no locomotion. If the walking build comes back, start from this head and these proportions; the old skeleton is in git history (`0eb9c79`).
+
+**2026-10-12 · Bo never picks the dog bed; Bunny sometimes does.** `startNap` bed weights: `dogbed: isBo ? 0 : 5` (the map uses `??`, not `||`, so a 0 weight stays 0). Bo's reaction is `Cat.s_skeptic` (in BUSY), triggered by the yard when she is within 85*size of the dog, cooldown `cool.dog = 700`.
+
+**2026-10-12 · Scenery pieces are drawn at item scale with the item technique.** The easel, kick wheel, bushes, feeder and sandbox were first drawn as small flat sketches (14 px canvas, 7 px roof) in a hurry and Julia called them out. They are now shaded polygons with ramps and ordered dither, sized against the chairs (the easel 54 px tall, the flywheel 34 wide, the rhododendron 54 wide), with specific details. The same rule as furniture: if a thing is big enough to look at, draw it like a chair. `shade()` and `ellPts()` live in `jungle.js` for this.
+
+**2026-10-12 · The tire swing hangs left of the tree.** It overlapped the bushes and the feeder on the right; `tire.x = tree.x - 40`.
+
+
 **2026-10-10 · Each place keeps its own things.** Room, yard and desktop have separate item sets (`World.sets`). Why: the daybed and coffee table are permanent in the room but still placeable on the desktop; a yard full of indoor furniture would be odd. Rules out: one shared item list.
 
 **2026-10-10 · The daybed and coffee table are room fixtures.** Julia asked for them to be permanent in the room and still available on the desktop. They're `furniture` fixtures in `BZ.Jungle` and carry `places: ['desk']` in the toy box. Saved copies are dropped from room/yard sets on load.

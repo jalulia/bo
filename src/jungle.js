@@ -788,19 +788,22 @@ var BZ = window.BZ || (window.BZ = {});
         board([[e.x - 12, e.foot - 25], [e.x + 12, e.foot - 25], [e.x + 12, e.foot - 21], [e.x - 12, e.foot - 21]], 3.8, 0); rect(g, e.x - 12, e.foot - 25, 24, 1, OAK[5]); rect(g, e.x - 12, e.foot - 26, 24, 1, OAK[2]);
         shade(g, [[e.x + 6, e.foot - 26], [e.x + 13, e.foot - 26], [e.x + 14, e.foot - 17], [e.x + 9, e.foot - 16]], (x, y) => ((x + y) & 3) === 0 ? '#c9b8a0' : rampAt(['#cfc4b2', '#e3dacb', '#f1ece2'], 1 + (y - (e.foot - 26)) * 0.12, x, y)); px(g, e.x + 10, e.foot - 20, '#b5583c'); px(g, e.x + 8, e.foot - 22, '#3f6f6a'); // the rag, paint on it
         BZ.drawThin(g, e.x - 10, e.foot - 26, e.x - 2, e.foot - 27, '#c8a060'); px(g, e.x - 1, e.foot - 27, '#2a2622'); px(g, e.x, e.foot - 27, '#2a2622'); // a brush
-        // the canvas on its stretcher: 22 x 26, a painting of the yard with a seal-point cat in it, the lower corner still bare
+        // the canvas on its stretcher: 22 x 26
         const cx0 = e.x - 11, cx1 = e.x + 11, cy0 = e.foot - 52, cy1 = e.foot - 26;
         rect(g, cx0 - 1, cy0 - 1, cx1 - cx0 + 2, cy1 - cy0 + 2, '#d6c9a8'); rect(g, cx1, cy0, 1, cy1 - cy0 + 1, '#a08a60'); rect(g, cx0 - 1, cy1, cx1 - cx0 + 2, 1, '#a08a60'); // the stretcher edge
+        // the painting: an abstract glacial valley, blue walls winding down to a yellow floor, a river through the middle (Julia's brief)
+        const BLU = ['#1f2f6e', '#2a4a9a', '#3b6bc0', '#5e92d6', '#8fbce6', '#c6e0f2'], YEL = ['#b8860b', '#d9a81e', '#efc63a', '#f7dc6a', '#fbeea0'];
         for (let y = cy0; y < cy1; y++) for (let x = cx0; x < cx1; x++) {
           const u = (x - cx0) / (cx1 - cx0), v = (y - cy0) / (cy1 - cy0); let c;
-          if (v > 0.7 && u < 0.35 + (v - 0.7) * 0.5) c = (x + y) & 1 ? '#efe9dc' : '#e6dfd0'; // unpainted, the weave showing
-          else if (v < 0.42) c = rampAt(['#7fa8c8', '#9cc0d8', '#b9d4e3', '#d4e4ec'], 1 + (1 - v / 0.42) * 2.5 + Math.sin(x * 1.3 + y * 0.7) * 0.5, x, y); // sky, in long strokes
-          else c = rampAt(['#3f6a2a', '#51802f', '#6a9a3e', '#87b050'], 0.8 + (v - 0.42) * 3 + Math.sin(x * 0.9 - y * 1.1) * 0.6, x, y); // lawn
+          const bend = Math.sin(v * 4.6 + 0.8) * 0.17 + Math.sin(v * 9) * 0.04, mid = 0.5 + bend, half = 0.07 + v * 0.3, d = Math.abs(u - mid), stroke = Math.sin(x * 1.9 + y * 0.6) * 0.4;
+          if (v < 0.14) c = rampAt(YEL, 2.8 + v * 5 + stroke, x, y); // a yellow sky, the light coming down the valley
+          else if (d < 0.05 + v * 0.07) c = rampAt(BLU, 3.6 + (1 - v) * 1.4 + stroke * 0.6, x, y); // the river, pale where it's far
+          else if (d < half) c = rampAt(YEL, 1.4 + (half - d) / half * 2.2 + (u > mid ? 0.6 : 0) + stroke * 0.5, x, y); // the valley floor
+          else c = rampAt(BLU, 0.6 + (d - half) * 3.5 + (u > mid ? 1 : 0) - (v > 0.8 ? 0.8 : 0) + stroke, x, y); // the walls, lit on the right
           px(g, x, y, c);
         }
-        rect(g, cx0 + 1, cy0 + 9, 20, 1, '#5a7a90'); // the tree line, one stroke
-        const bx = e.x + 2, by = cy0 + 19; ell(g, bx, by, 4, 3, '#e9dcc5'); ell(g, bx + 2, by - 4, 2.4, 2.2, '#e9dcc5'); px(g, bx + 1, by - 6, '#3a3030'); px(g, bx + 3, by - 6, '#3a3030'); ell(g, bx + 3, by - 3, 1.4, 1, '#4f4343'); px(g, bx + 2, by - 4, '#3ccbdb'); BZ.drawThin(g, bx - 4, by + 1, bx - 7, by - 3, '#3a3030'); // Bo, sitting, seal points, one teal eye
-        for (let i = 0; i < 5; i++) px(g, cx0 + 2 + r() * 18, cy0 + 3 + r() * 10, '#ffffff'); // highlights, impasto
+        for (let i = 0; i < 6; i++) { const yy = cy0 + 4 + i * 3.6; BZ.drawThin(g, cx0 + 1 + r() * 4, yy, cx0 + 4 + r() * 5, yy + 1, BLU[4]); BZ.drawThin(g, cx1 - 6 + r() * 3, yy + 1, cx1 - 1, yy + 2, BLU[5]); } // snow strokes on the walls
+        for (let i = 0; i < 4; i++) px(g, cx0 + 2 + r() * 18, cy0 + 3 + r() * 20, '#ffffff'); // impasto highlights
         board([[e.x - 4, e.foot - 56], [e.x + 4, e.foot - 56], [e.x + 4, e.foot - 51], [e.x - 4, e.foot - 51]], 3.4, 0); rect(g, e.x - 1, e.foot - 60, 2, 5, OAK[4]); px(g, e.x, e.foot - 61, OAK[5]); // the top clamp on its mast
         // on the ground: a palette leaning on the left leg, a coffee can of brushes on the right
         shade(g, ellPts(e.x - 15, e.foot - 6, 6, 7.5), (x, y) => rampAt(['#8a6a3a', '#a8844a', '#c4a060', '#d8b878'], 1.4 + (x - (e.x - 15)) / 6 * 0.6 - (y - (e.foot - 6)) / 7.5 * 0.8, x, y)); px(g, e.x - 17, e.foot - 10, '#3a2a18');

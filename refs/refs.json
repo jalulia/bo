@@ -554,6 +554,22 @@
    "shows": "the hover name tag over Bunny on the dragonfly chair",
    "informs": "\"things like this pop up i think are unnecessary\": the hover tag is gone",
    "source": "1df1d696-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-12-juno-stand-terrifying.png",
+   "category": "app-feedback",
+   "received": "2026-10-12",
+   "shows": "the first Juno (walking build) standing at the tree, from the app",
+   "informs": "\"seeing Juno -- terrifying lol\": the walking build is paused; she lives on a bed now",
+   "source": "bca399cd-image.png"
+  },
+  {
+   "file": "refs/app-feedback/2026-10-12-juno-lying-terrifying.png",
+   "category": "app-feedback",
+   "received": "2026-10-12",
+   "shows": "the first Juno lying on the lawn with her forelegs crossed, from the app",
+   "informs": "the head and proportions that didn't work (too big, a lumpy skull, blob ears, googly eyes); later: \"the ears perked and nose / eyes ratio were slightly better\" in the alert pose than in the first bed version",
+   "source": "acd952fa-image.png"
   }
  ]
 }

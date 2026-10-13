@@ -17,12 +17,12 @@
 
 ## Characters
 
-| | Bo | Bunny |
-|---|---|---|
-| Coat | seal point & white: dark seal mask, ears, tail; cream body; white chest, legs, muzzle | all white |
-| Eyes | `boblue`: bright, light, shiny teal-blue | `gold`: gold/yellow |
-| Build | small, long legs, tucked waist, huge ears, Roman nose, marcel waves | tinier, older |
-| Carriage | low-energy, languid, deliberate walk; tail low with an S and the tip up | brisk; tail up with a hook |
+| | Bo | Bunny | Juno |
+|---|---|---|---|
+| Coat | seal point & white: dark seal mask, ears, tail; cream body; white chest, legs, muzzle | all white | sable saddle over cream; white chest, legs, muzzle; a white blaze up the face; golden ears (`JUNO` palette in `cat.js`) |
+| Eyes | `boblue`: bright, light, shiny teal-blue | `gold`: gold/yellow | dark brown, almond, in tan patches; eyebrows as short dark lines that lift |
+| Build | small, long legs, tucked waist, huge ears, Roman nose, marcel waves | tinier, older | 1.28x the cats; narrow domed skull, long muzzle to a small black nose; ears hang beside the face, perk at rest, lift like flags when alert, lie back along the neck when her chin is down |
+| Carriage | low-energy, languid, deliberate walk; tail low with an S and the tip up | brisk; tail up with a hook | lying only: forelegs poured out and crossed, a hind leg flopped to the side, the plumed tail along the bed; the head does the talking |
 
 Body proportions and leg geometry are in `docs/desktop-bo-spec.json` (`body`, `gait`). Do not shorten the legs: "munchkin", "stuck in the ground", "crawling on elbows" and "stumpy" were all past regressions.
 

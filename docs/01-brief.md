@@ -19,6 +19,10 @@ Her words, collected: "so cute and soothing"; "cats are superlanguine"; "intenti
 - Feisty: she wallops Bo and body-slams her; they chase and brawl.
 - Mostly they nap and chill together. Wore a brown ribbon bow on her harness.
 
+**Juno** (`BZ.Dog`, backyard only)
+- Julia's mom's old Saluki: cream and sable with a white blaze, long golden feathered ears, a brown collar with a blue tag. Very sweet and chill, languid, very expressive: a lot packed into her eyebrows, eyes and ears. Bee-lines for squirrels at lightning speed (parked: see the backlog).
+- In the game she lies on her big bed on the lawn, watching the yard, dozing, sleeping; you can pet her. She never leaves the bed. Bunny sometimes naps with her; Bo doesn't, and gives her a skeptical look when she gets too close. "Bo and Juno really didn't get along but we don't need to play that up."
+
 Their relationship is "love / hate / love": bond and tension drift; shared sunshine cools tension (the comfort zone); play-fights raise the bond.
 
 ## The places
