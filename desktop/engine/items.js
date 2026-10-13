@@ -73,6 +73,7 @@ var BZ = window.BZ || (window.BZ = {});
     lamptable: { label: 'Lamp table', hint: 'mahogany, a brass lamp, warm for two', r: 24, h: 74, bed: true },
     cubby:  { label: 'Felt cube', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     adk:    { label: 'Adirondack chair', hint: '', bed: true, fixed: true, soft: true, r: 26, h: 46 },
+    dogbed: { label: "Juno's bed", hint: '', bed: true, fixed: true, soft: true, r: 0, h: 0 },
   });
   BZ.ITEMS.daybed.places = ['desk']; BZ.ITEMS.ctable.places = ['desk']; // in the room they're furniture; on the desktop you can still put them out
   BZ.ITEM_ORDER = ['sun', 'pod', 'pillow', 'blanket', 'box', 'bag', 'lamptable', 'sweater', 'daybed', 'ctable', 'poppy', 'dfly', 'chair', 'floral', 'emerald', 'blush', 'grass', 'catnip', 'spider', ...Object.keys(BZ.PLANTS), 'yarn', 'mouse', 'laser', 'wand', 'brush', 'treat', 'shrimp', 'bowl', ...Object.keys(BZ.GARDEN).map((k) => 'seed_' + k), 'can', 'trowel'];
@@ -124,6 +125,7 @@ var BZ = window.BZ || (window.BZ = {});
     if (it.type === 'adk' || (it.type === 'seat' && it.parent && it.parent.type === 'adk')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 13 : -13) * k, P.y + 13 * k], spot: [P.x + (slot ? 8 : -9) * k, P.y - 3 * k], rootPx: 15 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.55 : Math.PI / 2 + 0.55 }; }
     if (it.type === 'lamptable' || (it.type === 'seat' && it.parent && it.parent.type === 'lamptable')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 12 : -12) * k, P.y + 12 * k], spot: [P.x + (slot ? 9 : -9) * k, P.y - 2 * k], rootPx: 27.5 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.4 : Math.PI / 2 + 0.4 }; }
     if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 16 : -16) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : -17) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; }
+    if (it.type === 'dogbed') { const k = s; return { front: [it.x - 26 * k, it.y + 18 * k], spot: [it.x - 23 * k, it.y + 5 * k], rootPx: 3 * k, clip: null, sortY: it.y + 0.8, face: Math.PI / 2 + 0.55 }; }
     if (it.type === 'pillow') { const k = s * 0.95; return { front: [it.x + 2 * k, it.y + 12 * k], spot: [it.x, it.y - 1 * k], rootPx: 5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.4 }; }
     if (it.type === 'blanket') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 13 * k], spot: [it.x + 2 * k, it.y - 1 * k], rootPx: 2 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.5 }; }
     if (it.type === 'bag') { const k = s * 0.95; return { front: [it.x + 3 * k, it.y + 13 * k], spot: [it.x, it.y - 3 * k], rootPx: 1 * k, clip: null, sortY: it.y - 0.1, face: Math.PI / 2 + 0.2, box: true }; }
@@ -833,6 +835,30 @@ var BZ = window.BZ || (window.BZ = {});
     }
     board([[X - W * 0.74, Y - 12 * k], [X + W * 0.74, Y - 12 * k], [X + W * 0.74, Y - 9 * k], [X - W * 0.74, Y - 9 * k]], 3); // front rail under the mat's edge
   }
+  // ── Juno's bed (ours): a big oval cushion bed, charcoal canvas with a white quatrefoil lattice (from the sombrero photo), a rolled rim, a flat pad she's worn a hollow into ──
+  function paintDogbed(ctx, X, Y, k) {
+    const GR = ['#3a3b3e', '#48494d', '#56585c', '#64666b', '#737579', '#848689'], LAT = ['#b9bbbd', '#d9dbdc', '#eceeee'], RX = 44 * k, RY = 16.5 * k, r = BZ.rng(14);
+    ell(ctx, X + 1, Y + 2 * k, RX * 1.04, RY * 0.95, 'rgba(20,14,6,0.26)');
+    const inside = (x, y, rx, ry, cy) => ((x - X) / rx) ** 2 + ((y - cy) / ry) ** 2;
+    // the rim: a rolled bolster all the way round, lit on top, dark at the bottom edge and on the far (upper) inside
+    const rim = []; for (let i = 0; i < 40; i++) { const a = (i / 40) * Math.PI * 2; rim.push([X + Math.cos(a) * RX, Y + Math.sin(a) * RY]); }
+    shadePoly(ctx, rim, (x, y) => { const d = Math.sqrt(inside(x, y, RX, RY, Y)), v = (y - Y) / RY; let L = 2.6 + (d > 0.82 ? (1 - d) * 7 - 0.4 : (d - 0.82) * 3) - v * 0.6 + Math.sin(x * 0.7 + y * 1.3) * 0.25 + (r() < 0.04 ? 0.8 : 0); if (d > 0.96) L -= 1.2; return ramp(GR, L, x, y); });
+    // the pad: flat, a seam where it meets the rim, the lattice printed on it (compressed by the view)
+    const prx = RX - 6.5 * k, pry = RY - 4.6 * k, pcy = Y - 1.2 * k, pad = []; for (let i = 0; i < 40; i++) { const a = (i / 40) * Math.PI * 2; pad.push([X + Math.cos(a) * prx, pcy + Math.sin(a) * pry]); }
+    const cell = 9 * k, lat = (x, y) => { // a quatrefoil lattice: four lobes on a grid, 1 px lines
+      const u = ((x - X) / cell), v = ((y - pcy) / (cell * 0.5)), cu = u - Math.round(u), cv = v - Math.round(v), q = Math.round(u) + Math.round(v);
+      const d1 = Math.hypot(cu, cv), lobe = Math.min(Math.hypot(Math.abs(cu) - 0.5, cv), Math.hypot(cu, Math.abs(cv) - 0.5));
+      return Math.abs(d1 - 0.34) < 0.1 || (lobe < 0.27 && lobe > 0.15 && (q & 1) === 0); };
+    shadePoly(ctx, pad, (x, y) => { const d = Math.sqrt(inside(x, y, prx, pry, pcy)); let L = 3.2 - Math.max(0, 0.8 - d) * 0.6 + (y - pcy) / pry * 0.3 - (d > 0.9 ? 1.4 : 0); if (lat(x, y)) return LAT[d > 0.9 ? 0 : (x + y) % 5 === 0 ? 2 : 1]; return ramp(GR, L, x, y); });
+    // the hollow where she lies: a soft darker dent toward the back-right, and a few creases
+    for (let i = 0; i < 3; i++) BZ.ellipse(ctx, X + 4 * k, pcy - 1 * k, prx * (0.56 - i * 0.1), pry * (0.62 - i * 0.12), `rgba(20,20,26,${0.1})`);
+    for (let i = 0; i < 4; i++) { const x0 = X - prx * 0.7 + r() * prx * 1.3, y0 = pcy - pry * 0.5 + r() * pry; BZ.drawThin(ctx, x0, y0, x0 + 4 * k + r() * 5 * k, y0 + (r() - 0.5) * 2 * k, GR[1]); }
+    // the piping along the inside seam and the lit crest of the roll
+    BZ.ellRing(ctx, X, pcy, prx + 0.5, pry + 0.5, GR[1]); BZ.ellRing(ctx, X, Y - 3 * k, RX - 3 * k, RY - 2.4 * k, GR[5]);
+    for (let x = Math.round(X - RX * 0.5); x < X + RX * 0.5; x += 3) ctx.fillStyle = (x & 1) ? GR[4] : GR[5], ctx.fillRect(x, Math.round(Y - 3 * k - RY + 2.4 * k - 1), 1, 1); // sheen on the far rim
+  }
+  function dogbed(ctx, it, s) { const k = s, w = 94 * k, h = 42 * k, ox = 47 * k, oy = 22 * k; ctx.drawImage(cached('dogbed' + s, w, h, ox, oy, (g, X, Y) => paintDogbed(g, X, Y, k)), Math.round(it.x - ox), Math.round(it.y - oy)); }
+  BZ.paintDogbed = paintDogbed;
   function adkChair(ctx, it, s) { const k = s * 0.95, w = 64 * k, h = 56 * k, ox = 32 * k, oy = 52 * k; ctx.drawImage(cached('adk' + s, w, h, ox, oy, (g, X, Y) => paintAdk(g, X, Y, k)), Math.round(it.x - ox), Math.round(it.y - oy)); }
   // ── the felt cube in the bookcase: gray felt, a stitched round hole, a little leather tag; a dangling leg if she's left one out ──
   BZ.drawCubbyFront = function (ctx, it, s, t) {
@@ -1083,6 +1109,7 @@ var BZ = window.BZ || (window.BZ = {});
       case 'chair': case 'floral': case 'emerald': case 'blush': chair(ctx, it, s); break;
       case 'poppy': case 'dfly': homeChair(ctx, it, s); break;
       case 'adk': adkChair(ctx, it, s); break;
+      case 'dogbed': dogbed(ctx, it, s); break;
       case 'sprout': BZ.drawSprout(ctx, it, s, t); break;
       case 'can': BZ.drawCan(ctx, it.x, it.y - 2 * s, s, 0, false); break;
       case 'trowel': BZ.drawTrowel(ctx, it.x - 4 * s, it.y - 2 * s, s); break;

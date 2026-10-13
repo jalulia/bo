@@ -447,106 +447,127 @@ var BZ = window.BZ || (window.BZ = {});
     ctx.drawImage(OFF, bx, by, bw, bh, bx, by, bw, bh);
   };
 
-  // ─── Juno, the Saluki (ours): the same Ballz vocabulary, a sighthound's frame ─
-  // Long legs, a deep chest and a tucked waist, a long narrow head with a Roman
-  // nose, silky feathered ears that hang (and lift when she's interested),
-  // feathering on the backs of the legs and the tail. Most of what she says,
-  // she says with her eyebrows and ears.
+  // ─── Juno, the Saluki (ours): the same Ballz vocabulary, a sighthound lying on her bed ─
+  // She stays on the bed. What moves is the head (toward whatever she's watching),
+  // the ears and eyebrows, the lids, the tail. Built from the sombrero photo: a
+  // narrow domed skull, a long muzzle with a white blaze, golden silky ears
+  // hanging either side of the face like curtains, forelegs poured out in front
+  // and crossed, a hind leg flopped out to the side, a long plumed tail.
   const JUNO = {
     sable: ['#4a4036', '#5e5245', '#746655', '#8c7b66', '#a99680'], cream: ['#b8a382', '#cdb998', '#dccbaf', '#e9dcc5', '#f3ead8'], white: ['#c9c1b3', '#dad3c6', '#eae4d9', '#f6f2ea'],
-    blonde: ['#b89a68', '#cfb27e', '#dec898', '#ebd9b0'], nose: '#1e1a18', eye: '#3a2a1e', collar: '#6a4a2a', brass: '#d8b45a', outline: '#3a3028', tongue: '#d98a94',
+    blonde: ['#a8844e', '#c3a06a', '#d6b985', '#e6cfa2', '#f0dfbd'], tan: ['#b58e5e', '#caa677', '#dcbf93'], nose: '#1e1a18', eye: '#2c1e14', collar: '#6a4a2a', tag: '#4f8fd0', outline: '#3a3028', tongue: '#d98a94',
   };
+  // lying poses (units; +x forward, +y up, z sideways; the bed's ground is y = 0)
   const DPOSE = {
-    stand:  { hip: [-16, 36], back: [-3, 39.5], chest: [12, 37], belly: [-1, 31], head: [30, 50], pitch: 0, fl: [15, 2], fr: [14, 2], bl: [-20, 2], br: [-22, 2], tail: 0, lid: 0, brow: 0, ear: 0, mouth: 0 },
-    trot:   { hip: [-16, 36], back: [-3, 39.5], chest: [13, 37], belly: [-1, 31], head: [31, 49], pitch: 4, fl: [15, 2], fr: [14, 2], bl: [-20, 2], br: [-22, 2], tail: 0.3, lid: 0, brow: 0, ear: 0.2, mouth: 0.4 },
-    gallop: { hip: [-18, 33], back: [-3, 36], chest: [14, 33], belly: [-2, 28], head: [34, 40], pitch: 8, fl: [30, 6], fr: [22, 3], bl: [-34, 5], br: [-28, 3], tail: 0.6, lid: 0, brow: 0.6, ear: 1, mouth: 0.6 },
-    sit:    { hip: [-9, 12], back: [0, 24], chest: [9, 33], belly: [1, 20], head: [24, 50], pitch: -4, fl: [12, 2], fr: [11, 2], bl: [-14, 2], br: [-16, 2], tail: -0.2, lid: 0.1, brow: 0, ear: 0, mouth: 0.2, sit: true },
-    sphinx: { hip: [-16, 12], back: [-3, 14], chest: [11, 14], belly: [-1, 9], head: [26, 30], pitch: -6, fl: [36, 2], fr: [40, 2], bl: [-24, 3], br: [-22, 3], tail: -0.3, lid: 0.25, brow: 0, ear: 0, mouth: 0, lie: true },
-    chin:   { hip: [-16, 12], back: [-3, 14], chest: [11, 14], belly: [-1, 9], head: [30, 9], pitch: -2, fl: [36, 2], fr: [40, 2], bl: [-24, 3], br: [-22, 3], tail: -0.3, lid: 0.9, brow: -0.4, ear: -0.3, mouth: 0, lie: true },
-    point:  { hip: [-16, 37], back: [-3, 40.5], chest: [12, 38], belly: [-1, 32], head: [33, 48], pitch: 10, fl: [17, 2], fr: [13, 2], bl: [-21, 2], br: [-23, 2], tail: 0.5, lid: -0.2, brow: 0.8, ear: 1, mouth: 0 },
+    sphinx: { hip: [-14, 8], back: [-4, 9.5], chest: [7, 9.5], throat: [15, 19.5], head: [22, 31], pitch: 0, ear: 0.45, brow: 0.15, lid: 0.1, mouth: 0, tailCurl: 0 },
+    chin:   { hip: [-14, 8], back: [-4, 9.2], chest: [7, 9], throat: [19, 11.5], head: [28, 13], pitch: -8, ear: -0.4, brow: -0.2, lid: 0.55, mouth: 0, tailCurl: 0.6 },
+    sleep:  { hip: [-14, 7.6], back: [-4, 8.8], chest: [7, 8.6], throat: [19, 11], head: [28, 12], pitch: -10, ear: -0.5, brow: -0.4, lid: 1, mouth: 0, tailCurl: 1 },
   };
   BZ.DOG_POSES = DPOSE;
   BZ.Dog = class {
-    constructor(world, x, y) { this.w = world; this.x = x; this.y = y; this.theta = 0; this.pose = JSON.parse(JSON.stringify(DPOSE.stand)); this.anim = 'stand'; this.phase = 0; this.gait = null; this.look = null; this.t = 0; this.blink = 0; this.nextBlink = 100; this.earSw = 0; this.coat = { outline: ['juno', 0] }; this.clip = null; this.wag = 0; this.tongue = 0; }
-    get petScale() { return this.w.size * 1.55; }
+    constructor(world, x, y) { this.w = world; this.x = x; this.y = y; this.theta = 0.35; this.pose = JSON.parse(JSON.stringify(DPOSE.sphinx)); this.anim = 'sphinx'; this.look = null; this.t = 0; this.blink = 0; this.nextBlink = 100; this.coat = { outline: ['juno', 0] }; this.clip = null; this.wag = 0; this.lean = 0; this.leanTo = 0; this.breath = 0; this.yawnT = 0; this.sighT = 0; this.cross = 1; }
+    get petScale() { return this.w.size * 1.28; }
     animate() {
-      this.t++; const tg = Object.assign({}, DPOSE[this.anim] || DPOSE.stand), p = this.pose;
+      this.t++; const tg = Object.assign({}, DPOSE[this.anim] || DPOSE.sphinx), p = this.pose;
       if (this.browT > 0) { this.browT--; tg.brow = this.browTo; } if (this.earT > 0) { this.earT--; tg.ear = this.earTo; }
+      if (this.lidT > 0) { this.lidT--; tg.lid = this.lidTo; }
       if (this.mouthT > 0) { this.mouthT--; tg.mouth = Math.max(tg.mouth, 0.5); }
-      for (const k in tg) { const v = tg[k]; if (Array.isArray(v)) { p[k] = p[k] || v.slice(); p[k][0] += (v[0] - p[k][0]) * 0.18; p[k][1] += (v[1] - p[k][1]) * 0.18; } else if (typeof v === 'number') { p[k] = (p[k] || 0) + (v - p[k]) * 0.16; if (Math.abs(v - p[k]) < 0.01) p[k] = v; } else p[k] = v; }
+      if (this.yawnT > 0) { this.yawnT--; const u = this.yawnT / 40; tg.mouth = Math.sin(Math.PI * u); tg.lid = 1; tg.pitch = (tg.pitch || 0) - 10 * Math.sin(Math.PI * u); tg.ear = -0.5; }
+      for (const k in tg) { const v = tg[k]; if (Array.isArray(v)) { p[k] = p[k] || v.slice(); p[k][0] += (v[0] - p[k][0]) * 0.14; p[k][1] += (v[1] - p[k][1]) * 0.14; } else if (typeof v === 'number') { p[k] = (p[k] || 0) + (v - p[k]) * (k === 'lid' ? 0.3 : 0.14); if (Math.abs(v - p[k]) < 0.01) p[k] = v; } else p[k] = v; }
       if (--this.nextBlink <= 0) { this.blink = 3; this.nextBlink = 90 + Math.random() * 240; } if (this.blink > 0) this.blink--;
-      this.earSw = this.earSw * 0.9 + (this.gait ? Math.sin(this.phase * Math.PI * 2) * 1.2 : 0) * 0.1;
+      this.lean += (this.leanTo - this.lean) * 0.1; this.breath = Math.sin(this.t * (this.anim === 'sleep' ? 0.05 : 0.09)) * (this.anim === 'sleep' ? 0.5 : 0.3);
       if (this.wag > 0) this.wag--;
     }
+    // ── reactions ──
+    pet(region, x, y) { // a hand on her: ears soften back, eyes squint, the tail thumps the bed, the head leans into it
+      this.earT = 30; this.earTo = -0.45; this.lidT = 30; this.lidTo = 0.6; this.wag = 40; this.liftT = 160; this.look = null;
+      this.leanTo = region === 'head' ? (x < this.x ? -1 : 1) * 0.8 : 0.3; this.leanT = 30;
+      if (this.anim === 'sleep' && this.t > 20) { this.anim = 'chin'; this.wake = 200; }
+      if (Math.random() < 0.05) this.sighT = 1;
+    }
+    tap() { this.liftT = 120; this.browT = 40; this.browTo = 0.8; this.earT = 40; this.earTo = 0.7; this.look = [this.w.pointer.x, this.w.pointer.y]; this.wag = 20; }
     build() {
-      const p = this.pose, g = this.gait, ph = this.phase, s = this.petScale, pts = {};
-      const run = g === 'gallop', st = g ? (run ? 26 : 12) : 0, bob = g ? Math.sin(ph * Math.PI * 4) * (run ? 2.2 : 0.8) : 0, lift = g ? (run ? 7 : 5) : 0;
-      const swing = (phase) => ({ dx: Math.sin(phase * Math.PI * 2) * st, up: Math.max(0, Math.sin(phase * Math.PI * 2 + 0.5)) * lift }); // a leg's stride: forward and back, lifted on the way forward
-      const L = { fl: swing(ph), br: swing(ph + (run ? 0.1 : 0)), fr: swing(ph + 0.5), bl: swing(ph + (run ? 0.6 : 0.5)) };
-      pts.hip = [p.hip[0], p.hip[1] + bob, 0]; pts.back = [p.back[0], p.back[1] + bob, 0]; pts.chest = [p.chest[0], p.chest[1] + bob, 0]; pts.belly = [p.belly[0], p.belly[1] + bob, 0];
-      // head: toward the look target, within reason
-      let yaw = 0, pitch = p.pitch || 0; if (this.look) { const dx = this.look[0] - this.x, dy = this.look[1] - this.y; const want = Math.atan2(dy, dx) - this.theta; yaw = Math.max(-0.9, Math.min(0.9, Math.atan2(Math.sin(want), Math.cos(want)))); pitch += Math.max(-16, Math.min(10, (this.look[1] - (this.y - p.head[1] * s)) / s * 0.3)); }
-      this.yaw = yaw; this.pitch = pitch;
-      const hx = p.head[0], hy = p.head[1] + bob * 0.6, hz = 0, rot = (v) => { // rotate a head-local offset by yaw (about y) then pitch (about z)
+      const p = this.pose, s = this.petScale, pts = {}, br = this.breath;
+      pts.hip = [p.hip[0], p.hip[1] + br * 0.5, 0]; pts.back = [p.back[0], p.back[1] + br * 0.8, 0]; pts.chest = [p.chest[0], p.chest[1] + br, 0]; pts.throat = [p.throat[0], p.throat[1] + br * 0.6, 0];
+      // head: toward the look target, within reason; a lean toward a hand
+      let yaw = 0, pitch = p.pitch || 0; if (this.look) { const dx = this.look[0] - this.x, dy = this.look[1] - this.y; const want = Math.atan2(dy * 1.6, dx) - this.theta; yaw = Math.max(-1.1, Math.min(1.1, Math.atan2(Math.sin(want), Math.cos(want)))); pitch += Math.max(-18, Math.min(14, (this.look[1] - (this.y - p.head[1] * s)) / s * 0.28)); }
+      yaw += this.lean * 0.5; this.yaw = yaw; this.pitch = pitch;
+      const hx = p.head[0] + this.lean * 1.5, hy = p.head[1] + br * 0.4, hz = this.lean * 2.5, rot = (v) => { // rotate a head-local offset by pitch (about z) then yaw (about y)
         const c = Math.cos(-pitch * Math.PI / 180), sn = Math.sin(-pitch * Math.PI / 180); let x = v[0] * c - v[1] * sn, y = v[0] * sn + v[1] * c, z = v[2];
         const cy = Math.cos(yaw), sy = Math.sin(yaw); const x2 = x * cy - z * sy, z2 = x * sy + z * cy; return [hx + x2, hy + y, hz + z2]; };
-      pts.head = [hx, hy, hz]; pts.nose = rot([14, -4, 0]); pts.chin = rot([10, -6.5, 0]); pts.muzzle = rot([8, -2.5, 0]);
-      pts.eyeL = rot([5.5, 2.4, 3.4]); pts.eyeR = rot([5.5, 2.4, -3.4]);
-      const br = p.brow || 0; pts.browL0 = rot([3.5, 5.2 + br * 1.2, 3.2]); pts.browL1 = rot([7, 4.6 + br * 2.2, 3.6]); pts.browR0 = rot([3.5, 5.2 + br * 1.2, -3.2]); pts.browR1 = rot([7, 4.6 + br * 2.2, -3.6]);
-      const ear = p.ear || 0, sw = this.earSw; pts.earL = rot([-2, 4.5, 4.8]); pts.earLt = rot([-6 + ear * 7 + sw, -11 + ear * 10, 7.5 - ear * 1.5]); pts.earR = rot([-2, 4.5, -4.8]); pts.earRt = rot([-6 + ear * 7 + sw, -11 + ear * 10, -7.5 + ear * 1.5]);
-      pts.earLf = rot([-5 + ear * 5 + sw, -16 + ear * 9, 6.5]); pts.earRf = rot([-5 + ear * 5 + sw, -16 + ear * 9, -6.5]); // the feathered tips, a little lower
-      const m = p.mouth || 0; pts.jaw = rot([9, -6.5 - m * 2.5, 0]); pts.tongue = rot([9.5, -8 - m * 2.5, 0]);
-      // legs: shoulder/hip joints fixed to the body; the paws on the ground (or up, when lying); the knee from IK
-      const leg = (nm, root, tgt, l1, l2, s2, side, z) => { const sw2 = L[nm], T = [tgt[0] + sw2.dx, tgt[1] + sw2.up, z], R = [root[0], root[1], z]; const K = ik(R, T, l1, l2, s2); pts[nm + 'r'] = R; pts[nm + 'k'] = K; pts[nm + 'p'] = T; pts[nm + 'a'] = [(K[0] + T[0]) / 2 + side, (K[1] + T[1]) / 2, z]; };
-      const lie = p.lie, sit = p.sit;
-      if (lie) { pts.flr = [p.chest[0] + 1, p.chest[1] - 2, 4.2]; pts.flk = [p.chest[0] + 14, 5, 3.8]; pts.flp = [p.fl[0], p.fl[1], 2.2]; pts.frr = [p.chest[0] + 1, p.chest[1] - 2, -4.2]; pts.frk = [p.chest[0] + 15, 4.5, -3.6]; pts.frp = [p.fr[0], p.fr[1], -1.2]; // forelegs poured out straight, crossing a little
-        pts.blr = [p.hip[0], p.hip[1] - 2, 5]; pts.blk = [p.hip[0] - 7, 5, 7]; pts.blp = [p.bl[0], p.bl[1], 6.5]; pts.brr = [p.hip[0], p.hip[1] - 2, -5]; pts.brk = [p.hip[0] - 5, 4, -6]; pts.brp = [p.br[0], p.br[1], -5.5]; }
-      else { leg('fl', [p.chest[0] + 1, p.chest[1] - 3], p.fl, 16, 17, -1, -0.4, 4.6); leg('fr', [p.chest[0] + 1, p.chest[1] - 3], p.fr, 16, 17, -1, -0.4, -4.6);
-        if (sit) { pts.blr = [p.hip[0], p.hip[1] - 1, 5.4]; pts.blk = [p.hip[0] - 7, 7, 7]; pts.blp = [p.bl[0], p.bl[1], 6]; pts.brr = [p.hip[0], p.hip[1] - 1, -5.4]; pts.brk = [p.hip[0] - 7, 7, -7]; pts.brp = [p.br[0], p.br[1], -6]; }
-        else { leg('bl', [p.hip[0] - 1, p.hip[1] - 3], p.bl, 15, 17, -1, -0.4, 5); leg('br', [p.hip[0] - 1, p.hip[1] - 3], p.br, 15, 17, -1, -0.4, -5); } }
-      // the tail: hangs from the hips in a long curve, the tip curling up; wagging swings it sideways
-      const tl = p.tail || 0, wg = this.wag > 0 ? Math.sin(this.t * 0.6) * 6 : 0; const t0 = [p.hip[0] - 5, p.hip[1] - 2 + (lie ? 0 : 0), 0];
-      pts.t0 = t0; pts.t1 = [t0[0] - 7, t0[1] - 7 + tl * 6, wg * 0.4]; pts.t2 = [t0[0] - 12, t0[1] - 11 + tl * 12, wg * 0.8]; pts.t3 = [t0[0] - 13, t0[1] - 8 + tl * 16, wg];
+      pts.head = [hx, hy, hz]; pts.dome = rot([0.5, 3, 0]); pts.bridge = rot([6.5, -1.4, 0]); pts.muzzle = rot([11.5, -3, 0]); pts.nose = rot([15.6, -3.6, 0]); pts.chin = rot([11.5, -5.6, 0]); pts.jaw = rot([7, -5.2, 0]);
+      pts.blaze0 = rot([1.5, 4.8, 0]); pts.blaze1 = rot([13.2, -2, 0]);
+      for (const [nm, z] of [['L', 1], ['R', -1]]) {
+        pts['eye' + nm] = rot([4.8, 1.2, z * 3.5]); pts['patch' + nm] = rot([4.3, 1.7, z * 3.7]);
+        const b = p.brow || 0; pts['brow' + nm + '0'] = rot([2.8, 3.4 + b * 0.8, z * 3.5]); pts['brow' + nm + '1'] = rot([6.2, 3.2 + b * 2, z * 3.9]);
+        const e = p.ear || 0, hang = e < 0 ? -e : 0, up = e > 0 ? e : 0; // hanging (<0: splayed on the ground), lifted (>0: folded up and back)
+        pts['ear' + nm] = rot([-2.8, 3.6, z * 3.9]); pts['ear' + nm + 't'] = rot([-6 + up * 1 - hang * 10, -6 + up * 13 + hang * 9, z * (5.8 + up * 2.6 + hang * 4)]); pts['ear' + nm + 'f'] = rot([-7.5 - up * 1 - hang * 14, -12.5 + up * 15.5 + hang * 16, z * (5.6 + up * 3.6 + hang * 5)]);
+      }
+      pts.tongue = rot([12, -7.2 - (p.mouth || 0) * 1.5, 0]);
+      // forelegs: from the shoulder down to the elbow, then straight out along the ground; the near paw crossed over the far one
+      const cr = this.cross;
+      pts.flr = [p.chest[0] + 1, p.chest[1] - 1.5, 4.4]; pts.flk = [p.chest[0] + 6, 3.4, 5]; pts.flp = [26.5, 1.4, 2.6 + (cr > 0 ? 0 : -3.2)];
+      pts.frr = [p.chest[0] + 1, p.chest[1] - 1.5, -4.4]; pts.frk = [p.chest[0] + 6, 3.4, -5]; pts.frp = [28.5, 2 + (cr > 0 ? 0.9 : 0), -2.6 + (cr > 0 ? 3.4 : 0)];
+      // hind legs: the far haunch tucked, the near leg flopped out to the side, hock on the ground
+      pts.blh = [p.hip[0] - 1, p.hip[1] - 1.5, 5.4]; pts.blk = [p.hip[0] - 8, 2.4, 7]; pts.blp = [p.hip[0] - 2, 1.2, 8.5];
+      pts.brh = [p.hip[0] - 1, p.hip[1] - 1.4, -5.8]; pts.brk = [p.hip[0] - 10, 2, -8.5]; pts.brp = [p.hip[0] - 3, 1.2, -10.5];
+      // the tail: long, lying along the bed, the plume curling; wagging thumps it side to side
+      const tc = p.tailCurl || 0, wg = this.wag > 0 ? Math.sin(this.t * 0.5) * 5 : 0, t0 = [p.hip[0] - 6.5, p.hip[1] - 1, 1];
+      pts.t0 = t0; pts.t1 = [t0[0] - 9, 2.8, 2 - tc * 4 + wg * 0.4]; pts.t2 = [t0[0] - 18 + tc * 2, 1.8, 2.5 - tc * 9 + wg * 0.8]; pts.t3 = [t0[0] - 26 + tc * 9, 3, 1 - tc * 12 + wg];
       this.pts = pts; return pts;
     }
     drawRaw(ctx, dog) { dog.drawDog(ctx); }
     drawDog(ctx) {
       const pts = this.build(), s = this.petScale, cam = BZ.camera(this.theta), ox = this.x, oy = this.y;
       const P = (v) => BZ.project(cam, v, s, ox, oy), S = {}; for (const k in pts) S[k] = P(pts[k]);
-      const C = JUNO, col = (r, i) => JUNO[r][i], items = [], ball = (k, d, c, speck, z) => items.push({ z: z != null ? z : S[k][2], kind: 'ball', k, d: d * s, c, speck }), line = (a, b, w0, w1, c, z) => items.push({ z: z != null ? z : (S[a][2] + S[b][2]) / 2, kind: 'line', a, b, w0: w0 * s, w1: w1 * s, c }), thin = (a, b, c, z) => items.push({ z: z != null ? z : (S[a][2] + S[b][2]) / 2, kind: 'thin', a, b, c });
-      const lie = this.pose.lie;
-      // body
-      ball('hip', 15, col('sable', 2), col('sable', 1)); ball('back', 13, col('sable', 1), col('sable', 0)); ball('chest', 16, col('cream', 2), col('cream', 1)); ball('belly', 9, col('cream', 3));
-      line('hip', 'back', 12, 11, col('sable', 1), S.back[2] + 0.4); line('back', 'chest', 11, 12, col('sable', 2), S.chest[2] + 0.4); line('chest', 'head', 8, 5.5, col('cream', 2)); line('chin', 'chest', 2.5, 7, col('white', 2));
-      // legs: dark hocks, white socks, feathering down the backs
-      for (const nm of ['fl', 'fr', 'bl', 'br']) { const back = nm[0] === 'b'; line(nm + 'r', nm + 'k', back ? 6.5 : 5.2, 3.2, back ? col('sable', 3) : col('cream', 2)); line(nm + 'k', nm + 'p', 3, 2.6, col('white', 2)); ball(nm + 'p', 3.6, col('white', 3)); ball(nm + 'k', 3.2, back ? col('cream', 2) : col('white', 2)); if (S[nm + 'a']) thin(nm + 'k', nm + 'a', col('cream', 3)); }
-      // the tail, feathered
-      line('t0', 't1', 3.2, 2.4, col('sable', 2)); line('t1', 't2', 2.4, 1.8, col('cream', 2)); line('t2', 't3', 1.8, 1.2, col('cream', 3));
-      for (const [a, b] of [['t1', 't2'], ['t2', 't3']]) { const A = S[a], B = S[b]; items.push({ z: (A[2] + B[2]) / 2 + 0.2, kind: 'feather', A, B, c: col('cream', 3) }); }
-      // head: skull, the long muzzle, the blaze, nose, chin, mouth
-      ball('head', 11, col('cream', 3)); line('head', 'nose', 6.5, 3.6, col('white', 2)); ball('muzzle', 6, col('white', 2)); ball('nose', 3.2, C.nose); ball('chin', 3, col('white', 3));
-      if ((this.pose.mouth || 0) > 0.25) { line('jaw', 'chin', 2.5, 2, col('sable', 0)); ball('tongue', 2.4 * Math.min(1, this.pose.mouth * 1.5), C.tongue); }
-      // eyes: dark and almond; the lid closes from the top; eyebrows: short dark lines that lift and tilt
-      for (const e of ['eyeL', 'eyeR']) { const lid = Math.min(1, Math.max(this.pose.lid || 0, this.blink > 0 ? 1 : 0)); items.push({ z: S[e][2] - 0.2, kind: 'eye', e, lid }); }
-      thin('browL0', 'browL1', col('sable', 1), S.browL0[2] - 0.5); thin('browR0', 'browR1', col('sable', 1), S.browR0[2] - 0.5);
-      // ears: long, silky, blonde; hanging, with feathered tips
-      for (const e of ['earL', 'earR']) { line(e, e + 't', 6, 3.4, col('blonde', 1), S[e][2] + (S[e][2] > S.head[2] ? 0.6 : -0.3)); ball(e, 5.5, col('blonde', 2), null, S[e][2] + (S[e][2] > S.head[2] ? 0.6 : -0.3)); for (let i = -1; i <= 1; i++) items.push({ z: S[e + 't'][2] - 0.1, kind: 'feather', A: S[e + 't'], B: [S[e + 'f'][0] + i * 1.6 * s, S[e + 'f'][1] + Math.abs(i) * 1.2 * s], c: col('blonde', 3) }); }
-      // the collar
-      items.push({ z: S.chest[2] - 0.3, kind: 'collar' });
+      const C = JUNO, col = (r, i) => JUNO[r][i], items = [];
+      const ball = (k, d, c, speck, z) => items.push({ z: z != null ? z : S[k][2], kind: 'ball', k, d: d * s, c, speck, hit: k });
+      const line = (a, b, w0, w1, c, z) => items.push({ z: z != null ? z : (S[a][2] + S[b][2]) / 2, kind: 'line', a, b, w0: w0 * s, w1: w1 * s, c });
+      const thin = (a, b, c, z) => items.push({ z: z != null ? z : (S[a][2] + S[b][2]) / 2, kind: 'thin', a, b, c });
+      const near = (k) => S[k][2] < S.back[2]; // which side faces you
+      // body: sable saddle over a cream chest and belly
+      ball('hip', 14.5, col('sable', 2), col('sable', 1)); ball('back', 13, col('sable', 2), col('sable', 1)); ball('chest', 15, col('cream', 2), col('cream', 1));
+      line('hip', 'back', 13, 12.5, col('sable', 2), S.back[2] + 0.3); line('back', 'chest', 12.5, 14, col('sable', 2), S.chest[2] + 0.3);
+      items.push({ z: S.chest[2] + 0.6, kind: 'belly' }); // the cream underside, drawn as a band along the bottom of the body
+      // the neck, arched, cream in front, sable along the crest
+      line('chest', 'throat', 8.5, 6.4, col('cream', 2)); line('throat', 'head', 6.4, 6.8, col('cream', 3)); items.push({ z: S.throat[2] - 0.2, kind: 'crest' });
+      // hind legs
+      for (const nm of ['bl', 'br']) { const h = nm + 'h', k = nm + 'k', pw = nm + 'p', nr = near(h); ball(h, 10, nr ? col('sable', 3) : col('sable', 2), null, S[h][2] + (nr ? -0.2 : 0.4)); line(h, k, 6, 3.6, nr ? col('cream', 2) : col('cream', 1)); line(k, pw, 3.4, 2.8, col('white', 2)); ball(pw, 3.8, col('white', 3)); ball(k, 3.6, col('cream', 2)); }
+      // forelegs: cream upper, white socks, the long straight forearms
+      for (const nm of ['fl', 'fr']) { const r = nm + 'r', k = nm + 'k', pw = nm + 'p'; line(r, k, 5.6, 4.2, col('cream', 2)); line(k, pw, 3.8, 3, col('white', 2)); ball(k, 4.2, col('cream', 2)); ball(pw, 4.2, col('white', 3)); }
+      // the tail, feathered underneath
+      line('t0', 't1', 3.6, 2.8, col('sable', 2)); line('t1', 't2', 2.8, 2.2, col('cream', 2)); line('t2', 't3', 2.2, 1.6, col('cream', 3));
+      for (const [a, b] of [['t1', 't2'], ['t2', 't3']]) items.push({ z: (S[a][2] + S[b][2]) / 2 + 0.25, kind: 'flag', A: S[a], B: S[b], c: col('cream', 3), c2: col('cream', 2) });
+      // head: the dome, the long muzzle, the blaze, nose, chin, a mouth
+      ball('head', 10.8, col('cream', 3)); ball('dome', 8, col('cream', 3)); line('head', 'bridge', 9, 7, col('cream', 3)); ball('bridge', 7.4, col('white', 2)); line('bridge', 'muzzle', 7, 5.4, col('white', 2)); ball('muzzle', 5.6, col('white', 2)); line('muzzle', 'nose', 5.4, 3.4, col('white', 3)); ball('nose', 2.6, C.nose, null, S.nose[2] - 0.6);
+      ball('chin', 3.6, col('white', 3), null, S.chin[2] - 0.3); thin('jaw', 'chin', col('cream', 0), S.chin[2] - 0.35);
+      items.push({ z: S.bridge[2] - 0.5, kind: 'blaze' });
+      if ((this.pose.mouth || 0) > 0.25) { line('jaw', 'tongue', 2.6, 2, col('sable', 0), S.chin[2] - 0.4); ball('tongue', 2.6 * Math.min(1, this.pose.mouth * 1.4), C.tongue, null, S.tongue[2] - 0.5); }
+      // eyes in their tan patches, eyebrows that lift and tilt
+      for (const nm of ['L', 'R']) { const e = 'eye' + nm, lid = Math.min(1, Math.max(this.pose.lid || 0, this.blink > 0 ? 1 : 0)); ball('patch' + nm, 5.2, col('tan', 1), null, S[e][2] - 0.25); items.push({ z: S[e][2] - 0.45, kind: 'eye', e, lid }); thin('brow' + nm + '0', 'brow' + nm + '1', '#7a5a38', S[e][2] - 0.5); }
+      // ears: long, silky, golden; hanging beside the face, feathered at the tips
+      for (const nm of ['L', 'R']) { const e = 'ear' + nm, zz = S[e][2] + (S[e][2] < S.head[2] ? -0.4 : 1.2); line(e, e + 't', 6.4, 4.4, col('blonde', 1), zz); ball(e, 6, col('blonde', 2), null, zz); line(e + 't', e + 'f', 4.4, 2.6, col('blonde', 2), zz); items.push({ z: zz - 0.05, kind: 'plume', A: S[e + 't'], B: S[e + 'f'], c: col('blonde', 3), n: 3, ear: true }); }
+      // the collar with its tag
+      items.push({ z: S.throat[2] - 0.6, kind: 'collar' });
       items.sort((a, b) => b.z - a.z);
-      const hits = [];
+      const hits = [], R = (k) => (/^(head|dome|bridge|muzzle|nose|chin|ear|eye|patch)/.test(k) ? 'head' : /^(t[0-3])$/.test(k) ? 'tail' : /^(fl|fr|bl|br)/.test(k) ? 'leg' : 'back');
       for (const it of items) {
-        if (it.kind === 'ball') { BZ.drawBall(ctx, S[it.k][0], S[it.k][1], it.d, it.c, null, it.speck || null, -1, 0, it.speck ? true : false); hits.push({ x: S[it.k][0], y: S[it.k][1], r: it.d / 2 }); }
-        else if (it.kind === 'line') BZ.drawLine(ctx, S[it.a][0], S[it.a][1], it.w0, S[it.b][0], S[it.b][1], it.w1, it.c, null, 0);
+        if (it.kind === 'ball') { BZ.drawBall(ctx, S[it.k][0], S[it.k][1], it.d, it.c, null, it.speck || null, -1, 0, false); hits.push({ x: S[it.k][0], y: S[it.k][1], r: it.d / 2, region: R(it.k) }); }
+        else if (it.kind === 'line') { BZ.drawLine(ctx, S[it.a][0], S[it.a][1], it.w0, S[it.b][0], S[it.b][1], it.w1, it.c, null, 0); for (let u = 0.25; u < 1; u += 0.25) hits.push({ x: S[it.a][0] + (S[it.b][0] - S[it.a][0]) * u, y: S[it.a][1] + (S[it.b][1] - S[it.a][1]) * u, r: (it.w0 + it.w1) / 4, region: R(it.a) }); }
         else if (it.kind === 'thin') BZ.drawThin(ctx, S[it.a][0], S[it.a][1], S[it.b][0], S[it.b][1], it.c);
-        else if (it.kind === 'feather') { for (let i = 0; i < 3; i++) { const u = (i + 1) / 4, x = it.A[0] + (it.B[0] - it.A[0]) * u, y = it.A[1] + (it.B[1] - it.A[1]) * u; BZ.drawThin(ctx, x, y, x - 1.5 * s + i, y + 3.5 * s, it.c); } }
-        else if (it.kind === 'eye') { const [x, y] = S[it.e], d = 3.2 * s; BZ.drawBall(ctx, x, y, d, C.eye, null, null, -1, 0, false); if (it.lid < 1) { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(x + 0.3 * s), Math.round(y - 0.9 * s), 1, 1); } if (it.lid > 0) { ctx.fillStyle = col('cream', 2); ctx.fillRect(Math.round(x - d / 2), Math.round(y - d / 2), Math.round(d), Math.max(1, Math.round(d * it.lid))); } }
-        else if (it.kind === 'collar') { const A = S.chest, H = S.head, cx = A[0] + (H[0] - A[0]) * 0.55, cy = A[1] + (H[1] - A[1]) * 0.55; BZ.drawLine(ctx, cx - 3.2 * s, cy - 1.2 * s, 2.4 * s, cx + 3.2 * s, cy + 1.6 * s, 2.4 * s, C.collar, null, 0); ctx.fillStyle = C.brass; ctx.fillRect(Math.round(cx + 2 * s), Math.round(cy + 2.4 * s), Math.max(1, Math.round(1.4 * s)), Math.max(1, Math.round(1.4 * s))); }
+        else if (it.kind === 'plume') { for (let i = 0; i < it.n; i++) { const u = (i + 0.5) / it.n, x = it.A[0] + (it.B[0] - it.A[0]) * u, y = it.A[1] + (it.B[1] - it.A[1]) * u, L = 3.4 * s; BZ.drawThin(ctx, x, y, x + (i - 1) * 0.7 * s, y + L, it.c); } }
+        else if (it.kind === 'flag') { const A = it.A, B = it.B; BZ.drawLine(ctx, A[0], A[1] + 1.2 * s, 2.8 * s, B[0] - 0.5 * s, B[1] + 2 * s, 5.6 * s, it.c, null, 0); BZ.drawLine(ctx, A[0] + (B[0] - A[0]) * 0.3, A[1] + (B[1] - A[1]) * 0.3 + 2.6 * s, 1.6 * s, B[0] - 1 * s, B[1] + 3.6 * s, 3 * s, it.c2, null, 0); }
+        else if (it.kind === 'belly') { const A = S.hip, B = S.chest; BZ.drawLine(ctx, A[0] + 1 * s, A[1] + 3.6 * s, 7 * s, B[0], B[1] + 3.8 * s, 8.5 * s, col('cream', 2), null, 0); }
+        else if (it.kind === 'crest') { const A = S.chest, B = S.throat, H = S.head; BZ.drawLine(ctx, A[0] - 1 * s, A[1] - 5.5 * s, 4 * s, B[0] - 2.5 * s, B[1] - 1.5 * s, 3 * s, col('sable', 3), null, 0); BZ.drawLine(ctx, B[0] - 2.5 * s, B[1] - 1.5 * s, 3 * s, H[0] - 3 * s, H[1] + 1.5 * s, 2.2 * s, col('tan', 1), null, 0); }
+        else if (it.kind === 'blaze') { const A = S.blaze0, B = S.blaze1; BZ.drawLine(ctx, A[0], A[1], 2.2 * s, B[0], B[1], 1.6 * s, col('white', 3), null, 0); }
+        else if (it.kind === 'eye') { const [x, y] = S[it.e], d = 3.3 * s; BZ.drawBall(ctx, x, y, d, C.eye, null, null, -1, 0, false); if (it.lid < 0.9) { ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(x + 0.35 * s), Math.round(y - 0.7 * s), 1, 1); } if (it.lid > 0) { ctx.fillStyle = col('tan', 1); ctx.fillRect(Math.round(x - d / 2 - 1), Math.round(y - d / 2 - 1), Math.round(d) + 2, Math.max(1, Math.round((d + 1) * it.lid))); } }
+        else if (it.kind === 'collar') { const A = S.throat, H = S.head, cx = A[0] + (H[0] - A[0]) * 0.1, cy = A[1] + (H[1] - A[1]) * 0.1; BZ.drawLine(ctx, cx - 3.4 * s, cy - 1.6 * s, 2.2 * s, cx + 3.4 * s, cy + 1.2 * s, 2.2 * s, C.collar, null, 0); BZ.drawBall(ctx, cx + 1.5 * s, cy + 3.2 * s, 2.2 * s, C.tag, null, null, -1, 0, false); ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(cx + 1.2 * s), Math.round(cy + 2.6 * s), 1, 1); }
       }
       this.hits = hits; this.screen = S;
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const k in S) { x0 = Math.min(x0, S[k][0]); x1 = Math.max(x1, S[k][0]); y0 = Math.min(y0, S[k][1]); y1 = Math.max(y1, S[k][1]); }
-      this.bbox = [x0 - 6 * s, y0 - 10 * s, x1 + 6 * s, y1 + 6 * s];
+      this.bbox = [x0 - 8 * s, y0 - 10 * s, x1 + 8 * s, y1 + 8 * s];
     }
     draw(ctx) { BZ.drawOutlined(ctx, this, (o, d) => d.drawDog(o)); }
+    at(x, y) { for (const h of this.hits || []) if (Math.abs(x - h.x) <= h.r + 1.5 && Math.abs(y - h.y) <= h.r + 1.5) return h.region; return null; }
   };
 })();

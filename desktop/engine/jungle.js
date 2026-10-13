@@ -37,6 +37,16 @@ var BZ = window.BZ || (window.BZ = {});
   function rect(g, x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
   // a bevelled box: base fill, light top/left edge, dark bottom/right edge (light from the window, upper right → we bias top)
   function bevel(g, x, y, w, h, base, hi, lo) { rect(g, x, y, w, h, base); rect(g, x, y, w, 1, hi); rect(g, x, y, 1, h, hi); rect(g, x, y + h - 1, w, 1, lo); rect(g, x + w - 1, y, 1, h, lo); }
+  function shade(g, pts, fn) { // fn(x, y) -> color or null, per pixel inside the polygon
+    let y0 = Infinity, y1 = -Infinity; for (const p of pts) { y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+    for (let y = Math.floor(y0); y <= Math.ceil(y1); y++) {
+      const sy = y + 0.5, xs = [];
+      for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; if ((p[1] <= sy && q[1] > sy) || (q[1] <= sy && p[1] > sy)) xs.push(p[0] + ((sy - p[1]) / (q[1] - p[1])) * (q[0] - p[0])); }
+      xs.sort((p, q) => p - q);
+      for (let k = 0; k + 1 < xs.length; k += 2) for (let x = Math.round(xs[k]); x < Math.round(xs[k + 1]); x++) { const c = fn(x, y); if (c) { g.fillStyle = c; g.fillRect(x, y, 1, 1); } }
+    }
+  }
+  const ellPts = (cx, cy, rx, ry, n = 32) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return [cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]; });
   function leafPts(x, y, len, wid, ang, notch) {
     const top = [], bot = [], c = Math.cos(ang), s = Math.sin(ang), n = 14;
     for (let i = 0; i <= n; i++) { const t = i / n; let w = wid * Math.pow(Math.sin(Math.PI * t), 0.75); if (notch && t < 0.18) w *= t / 0.18; top.push([t * len, -w]); bot.push([t * len, w]); }
@@ -484,30 +494,31 @@ var BZ = window.BZ || (window.BZ = {});
       this.stand = { x: S + 76, top: F - 22, foot: F + 4 };
       this.bunny = { x: S + 204, y: F + 14 };
       this.tree = { x: Math.round(W * 0.15), base: F + 36, w: 15 };
-      this.easel = { x: S + 214, foot: F + 36 }; this.wheel = { x: S + 186, foot: F + 56 }; // the studio spills out onto the patio: an easel and the kick wheel, right of the steps
+      this.easel = { x: S + 216, foot: F + 34 }; this.wheel = { x: S + 182, foot: F + 66 }; // the studio spills out onto the patio: an easel and the kick wheel, right of the steps
       this.sandbox = { x0: -30, x1: 84, y0: H - 44, y1: H - 8 }; // the corner of the sandbox, bottom left
-      this.feeder = { x: S - 30, base: F - 2, top: F - 64 }; // the bird feeder on its pole at the tree line, left of the shelves
-      this.bushes = [{ kind: 'rhodo', x: S - 54, y: F - 1, r: 22 }, { kind: 'hydrangea', x: S - 12, y: F + 2, r: 15 }];
+      this.feeder = { x: S - 30, base: F - 2, top: F - 72 }; // the bird feeder on its pole at the tree line, left of the shelves
+      this.bushes = [{ kind: 'rhodo', x: S - 62, y: F - 3, r: 27 }, { kind: 'hydrangea', x: S - 10, y: F + 4, r: 17 }];
       this.birds = []; this.birdWait = 120 + Math.random() * 300;
-      // Juno lives out here. Her spot is the lawn under the big tree
       this.lawnEdge = (y) => S - 28 - (y - (F + 1)) * 0.32 + Math.sin(y * 0.19) * 4 + Math.sin(y * 0.061) * 9; // where the lawn meets the patio (stage y)
-      this.dogHome = [st.x + Math.max(30, this.tree.x - 18), st.y + F + 74];
-      if (!this.dog) { this.dog = new BZ.Dog(this.w, this.dogHome[0], this.dogHome[1]); this.dog.theta = 0.3; this.dog.anim = 'sphinx'; this.dog.st = 'rest'; this.dog.t = 0; this.dog.cool = 0; for (let i = 0; i < 30; i++) this.dog.animate(); }
-      else { this.dog.x = this.dogHome[0]; this.dog.y = this.dogHome[1]; }
-      this.tire = { x: Math.round(W * 0.15) + 46, ropeY: 16, cy: F + 2, R: 19, r: 11, ground: F + 40 };
+      // Juno lives out here, on her big bed on the lawn by the tree, watching the patio
+      this.dogBed = { x: this.tree.x + 6, y: F + 76 };
+      const dx = st.x + this.dogBed.x - 1 * this.w.size, dy = st.y + this.dogBed.y + 0.5;
+      if (!this.dog) { this.dog = new BZ.Dog(this.w, dx, dy); this.dog.theta = 0.35; this.dog.anim = 'sphinx'; this.dog.st = 'watch'; this.dog.t = 0; this.dog.T = 700; for (let i = 0; i < 30; i++) this.dog.animate(); }
+      else { this.dog.x = dx; this.dog.y = dy; }
+      this.tire = { x: Math.round(W * 0.15) - 40, ropeY: 16, cy: F + 2, R: 19, r: 11, ground: F + 40 };
       const fy = (v) => F + 8 + (H - F - 8) * v;
       this.plots = [
         { key: 'wallBed', kind: 'bed', shape: 'rect', x0: S + 84, x1: S + 120, y0: F + 6, y1: F + 15, slots: [[S + 88, F + 13], [S + 96, F + 12], [S + 104, F + 13], [S + 112, F + 12], [S + 117, F + 13.5]] },
-        { key: 'lawnBed', kind: 'bed', shape: 'ell', cx: Math.round(Math.min(W * 0.2, S - 90)), cy: Math.round(fy(0.6)), rx: 36, ry: 10, slots: [] },
+        { key: 'lawnBed', kind: 'bed', shape: 'ell', cx: Math.round(Math.min(W * 0.2, S - 90)), cy: Math.round(fy(0.66)), rx: 36, ry: 10, slots: [] },
         { key: 'patchA', kind: 'turf', shape: 'ell', cx: S + 70, cy: Math.round(fy(0.42)), rx: 17, ry: 6, slots: [] },
         { key: 'patchB', kind: 'turf', shape: 'ell', cx: Math.min(W - 26, S + 176), cy: Math.round(fy(0.8)), rx: 19, ry: 6, slots: [] },
       ];
       for (const p of this.plots) if (p.shape === 'ell') { const n = p.kind === 'bed' ? 7 : 3; for (let i = 0; i < n; i++) { const u = n === 1 ? 0 : (i / (n - 1)) * 2 - 1, row = p.kind === 'bed' ? (i % 2 ? -1 : 1) : 0; p.slots.push([p.cx + u * p.rx * 0.74, p.cy + row * p.ry * 0.3 + 1]); } }
       for (const p of this.plots) p.slots = p.slots.map(([x, y]) => [st.x + x, st.y + y]);
-      this.adk = { x: Math.round(Math.max(W * 0.33, S - 46)), y: Math.round(fy(0.3)) };
+      this.adk = { x: Math.round(Math.max(W * 0.36, S - 36)), y: Math.round(fy(0.3)) };
       // sun pools on the ground: they drift with the hour, like the real dapple did
       const hr = new Date().getHours() + new Date().getMinutes() / 60, drift = Math.max(-1, Math.min(1, (hr - 13) / 5)) * 18;
-      this.pools = [[S + 128 + drift, fy(0.3)], [W * 0.2 + drift, fy(0.42)], [S + 40 + drift, fy(0.74)]].map(([x, y]) => ({ x: st.x + x, y: st.y + y, rx: 34, ry: 10 }));
+      this.pools = [[S + 128 + drift, fy(0.3)], [W * 0.3 + drift, fy(0.5)], [S + 40 + drift, fy(0.74)]].map(([x, y]) => ({ x: st.x + x, y: st.y + y, rx: 34, ry: 10 }));
       this.sun = this.pools[0];
       this.ffl = Array.from({ length: 12 }, () => ({ x: Math.random() * W, y: F - 30 + Math.random() * (H - F + 10), p: Math.random() * 6.28, v: 0.3 + Math.random() * 0.5 }));
       this.paint();
@@ -516,7 +527,7 @@ var BZ = window.BZ || (window.BZ = {});
       this.phase = phaseNow(); const P = PHASES[this.phase], { w: W, h: H } = this.st, F = this.F;
       for (const c of [this.bg, this.fg, this.dap]) { c.width = W; c.height = H; }
       const g = this.bg.getContext('2d');
-      this.paintSky(g, W, F, P); this.paintWoods(g, W, F); this.paintStudio(g, W, F); this.paintGround(g, W, H, F); this.paintPlots(g); this.paintBushes(g); this.paintFeeder(g); this.paintCorner(g, F); this.paintDeck(g, F); this.paintSandbox(g);
+      this.paintSky(g, W, F, P); this.paintWoods(g, W, F); this.paintStudio(g, W, F); this.paintGround(g, W, H, F); this.paintPlots(g); this.paintRhodo(g, this.bushes[0]); this.paintFeeder(g); this.paintHydrangea(g, this.bushes[1]); this.paintCorner(g, F); this.paintDeck(g, F); this.paintSandbox(g);
       this.paintDapple(W, H, F); this.paintCanopy(W, H, F);
     }
     night() { return this.phase === 'night'; }
@@ -668,85 +679,193 @@ var BZ = window.BZ || (window.BZ = {});
       rect(g, st.x - 5, st.top - 9, 8, 9, '#ecebe4'); rect(g, st.x - 5, st.top - 9, 2, 9, '#ffffff'); rect(g, st.x - 2, st.top - 12, 3, 3, '#d8d6cc'); rect(g, st.x - 4, st.top - 6, 5, 3, '#c94a3a'); // a jug with a red label
       void nt; void r;
     }
-    // ── the bushes at the tree line: a rhododendron (big glossy leaves, pink trusses in spring) and a mophead hydrangea (blue to lavender) ──
-    paintBushes(g) {
-      const r = BZ.rng(606), m = new Date().getMonth(), nt = this.night();
-      for (const b of this.bushes) {
-        const rh = b.kind === 'rhodo', R = b.r, L = rh ? ['#1f3a22', '#2a4d2c', '#366338', '#457a45', '#5a9352'] : ['#2e4a2a', '#3d6137', '#4f7a46', '#659457', '#7faa68'];
-        ell(g, b.x + 2, b.y + 2, R * 1.05, R * 0.28, 'rgba(20,14,6,0.28)');
-        for (let i = 0; i < 9; i++) { const a = r() * 6.28, d = r() * R * 0.55; ell(g, b.x + Math.cos(a) * d, b.y - R * 0.55 + Math.sin(a) * d * 0.6, R * (0.45 + r() * 0.25), R * (0.4 + r() * 0.2), L[1 + (i % 2)]); } // the mass
-        if (rh) for (let i = 0; i < R * 2.2; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * R * 0.95, x = b.x + Math.cos(a) * d, y = b.y - R * 0.55 + Math.sin(a) * d * 0.62; if (y > b.y) continue; leaf(g, x, y, 7 + r() * 3, 2.6, r() * 6.28, L[2 + Math.floor(r() * 3)], L[4], { hi: Math.sin(a) < 0 ? L[4] : null }); } // long glossy leaves
-        else for (let i = 0; i < R * 3; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * R * 0.95, x = b.x + Math.cos(a) * d, y = b.y - R * 0.55 + Math.sin(a) * d * 0.62; if (y > b.y) continue; leaf(g, x, y, 4 + r() * 2, 2.6, r() * 6.28, L[2 + Math.floor(r() * 3)], null, { notch: true }); } // broad serrated leaves
-        const bloom = rh ? (m >= 3 && m <= 5) : (m >= 5 && m <= 9);
-        if (bloom || true) { // trusses / mopheads (we keep a few on all year: the yard is a memory, and it was always May out there)
-          const n = rh ? 5 : 6, C = rh ? ['#c94a8a', '#e07ab0', '#f2a9cf', '#f9d3e6'] : ['#5a6cc0', '#7f8fd8', '#a7b2e8', '#c9cff2', '#b48ad0'];
-          for (let i = 0; i < n; i++) { const a = -Math.PI + (i + 0.5) / n * Math.PI + (r() - 0.5) * 0.4, d = R * (0.55 + r() * 0.35), x = b.x + Math.cos(a) * d, y = b.y - R * 0.5 + Math.sin(a) * d * 0.7, rr = rh ? 4.5 : 5.5;
-            ell(g, x, y, rr, rr * 0.8, C[0]); ell(g, x - 1, y - 1, rr * 0.75, rr * 0.6, C[1]); for (let q = 0; q < (rh ? 7 : 12); q++) { const qa = r() * 6.28, qd = r() * rr * 0.9; px(g, x + Math.cos(qa) * qd, y + Math.sin(qa) * qd * 0.8, C[2 + Math.floor(r() * (C.length - 2))]); } }
+    // ── the rhododendron at the tree line: a mound of leathery leaves in whorls, each leaf long and glossy with a pale midrib; pink trusses ──
+    paintRhodo(g, b) {
+      const r = BZ.rng(606), nt = this.night(), R = b.r, X = b.x, Yb = b.y;
+      const LF = ['#17301b', '#1f3e24', '#2a512f', '#376539', '#467a46', '#5a9254', '#79ab6a'], RIB = '#8fbb7c', WOOD = ['#3a2a1c', '#5a4330', '#7a5d44'];
+      ell(g, X + 3, Yb + 2, R * 1.08, R * 0.3, 'rgba(20,14,6,0.3)');
+      for (let i = -2; i <= 2; i++) { BZ.drawThin(g, X + i * 3, Yb, X + i * 9 + (r() - 0.5) * 6, Yb - R * 0.9 - r() * R * 0.3, WOOD[1]); BZ.drawThin(g, X + i * 3 + 1, Yb, X + i * 9 + 1, Yb - R * 0.8, WOOD[0]); } // the trunk and branches, mostly hidden
+      const inMound = (x, y) => ((x - X) / (R * 1.05)) ** 2 + ((y - (Yb - R * 0.62)) / (R * 0.72)) ** 2 <= 1;
+      // whorls: a center and 6-8 leaves radiating out and a little down, from the back of the mound to the front
+      const whorls = [];
+      for (let i = 0; i < 26; i++) { const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 0.86; whorls.push({ x: X + Math.cos(a) * d * R * 0.95, y: Yb - R * 0.62 + Math.sin(a) * d * R * 0.62, k: r() }); }
+      whorls.sort((p, q) => p.y - q.y);
+      for (const w of whorls) {
+        const n = 6 + Math.floor(r() * 3), lit = (w.x - X) / R * 0.45 - (w.y - (Yb - R * 0.62)) / R * 0.9; // upper right of the mound is in the light
+        for (let i = 0; i < n; i++) {
+          const ang = (i / n) * Math.PI * 2 + w.k * 2 + 0.3, len = 8 + r() * 5, wid = 2.4 + r() * 0.8, ex = w.x + Math.cos(ang) * len, ey = w.y + Math.sin(ang) * len * 0.75;
+          if (!inMound(ex, ey) && r() < 0.6) continue;
+          const up = Math.sin(ang) < 0, L = 2.4 + lit + (up ? 0.9 : -0.5) + (r() - 0.5) * 0.8;
+          const pts = leafPts(w.x, w.y, len, wid, Math.atan2(Math.sin(ang) * 0.75, Math.cos(ang)));
+          shade(g, pts, (x, y) => rampAt(LF, L + (((x - w.x) * Math.sin(ang) - (y - w.y) * Math.cos(ang)) > 0 ? -0.5 : 0.4), x, y)); // one half of the leaf in light, the other folded away
+          BZ.drawThin(g, w.x + Math.cos(ang) * 2, w.y + Math.sin(ang) * 1.5, w.x + Math.cos(ang) * len * 0.85, w.y + Math.sin(ang) * len * 0.64, up ? RIB : LF[4]); // the midrib
+          if (up && r() < 0.5) px(g, w.x + Math.cos(ang) * len * 0.45 + 1, w.y + Math.sin(ang) * len * 0.34 - 1, LF[6]); // a gloss
         }
-        if (nt) { ctx_dark(g, b.x - R, b.y - R * 1.3, R * 2, R * 1.4); }
       }
-      function ctx_dark(g, x, y, w, h) { g.fillStyle = 'rgba(10,16,40,0.3)'; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+      // the trusses: domes of florets, pink with white edges, deeper at the throat; a few buds
+      const TR = ['#a8336e', '#c94a8a', '#e07ab0', '#f2a9cf', '#fbd6ea', '#ffffff'];
+      for (let i = 0; i < 6; i++) {
+        const a = -Math.PI + (i + 0.5) / 6 * Math.PI + (r() - 0.5) * 0.5, d = R * (0.5 + r() * 0.4), x = X + Math.cos(a) * d, y = Yb - R * 0.55 + Math.sin(a) * d * 0.72, rr = 5 + r() * 1.5;
+        shade(g, ellPts(x, y, rr, rr * 0.82), (px_, py_) => rampAt(TR, 1.4 + ((px_ - x) / rr) * 0.8 - ((py_ - y) / rr) * 1.6, px_, py_));
+        for (let q = 0; q < 9; q++) { const qa = r() * 6.28, qd = r() * rr * 0.8, fx = x + Math.cos(qa) * qd, fy = y + Math.sin(qa) * qd * 0.8; const c = TR[2 + Math.floor(r() * 3)]; px(g, fx, fy, c); px(g, fx + 1, fy, c); px(g, fx, fy - 1, c); px(g, fx - 1, fy, c); px(g, fx, fy + 1, TR[1]); } // florets: little crosses with a dark throat
+        px(g, x + 1, y - rr * 0.6, '#ffffff');
+      }
+      for (let i = 0; i < 3; i++) { const x = X + (r() - 0.5) * R * 1.4, y = Yb - R * 0.8 - r() * R * 0.4; if (inMound(x, y)) { ell(g, x, y, 1.6, 2.4, TR[1]); px(g, x, y - 2, TR[2]); } } // buds
+      if (nt) { g.fillStyle = 'rgba(10,16,40,0.3)'; g.fillRect(Math.round(X - R * 1.1), Math.round(Yb - R * 1.4), Math.round(R * 2.2), Math.round(R * 1.5)); }
     }
-    // ── the feeder: a cedar hopper with a copper roof on a black pole, a squirrel baffle, seed on the ground below ──
+    // ── the hydrangea: a mophead, big serrated leaves, heads of blue-lavender florets (a couple going pink) ──
+    paintHydrangea(g, b) {
+      const r = BZ.rng(1313), nt = this.night(), R = b.r, X = b.x, Yb = b.y;
+      const LF = ['#2a4a26', '#3a6334', '#4c7d42', '#619852', '#78b063', '#95c47a'], VEIN = '#a9d28e';
+      ell(g, X + 2, Yb + 2, R * 1.15, R * 0.32, 'rgba(20,14,6,0.3)');
+      for (let i = -1; i <= 1; i++) BZ.drawThin(g, X + i * 4, Yb + 1, X + i * 8, Yb - R * 0.7, '#6b5236'); // woody stems
+      const inMound = (x, y) => ((x - X) / (R * 1.1)) ** 2 + ((y - (Yb - R * 0.55)) / (R * 0.7)) ** 2 <= 1;
+      // leaves: broad ovate, serrated, veined, hanging outward; lit from the upper right
+      const leaves = []; for (let i = 0; i < R * 2.2; i++) { const a = r() * 6.28, d = Math.sqrt(r()) * 0.92; leaves.push({ x: X + Math.cos(a) * d * R, y: Yb - R * 0.55 + Math.sin(a) * d * R * 0.66, a: Math.PI / 2 + (Math.cos(a) * 0.9) + (r() - 0.5) * 0.9, k: r() }); }
+      leaves.sort((p, q) => p.y - q.y);
+      for (const lf of leaves) {
+        const len = 6.5 + lf.k * 3.5, wid = len * 0.52, lit = (lf.x - X) / R * 0.5 - (lf.y - (Yb - R * 0.55)) / R * 0.9;
+        const pts = leafPts(lf.x, lf.y, len, wid, lf.a, true);
+        shade(g, pts, (x, y) => rampAt(LF, 2.2 + lit + (((x - lf.x) * Math.sin(lf.a) - (y - lf.y) * Math.cos(lf.a)) > 0 ? -0.4 : 0.5) + (r() < 0.05 ? 0.8 : 0), x, y));
+        for (let i = 1; i < pts.length / 2; i += 2) px(g, pts[i][0], pts[i][1], LF[Math.min(5, 3 + Math.round(lit + 1))]); // the serrated edge, as a lighter stitch
+        BZ.drawThin(g, lf.x + Math.cos(lf.a) * 1.5, lf.y + Math.sin(lf.a) * 1.5, lf.x + Math.cos(lf.a) * len * 0.85, lf.y + Math.sin(lf.a) * len * 0.85, VEIN); // midrib
+        for (let v = 1; v <= 2; v++) { const t = v / 3, cx = lf.x + Math.cos(lf.a) * len * t, cy = lf.y + Math.sin(lf.a) * len * t; for (const sd of [-1, 1]) BZ.drawThin(g, cx, cy, cx + (Math.cos(lf.a + sd * 1) * wid * 0.6), cy + Math.sin(lf.a + sd * 1) * wid * 0.6, LF[4]); } // side veins
+      }
+      // the mopheads: domes of four-petal florets, shaded blue to lavender, lit at the upper right; two of them blushing pink
+      const BL = ['#3f4fa8', '#5566c2', '#7585d8', '#98a6e8', '#bfc8f2', '#e4e8fb'], PK = ['#8a4a8c', '#a866a8', '#c58ac4', '#dfb0dc', '#f2d4ee', '#fbeefa'];
+      const heads = []; for (let i = 0; i < 7; i++) { const a = -Math.PI + (i + 0.5) / 7 * Math.PI + (r() - 0.5) * 0.5, d = R * (0.45 + r() * 0.5); heads.push({ x: X + Math.cos(a) * d, y: Yb - R * 0.5 + Math.sin(a) * d * 0.72, rr: 5.5 + r() * 1.8, pink: i === 2 || i === 5 }); }
+      heads.sort((p, q) => p.y - q.y);
+      for (const h of heads) {
+        const C = h.pink ? PK : BL, x = h.x, y = h.y, rr = h.rr;
+        shade(g, ellPts(x, y, rr, rr * 0.85), (px_, py_) => rampAt(C, 1.2 + ((px_ - x) / rr) * 0.9 - ((py_ - y) / rr) * 1.8, px_, py_));
+        for (let q = 0; q < 10; q++) { const qa = r() * 6.28, qd = r() * rr * 0.85, fx = Math.round(x + Math.cos(qa) * qd), fy = Math.round(y + Math.sin(qa) * qd * 0.85), up = Math.sin(qa) < 0 || Math.cos(qa) > 0.3, c = C[up ? 3 + Math.floor(r() * 2) : 2]; px(g, fx - 1, fy, c); px(g, fx + 1, fy, c); px(g, fx, fy - 1, c); px(g, fx, fy + 1, c); px(g, fx, fy, C[up ? 5 : 1]); } // four-petal florets with a pale eye
+        px(g, x + rr * 0.3, y - rr * 0.6, '#ffffff');
+      }
+      if (nt) { g.fillStyle = 'rgba(10,16,40,0.3)'; g.fillRect(Math.round(X - R * 1.2), Math.round(Yb - R * 1.3), Math.round(R * 2.4), Math.round(R * 1.4)); }
+    }
+    // ── the feeder: a cedar hopper with a copper roof gone green, plexi panels full of seed, a perch tray; on a black pole with a cone baffle; a suet cage on a chain ──
     paintFeeder(g) {
-      const f = this.feeder, x = f.x, nt = this.night(), r = BZ.rng(707);
-      ell(g, x + 1, f.base + 1, 6, 1.6, 'rgba(20,14,6,0.3)');
-      rect(g, x - 1, f.top + 20, 3, f.base - f.top - 20, '#2a2724'); rect(g, x - 1, f.top + 20, 1, f.base - f.top - 20, '#4a4642'); // the pole
-      ell(g, x, f.base - 26, 7, 2.4, '#3a3632'); ell(g, x, f.base - 27, 7, 1.6, '#6a6560'); // the baffle
-      rect(g, x - 9, f.top + 16, 18, 3, '#7a5a3a'); rect(g, x - 9, f.top + 16, 18, 1, '#a0825c'); rect(g, x - 8, f.top + 15, 16, 1, '#d8b864'); // the tray, with seed
-      rect(g, x - 6, f.top + 5, 12, 11, '#9a7a52'); rect(g, x - 6, f.top + 5, 2, 11, '#b8966a'); rect(g, x - 2, f.top + 7, 5, 6, '#2a2420'); for (let i = 0; i < 10; i++) px(g, x - 2 + r() * 5, f.top + 8 + r() * 5, r() < 0.5 ? '#d8b864' : '#4a3a2a'); // the hopper, seed showing through the window
-      BZ.fillPoly(g, [[x - 10, f.top + 6], [x + 10, f.top + 6], [x, f.top - 1]], nt ? '#4a3a2a' : '#8a5a3a'); BZ.fillPoly(g, [[x - 8, f.top + 5], [x, f.top], [x + 8, f.top + 5]], nt ? '#5a4a3a' : '#5f8a74'); px(g, x - 3, f.top + 3, '#8fb8a0'); // the copper roof, gone green
-      for (let i = 0; i < 14; i++) px(g, x - 12 + r() * 24, f.base + 2 + r() * 7, r() < 0.4 ? '#d8b864' : '#3a2a1a'); // spilled seed
-    }
-    // ── the studio spills out: an easel with a half-done canvas, the kick wheel with a pot on it ──
-    drawStudioStuff(ctx, X, Yo, which) {
-      if (!this.stuffC) { this.stuffC = {}; for (const k of ['easel', 'wheel']) { const c = document.createElement('canvas'); c.width = 60; c.height = 60; this.paintStudioStuff(c.getContext('2d'), k); this.stuffC[k] = c; } }
-      const o = which === 'easel' ? this.easel : this.wheel; ctx.drawImage(this.stuffC[which], Math.round(X + o.x - 30), Math.round(Yo + o.foot - 52));
-    }
-    paintStudioStuff(g, which) {
-      const e = { x: 30, foot: 52 }, w = { x: 24, foot: 52 }, nt = this.night(), WD = ['#5a4028', '#7a5838', '#9a7450', '#b89066'];
-      if (which === 'easel') {
-      ell(g, e.x + 1, e.foot + 1, 9, 2, 'rgba(20,14,6,0.25)');
-      BZ.drawThin(g, e.x - 7, e.foot, e.x - 1, e.foot - 42, WD[1]); BZ.drawThin(g, e.x + 7, e.foot, e.x + 1, e.foot - 42, WD[1]); BZ.drawThin(g, e.x + 4, e.foot + 2, e.x, e.foot - 40, WD[0]); // three legs
-      rect(g, e.x - 8, e.foot - 20, 16, 2, WD[2]); rect(g, e.x - 8, e.foot - 20, 16, 1, WD[3]); // the ledge
-      rect(g, e.x - 7, e.foot - 38, 14, 18, '#efe9dc'); rect(g, e.x - 7, e.foot - 38, 1, 18, '#cfc8ba'); rect(g, e.x - 7, e.foot - 21, 14, 1, '#cfc8ba'); // the canvas
-      for (let i = 0; i < 5; i++) { const cy = e.foot - 35 + i * 3; rect(g, e.x - 5 + (i % 2), cy, 6 + i, 1, ['#6f9a8a', '#c9a24a', '#b5583c', '#3f6f6a', '#e6d9bf'][i]); } rect(g, e.x - 2, e.foot - 30, 5, 4, '#d8c4a0'); px(g, e.x, e.foot - 29, '#b5583c'); // a painting in progress: bands of color, something cat-shaped
-      rect(g, e.x - 5, e.foot - 40, 10, 2, WD[2]); // the top clamp
-      return; }
-      // the kick wheel: a heavy flywheel low down, the wheel head on top, a stool, a pot half-thrown
-      ell(g, w.x + 2, w.foot + 1, 13, 3, 'rgba(20,14,6,0.25)');
-      ell(g, w.x, w.foot - 4, 12, 4, '#3a3a40'); ell(g, w.x, w.foot - 5, 12, 3.4, '#55555c'); ell(g, w.x - 3, w.foot - 6, 6, 1.4, '#7a7a82'); // the flywheel
-      rect(g, w.x - 1, w.foot - 24, 3, 19, '#4a4a50'); rect(g, w.x - 1, w.foot - 24, 1, 19, '#6a6a72'); // the shaft
-      ell(g, w.x, w.foot - 24, 7, 2.4, '#8a8a90'); ell(g, w.x, w.foot - 25, 7, 1.8, '#b0b0b6'); // the wheel head
-      BZ.fillPoly(g, [[w.x - 4, w.foot - 26], [w.x + 4, w.foot - 26], [w.x + 3, w.foot - 33], [w.x - 3, w.foot - 33]], '#b07a5a'); ell(g, w.x, w.foot - 33, 3.4, 1.4, '#8a5a40'); px(g, w.x - 2, w.foot - 30, '#d09a78'); // a pot on it, wet clay
-      BZ.fillPoly(g, [[w.x + 12, w.foot - 2], [w.x + 24, w.foot - 2], [w.x + 23, w.foot - 5], [w.x + 13, w.foot - 5]], WD[2]); for (const lx of [w.x + 14, w.x + 22]) rect(g, lx, w.foot - 2, 1, 8, WD[0]); // the stool
-      rect(g, w.x - 16, w.foot - 1, 6, 1, '#8a8a90'); ell(g, w.x - 14, w.foot - 6, 3, 4.5, '#c0c4c8'); ell(g, w.x - 14, w.foot - 10, 3, 1, '#9aa0a4'); // a bucket of slip
+      const f = this.feeder, x = f.x, nt = this.night(), r = BZ.rng(707), CED = ['#5c3d22', '#7a5230', '#9a6b40', '#b8864f', '#d2a26a'], IRON = ['#1c1a18', '#2e2b28', '#45413c', '#5a554f'], COP = ['#3f6a58', '#4f8068', '#67977c', '#86ad92', '#a6c3ad'];
+      ell(g, x + 1, f.base + 1, 6, 1.8, 'rgba(20,14,6,0.3)');
+      rect(g, x - 1, f.top + 24, 3, f.base - f.top - 24, IRON[1]); rect(g, x - 1, f.top + 24, 1, f.base - f.top - 24, IRON[3]); rect(g, x + 1, f.top + 24, 1, f.base - f.top - 24, IRON[0]); // the pole
+      const by = f.base - 30; shade(g, [[x - 9, by + 2], [x + 9, by + 2], [x + 3, by - 6], [x - 3, by - 6]], (px_, py_) => rampAt(IRON, 1.6 + (px_ - x) / 9 * 1.2 - (py_ - by) * 0.1, px_, py_)); BZ.drawThin(g, x - 9, by + 2, x + 9, by + 2, IRON[3]); // the cone baffle, lit on its right
+      // the hopper: corner posts, plexi panels showing seed, the tray with a lip
+      const hx0 = x - 9, hx1 = x + 9, hy0 = f.top + 8, hy1 = f.top + 23;
+      for (let yy = hy0; yy < hy1; yy++) for (let xx = hx0 + 2; xx < hx1 - 2; xx++) { const seedLine = hy0 + 4 + Math.sin(xx * 0.9) * 0.6; px(g, xx, yy, yy < seedLine ? ((xx + yy) % 3 === 0 ? '#dfe9ec' : '#c9d8dc') : (r() < 0.45 ? '#d8b864' : r() < 0.7 ? '#2a2420' : r() < 0.85 ? '#b89a5a' : '#8a6a3a')); } // seed behind the plexi
+      for (let yy = hy0; yy < hy1; yy += 1) if ((yy - hy0) % 5 === 1) rect(g, hx0 + 2, yy, hx1 - hx0 - 4, 1, 'rgba(255,255,255,0.22)'); // reflections on the plexi
+      for (const xx of [hx0, hx1 - 2, x - 1]) { rect(g, xx, hy0 - 1, 2, hy1 - hy0 + 1, CED[2]); rect(g, xx, hy0 - 1, 1, hy1 - hy0 + 1, CED[3]); } // the cedar posts and the center divider
+      rect(g, hx0 - 3, hy1, hx1 - hx0 + 6, 3, CED[1]); rect(g, hx0 - 3, hy1, hx1 - hx0 + 6, 1, CED[4]); rect(g, hx0 - 3, hy1 + 3, hx1 - hx0 + 6, 1, CED[0]); // the tray
+      for (let i = 0; i < 12; i++) px(g, hx0 - 2 + r() * (hx1 - hx0 + 4), hy1 + (r() < 0.6 ? 0 : -1), r() < 0.5 ? '#e0c070' : '#4a3a2a'); // seed on the tray
+      rect(g, hx0 - 3, hy1 - 1, 1, 1, CED[4]); rect(g, hx1 + 2, hy1 - 1, 1, 1, CED[4]); // the lip
+      // the roof: a gable, copper with verdigris, a ridge cap, an overhang that shades the panels
+      const ry = f.top + 8, rp = [[x - 13, ry + 1], [x, f.top - 2], [x + 13, ry + 1]];
+      shade(g, [[x - 13, ry + 1], [x, f.top - 2], [x + 13, ry + 1], [x + 13, ry + 3], [x - 13, ry + 3]], (px_, py_) => rampAt(COP, 1.6 + (px_ > x ? 1.4 : 0) - Math.abs(py_ - (f.top - 2 + Math.abs(px_ - x) * 0.77)) * 0.25 + (((px_ * 3 + py_ * 5) % 11) === 0 ? 0.8 : 0), px_, py_));
+      BZ.drawThin(g, rp[0][0], rp[0][1], rp[1][0], rp[1][1], COP[2]); BZ.drawThin(g, rp[1][0], rp[1][1], rp[2][0], rp[2][1], COP[4]); rect(g, x - 1, f.top - 3, 3, 2, '#8a5a3a'); px(g, x, f.top - 3, '#c98a5a'); // the ridge cap, still copper
+      rect(g, x - 13, ry + 3, 26, 1, 'rgba(0,0,0,0.3)');
+      // the suet cage on a chain from the left eave
+      const cx = x - 15, cy0 = ry + 3; for (let yy = cy0; yy < cy0 + 6; yy += 2) px(g, cx, yy, IRON[3]);
+      rect(g, cx - 3, cy0 + 6, 7, 7, '#d8cf9a'); for (let i = 0; i < 6; i++) px(g, cx - 2 + r() * 5, cy0 + 7 + r() * 5, '#b8a46a'); for (let i = 0; i <= 7; i += 2) { rect(g, cx - 3, cy0 + 6 + Math.min(i, 6), 7, 1, '#2a4a2a'); rect(g, cx - 3 + Math.min(i, 6), cy0 + 6, 1, 7, '#2a4a2a'); } // the green wire grid
+      px(g, cx - 3, cy0 + 6, '#4a7a4a');
+      // spilled seed and hulls below, and a sprig of grass the birds have been at
+      for (let i = 0; i < 22; i++) px(g, x - 14 + r() * 28, f.base + 2 + r() * 8, r() < 0.4 ? '#d8b864' : r() < 0.7 ? '#2a2420' : '#8a7a4a');
       void nt;
     }
-    // ── the corner of the sandbox: a cedar frame, sand, a yellow dump truck and a backhoe left out ──
+    // ── the studio spills out onto the patio: an A-frame easel with a painting in progress, the kick wheel with a pot half-thrown ──
+    drawStudioStuff(ctx, X, Yo, which) {
+      if (!this.stuffC) { this.stuffC = {}; for (const k of ['easel', 'wheel']) { const c = document.createElement('canvas'); c.width = 80; c.height = 76; this.paintStudioStuff(c.getContext('2d'), k); this.stuffC[k] = c; } }
+      const o = which === 'easel' ? this.easel : this.wheel; ctx.drawImage(this.stuffC[which], Math.round(X + o.x - 40), Math.round(Yo + o.foot - 64));
+    }
+    paintStudioStuff(g, which) {
+      const e = { x: 40, foot: 64 }, w = { x: 36, foot: 64 }, nt = this.night(), r = BZ.rng(2024);
+      const OAK = ['#4e3418', '#6a4a26', '#866034', '#a27a46', '#bb935a', '#d0ab70'], board = (pts, base, grainAng) => shade(g, pts, (x, y) => rampAt(OAK, base + Math.sin((x * Math.cos(grainAng || 0) + y * Math.sin(grainAng || 0)) * 1.7) * 0.35 + (((x * 7 + y * 11) % 17) === 0 ? -0.7 : 0), x, y));
+      if (which === 'easel') {
+        ell(g, e.x + 1, e.foot + 1, 12, 2.4, 'rgba(20,14,6,0.28)');
+        // the rear leg, then the two front legs of the A, a cross brace, rubber feet
+        board([[e.x + 1, e.foot + 2], [e.x + 4, e.foot + 2], [e.x + 2, e.foot - 48], [e.x, e.foot - 48]], 1.4, 1.4);
+        for (const sd of [-1, 1]) { const fx = e.x + sd * 10, tx = e.x + sd * 2.4; board([[fx - 1.4, e.foot], [fx + 1.4, e.foot], [tx + 1.4, e.foot - 54], [tx - 1.4, e.foot - 54]], sd > 0 ? 3.6 : 2.6, 1.3); BZ.drawThin(g, fx - 1.4, e.foot, tx - 1.4, e.foot - 54, OAK[sd > 0 ? 5 : 4]); rect(g, fx - 2, e.foot - 1, 4, 2, '#2a2622'); }
+        board([[e.x - 8.5, e.foot - 12], [e.x + 8.5, e.foot - 12], [e.x + 8.5, e.foot - 10], [e.x - 8.5, e.foot - 10]], 3.2, 0); // the brace
+        // the tray: a thick ledge with a lip, a rag over its end, a brush lying on it
+        board([[e.x - 12, e.foot - 25], [e.x + 12, e.foot - 25], [e.x + 12, e.foot - 21], [e.x - 12, e.foot - 21]], 3.8, 0); rect(g, e.x - 12, e.foot - 25, 24, 1, OAK[5]); rect(g, e.x - 12, e.foot - 26, 24, 1, OAK[2]);
+        shade(g, [[e.x + 6, e.foot - 26], [e.x + 13, e.foot - 26], [e.x + 14, e.foot - 17], [e.x + 9, e.foot - 16]], (x, y) => ((x + y) & 3) === 0 ? '#c9b8a0' : rampAt(['#cfc4b2', '#e3dacb', '#f1ece2'], 1 + (y - (e.foot - 26)) * 0.12, x, y)); px(g, e.x + 10, e.foot - 20, '#b5583c'); px(g, e.x + 8, e.foot - 22, '#3f6f6a'); // the rag, paint on it
+        BZ.drawThin(g, e.x - 10, e.foot - 26, e.x - 2, e.foot - 27, '#c8a060'); px(g, e.x - 1, e.foot - 27, '#2a2622'); px(g, e.x, e.foot - 27, '#2a2622'); // a brush
+        // the canvas on its stretcher: 22 x 26, a painting of the yard with a seal-point cat in it, the lower corner still bare
+        const cx0 = e.x - 11, cx1 = e.x + 11, cy0 = e.foot - 52, cy1 = e.foot - 26;
+        rect(g, cx0 - 1, cy0 - 1, cx1 - cx0 + 2, cy1 - cy0 + 2, '#d6c9a8'); rect(g, cx1, cy0, 1, cy1 - cy0 + 1, '#a08a60'); rect(g, cx0 - 1, cy1, cx1 - cx0 + 2, 1, '#a08a60'); // the stretcher edge
+        for (let y = cy0; y < cy1; y++) for (let x = cx0; x < cx1; x++) {
+          const u = (x - cx0) / (cx1 - cx0), v = (y - cy0) / (cy1 - cy0); let c;
+          if (v > 0.7 && u < 0.35 + (v - 0.7) * 0.5) c = (x + y) & 1 ? '#efe9dc' : '#e6dfd0'; // unpainted, the weave showing
+          else if (v < 0.42) c = rampAt(['#7fa8c8', '#9cc0d8', '#b9d4e3', '#d4e4ec'], 1 + (1 - v / 0.42) * 2.5 + Math.sin(x * 1.3 + y * 0.7) * 0.5, x, y); // sky, in long strokes
+          else c = rampAt(['#3f6a2a', '#51802f', '#6a9a3e', '#87b050'], 0.8 + (v - 0.42) * 3 + Math.sin(x * 0.9 - y * 1.1) * 0.6, x, y); // lawn
+          px(g, x, y, c);
+        }
+        rect(g, cx0 + 1, cy0 + 9, 20, 1, '#5a7a90'); // the tree line, one stroke
+        const bx = e.x + 2, by = cy0 + 19; ell(g, bx, by, 4, 3, '#e9dcc5'); ell(g, bx + 2, by - 4, 2.4, 2.2, '#e9dcc5'); px(g, bx + 1, by - 6, '#3a3030'); px(g, bx + 3, by - 6, '#3a3030'); ell(g, bx + 3, by - 3, 1.4, 1, '#4f4343'); px(g, bx + 2, by - 4, '#3ccbdb'); BZ.drawThin(g, bx - 4, by + 1, bx - 7, by - 3, '#3a3030'); // Bo, sitting, seal points, one teal eye
+        for (let i = 0; i < 5; i++) px(g, cx0 + 2 + r() * 18, cy0 + 3 + r() * 10, '#ffffff'); // highlights, impasto
+        board([[e.x - 4, e.foot - 56], [e.x + 4, e.foot - 56], [e.x + 4, e.foot - 51], [e.x - 4, e.foot - 51]], 3.4, 0); rect(g, e.x - 1, e.foot - 60, 2, 5, OAK[4]); px(g, e.x, e.foot - 61, OAK[5]); // the top clamp on its mast
+        // on the ground: a palette leaning on the left leg, a coffee can of brushes on the right
+        shade(g, ellPts(e.x - 15, e.foot - 6, 6, 7.5), (x, y) => rampAt(['#8a6a3a', '#a8844a', '#c4a060', '#d8b878'], 1.4 + (x - (e.x - 15)) / 6 * 0.6 - (y - (e.foot - 6)) / 7.5 * 0.8, x, y)); px(g, e.x - 17, e.foot - 10, '#3a2a18');
+        [['#b5583c', -17, -7], ['#c9a24a', -14, -9], ['#3f6f6a', -13, -4], ['#f4f4f0', -16, -2], ['#34446b', -12, -1]].forEach(([c, dx, dy]) => { px(g, e.x + dx, e.foot + dy, c); px(g, e.x + dx + 1, e.foot + dy, c); });
+        rect(g, e.x + 14, e.foot - 10, 7, 10, '#b8b4a8'); rect(g, e.x + 14, e.foot - 10, 2, 10, '#d8d4c8'); rect(g, e.x + 14, e.foot - 7, 7, 4, '#c84a3a'); rect(g, e.x + 15, e.foot - 6, 5, 2, '#f2e6c8'); // the can, its label
+        for (let i = 0; i < 5; i++) { const bx2 = e.x + 15 + i * 1.3; BZ.drawThin(g, bx2, e.foot - 10, bx2 + (i - 2) * 0.8, e.foot - 18 - (i % 2) * 3, i & 1 ? '#c8a060' : '#5a4a3a'); px(g, bx2 + (i - 2) * 0.8, e.foot - 19 - (i % 2) * 3, '#2a2622'); } // brushes, handles up
+        return;
+      }
+      // the kick wheel: a heavy concrete flywheel low down, a steel shaft, the wheel head in its splash pan with a pot on it, a plank seat, a bucket of slip, tools
+      ell(g, w.x + 3, w.foot + 1, 20, 4.2, 'rgba(20,14,6,0.28)');
+      const CON = ['#3b3b40', '#4b4b51', '#5c5c63', '#6f6f76', '#85858c', '#9a9aa0'], STEEL = ['#4a4f58', '#6a717c', '#8d95a0', '#b2b9c2', '#d4d9df'];
+      shade(g, ellPts(w.x, w.foot - 3, 17, 5.2), (x, y) => rampAt(CON, 1.7 + (x - w.x) / 17 * 0.9 + (r() < 0.05 ? 0.8 : 0), x, y)); // the flywheel's thickness, in shadow
+      shade(g, ellPts(w.x, w.foot - 7, 17, 5.2), (x, y) => rampAt(CON, 4.3 + (x - w.x) / 17 * 0.8 - (y - (w.foot - 7)) / 5.2 * 0.8 + (r() < 0.06 ? 0.9 : 0), x, y)); // its top, lit
+      ellRing(g, w.x, w.foot - 7, 17, 5.2, CON[5]); for (let i = 0; i < 9; i++) px(g, w.x - 14 + r() * 28, w.foot - 9 + r() * 5, r() < 0.5 ? '#b07a5a' : '#8a5a40'); // the rim, dried clay spatter
+      rect(g, w.x - 1, w.foot - 30, 3, 26, STEEL[1]); rect(g, w.x - 1, w.foot - 30, 1, 26, STEEL[3]); rect(g, w.x + 1, w.foot - 30, 1, 26, STEEL[0]); rect(g, w.x - 2, w.foot - 12, 5, 3, STEEL[2]); rect(g, w.x - 2, w.foot - 12, 5, 1, STEEL[4]); // the shaft and its bearing collar
+      shade(g, ellPts(w.x, w.foot - 30, 11, 3.6), (x, y) => rampAt(['#2d4a3a', '#3a5e48', '#4a7458', '#5c8a68'], 1.2 + (y < w.foot - 31 ? 1.4 : 0) + (x - w.x) / 11 * 0.6, x, y)); shade(g, ellPts(w.x, w.foot - 31, 9.5, 2.8), (x, y) => rampAt(['#4a7458', '#5c8a68', '#6fa07a'], 0.8 + (x - w.x) / 9.5 * 0.6, x, y)); // the splash pan, dark green
+      shade(g, ellPts(w.x, w.foot - 32, 7.5, 2.4), (x, y) => rampAt(STEEL, 2 + (y < w.foot - 32 ? 1.4 : 0) + (x - w.x) / 7.5 * 0.8, x, y)); ellRing(g, w.x, w.foot - 32, 7.5, 2.4, STEEL[1]); for (let k = 2; k <= 6; k += 2) ellRing(g, w.x, w.foot - 32.4, k, k * 0.32, STEEL[4]); // the wheel head, with its rings
+      const CL = ['#7a4a30', '#9a6040', '#b67a56', '#cf9872', '#e0b48e'], prof = (t) => 3.4 + Math.sin(Math.PI * Math.min(1, t * 1.25)) * 2.2 - t * 0.6, pot = []; for (let i = 0; i <= 10; i++) pot.push([w.x + prof(i / 10), w.foot - 33 - i]); for (let i = 10; i >= 0; i--) pot.push([w.x - prof(i / 10), w.foot - 33 - i]);
+      shade(g, pot, (x, y) => { const t = (w.foot - 33 - y) / 10, R = prof(t); return rampAt(CL, 1.5 + ((x - w.x) / R) * 1.5 - Math.abs((x - w.x) / R) * 0.9 + (((w.foot - y) % 3) === 0 ? -0.5 : 0), x, y); }); shade(g, ellPts(w.x, w.foot - 43, prof(1), 1.4), (x, y) => rampAt(CL, 0.5 + (x - w.x) / 3 * 0.6, x, y)); ellRing(g, w.x, w.foot - 43, prof(1), 1.4, CL[4]); // the pot, wet, throwing rings
+      px(g, w.x + 2, w.foot - 39, '#f0d0b0'); px(g, w.x + 2, w.foot - 37, '#f0d0b0');
+      // the plank seat on its two legs, right of the wheel; a folded towel on it
+      const sx0 = w.x + 14, sx1 = w.x + 30, sy = w.foot - 16; for (const lx of [sx0 + 1, sx1 - 3]) { rect(g, lx, sy, 2, 15, OAK[1]); rect(g, lx, sy, 1, 15, OAK[3]); } rect(g, sx0 + 2, sy + 9, sx1 - sx0 - 4, 1, OAK[2]);
+      shade(g, [[sx0, sy - 3], [sx1, sy - 3], [sx1, sy], [sx0, sy]], (x, y) => rampAt(OAK, 3.4 + Math.sin(x * 0.8) * 0.4 - (y - (sy - 3)) * 0.4, x, y)); rect(g, sx0, sy - 3, sx1 - sx0, 1, OAK[5]);
+      rect(g, sx0 + 3, sy - 7, 8, 4, '#d8d0b8'); rect(g, sx0 + 3, sy - 7, 8, 1, '#efe9dc'); rect(g, sx0 + 3, sy - 4, 8, 1, '#b8ae98'); // the towel
+      // a bucket of slip on the left, a sponge and a wire tool on the flywheel's edge
+      const bx = w.x - 22, byy = w.foot - 2; shade(g, [[bx - 4, byy], [bx + 4, byy], [bx + 5, byy - 11], [bx - 5, byy - 11]], (x, y) => rampAt(['#9aa0a6', '#b8bec4', '#d2d7dc', '#e6eaee'], 1.2 + (x - bx) / 5 * 1.4 - (y - (byy - 11)) * 0.05, x, y)); shade(g, ellPts(bx, byy - 11, 5, 1.8), (x, y) => rampAt(['#9a7050', '#b08060', '#c49474'], 0.8 + (x - bx) / 5 * 0.8, x, y)); ellRing(g, bx, byy - 11, 5, 1.8, '#e6eaee'); BZ.drawThin(g, bx - 5, byy - 11, bx, byy - 16, '#6a717c'); BZ.drawThin(g, bx, byy - 16, bx + 5, byy - 11, '#6a717c'); // slip in it, the handle up
+      BZ.drawThin(g, bx + 1, byy - 10, bx + 2, byy - 4, '#c49474'); // a dribble
+      rect(g, w.x - 11, w.foot - 10, 4, 2, '#e8c860'); px(g, w.x - 10, w.foot - 10, '#f8e080'); BZ.drawThin(g, w.x + 6, w.foot - 9, w.x + 12, w.foot - 11, '#8d95a0'); px(g, w.x + 6, w.foot - 9, '#5a4a3a'); px(g, w.x + 12, w.foot - 11, '#5a4a3a'); // a sponge, a wire tool
+      void nt;
+    }
+    // ── the corner of the sandbox: a cedar 4x4 frame with a corner seat, sand with footprints and ruts, a Tonka-yellow dump truck and backhoe ──
     paintSandbox(g) {
-      const s = this.sandbox, r = BZ.rng(909), W = ['#6a4a2c', '#8a6438', '#a67c48', '#c09a62'], SAND = ['#b8a06c', '#cbb27e', '#dcc48f', '#e8d3a2', '#f0dfb4'];
-      for (let y = s.y0 + 3; y < s.y1 - 2; y++) for (let x = Math.max(0, s.x0 + 3); x < s.x1 - 3; x++) px(g, x, y, rampAt(SAND, 2 + Math.sin(x * 0.9 + y * 1.4) * 0.6 + (r() < 0.1 ? 1 : 0) + (y - s.y0) / (s.y1 - s.y0) * 0.6, x, y));
-      // tire ruts and a dug hole
-      for (let i = 0; i < 20; i++) { px(g, s.x0 + 36 + i * 2, s.y0 + 14 + (i & 1), SAND[0]); px(g, s.x0 + 38 + i * 2, s.y0 + 18 + (i & 1), SAND[0]); }
-      ell(g, s.x0 + 90, s.y0 + 20, 6, 3, SAND[0]); ell(g, s.x0 + 90, s.y0 + 19, 4.5, 2, '#8a7450'); ell(g, s.x0 + 70, s.y0 + 8, 5, 2, SAND[4]); // tire ruts, the hole, a heap
-      // the frame: top rail with a lit edge, the front rail, corner post
-      rect(g, s.x0, s.y0, s.x1 - s.x0, 4, W[1]); rect(g, s.x0, s.y0, s.x1 - s.x0, 1, W[3]); rect(g, s.x1 - 3, s.y0, 3, s.y1 - s.y0, W[0]); rect(g, s.x1 - 3, s.y0, 1, s.y1 - s.y0, W[2]);
-      rect(g, s.x0, s.y1 - 3, s.x1 - s.x0, 3, W[1]); rect(g, s.x0, s.y1 - 3, s.x1 - s.x0, 1, W[2]); rect(g, s.x1 - 5, s.y0 - 2, 5, 3, W[2]);
-      // the dump truck: yellow, bed tipped up, a black cab window, fat wheels
-      const tx = s.x0 + 52, ty = s.y1 - 12; ell(g, tx + 1, ty + 2, 13, 2.2, 'rgba(20,14,6,0.25)');
-      BZ.fillPoly(g, [[tx - 11, ty - 3], [tx + 2, ty - 3], [tx + 4, ty - 12], [tx - 13, ty - 9]], '#e8b520'); BZ.fillPoly(g, [[tx - 10, ty - 4], [tx + 1, ty - 4], [tx + 2, ty - 9], [tx - 11, ty - 7]], '#f2c640'); rect(g, tx - 11, ty - 3, 13, 1, '#b8880f'); // the bed, tipped, with its lip
-      rect(g, tx + 2, ty - 8, 9, 8, '#f0c030'); rect(g, tx + 3, ty - 7, 5, 3, '#2a3a44'); rect(g, tx + 2, ty - 8, 9, 1, '#f8d860'); rect(g, tx + 10, ty - 6, 2, 6, '#d8a010'); // cab, window, grille
-      for (const wx of [tx - 8, tx, tx + 8]) { ell(g, wx, ty, 2.6, 2.6, '#1a1a1a'); ell(g, wx, ty, 1.2, 1.2, '#6a6a6a'); }
-      // the backhoe: cab on tracks, the boom reaching into the hole, a toothed bucket
-      const bx = s.x0 + 76, by = s.y0 + 22; ell(g, bx + 1, by + 2, 10, 1.8, 'rgba(20,14,6,0.25)');
-      rect(g, bx - 8, by - 2, 16, 3, '#2a2a2a'); for (let i = 0; i < 8; i++) px(g, bx - 7 + i * 2, by, '#5a5a5a'); // tracks
-      rect(g, bx - 7, by - 9, 10, 7, '#e8b520'); rect(g, bx - 6, by - 8, 5, 3, '#2a3a44'); rect(g, bx - 7, by - 9, 10, 1, '#f8d860'); // cab
-      BZ.drawLine(g, bx + 2, by - 7, 2, bx + 9, by - 15, 1.6, '#d8a410', null, 0); BZ.drawLine(g, bx + 9, by - 15, 1.6, bx + 14, by - 7, 1.4, '#d8a410', null, 0); // boom, dipper
-      BZ.fillPoly(g, [[bx + 12, by - 7], [bx + 17, by - 7], [bx + 17, by - 2], [bx + 11, by - 3]], '#3a3a3a'); for (let i = 0; i < 3; i++) px(g, bx + 12 + i * 2, by - 2, '#8a8a8a'); // the bucket, teeth
-      // a little sand spilled over the front rail, and a shovel
-      for (let i = 0; i < 8; i++) px(g, s.x0 + 20 + r() * 30, s.y1 - 1 + (r() < 0.5 ? 0 : 1), SAND[3]);
-      BZ.drawThin(g, s.x1 - 14, s.y0 + 6, s.x1 - 9, s.y0 - 8, '#c84a3a'); rect(g, s.x1 - 17, s.y0 + 5, 7, 3, '#d8d8d8'); px(g, s.x1 - 9, s.y0 - 9, '#e86a5a'); // a little shovel
+      const s = this.sandbox, r = BZ.rng(909), CED = ['#5a3c22', '#7a5430', '#9a6e40', '#b8884f', '#d2a468'], SAND = ['#b49a66', '#c7ad78', '#d8bf8a', '#e6cf9c', '#efdbae', '#f6e6c0'];
+      const x0 = Math.max(0, s.x0), x1 = s.x1, y0 = s.y0, y1 = s.y1, T = 6; // rail thickness
+      shade(g, [[x0, y0 + T], [x1 - T, y0 + T], [x1 - T, y1 - 1], [x0, y1 - 1]], (x, y) => rampAt(SAND, 2.4 + Math.sin(x * 0.7 + y * 1.3) * 0.5 + (r() < 0.08 ? 1 : 0) + (y - y0) / (y1 - y0) * 0.9 - (y < y0 + T + 3 ? 1.1 : 0) - (x > x1 - T - 3 ? 0.9 : 0), x, y)); // the sand, in shadow under the rails
+      // footprints (small, paired), tire ruts, a dug hole with its heap
+      for (let i = 0; i < 4; i++) { const fx = x0 + 10 + i * 14 + r() * 6, fy = y0 + 10 + r() * 6 + i * 3; for (const sd of [0, 1]) { ell(g, fx + sd * 4, fy + sd * 2, 1.8, 1.1, SAND[0]); px(g, fx + sd * 4, fy + sd * 2 - 1, SAND[1]); } }
+      for (let i = 0; i < 16; i++) { px(g, x0 + 30 + i * 2.2, y0 + 20 + (i & 1), SAND[0]); px(g, x0 + 32 + i * 2.2, y0 + 25 + (i & 1), SAND[0]); }
+      shade(g, ellPts(x0 + 66, y0 + 25, 7, 3.6), (x, y) => rampAt(['#8a7450', '#a08a5a', '#b49a66'], 0.6 + (y - (y0 + 25)) / 3.6 * 1.2 + (x - (x0 + 66)) / 7 * 0.4, x, y)); shade(g, ellPts(x0 + 52, y0 + 11, 6, 2.6), (x, y) => rampAt(SAND, 3.2 - Math.abs(x - (x0 + 52)) / 6 * 1.2 - (y - (y0 + 9)) * 0.3, x, y)); // the hole, the heap beside it
+      // the frame: the back rail, the right rail, a corner post with a seat board on top; grain, a lit top edge, a dark underside
+      const rail = (pts, base, ang) => shade(g, pts, (x, y) => rampAt(CED, base + Math.sin((x * Math.cos(ang) + y * Math.sin(ang)) * 1.3) * 0.45 + (((x * 5 + y * 7) % 13) === 0 ? -0.6 : 0), x, y));
+      rail([[x0, y0], [x1, y0], [x1, y0 + T], [x0, y0 + T]], 2.8, 0); rect(g, x0, y0, x1 - x0, 1, CED[4]); rect(g, x0, y0 + T - 1, x1 - x0, 1, CED[0]);
+      rail([[x1 - T, y0], [x1, y0], [x1, y1], [x1 - T, y1]], 2.2, Math.PI / 2); rect(g, x1 - T, y0, 1, y1 - y0, CED[3]); rect(g, x1 - 1, y0, 1, y1 - y0, CED[0]);
+      rail([[x1 - T - 3, y0 - 4], [x1 + 2, y0 - 4], [x1 + 2, y0 + T + 2], [x1 - T - 3, y0 + T + 2]], 3.4, 0); rect(g, x1 - T - 3, y0 - 4, T + 5, 1, CED[4]); rect(g, x1 - T - 3, y0 + T + 1, T + 5, 1, CED[0]); px(g, x1 - T, y0 - 1, CED[0]); px(g, x1 - 2, y0 + 3, CED[0]); // the corner seat, two screw heads
+      rect(g, x0, y1 - 2, x1 - x0, 2, CED[1]); rect(g, x0, y1 - 2, x1 - x0, 1, CED[2]); // the front rail's top, just in view
+      for (let i = 0; i < 10; i++) px(g, x0 + 10 + r() * 50, y1 - 3 + (r() < 0.5 ? 0 : 1), SAND[3]); // sand kicked onto the rail
+      // the dump truck: a classic yellow steel one, side-on, the bed tipped up, fat black tires with silver hubs
+      const YL = ['#9c7210', '#c48f12', '#e4ac1a', '#f4c531', '#fbd95a', '#fff0a8'], tx = x0 + 24, ty = y1 - 13;
+      ell(g, tx + 2, ty + 3, 15, 2.6, 'rgba(20,14,6,0.28)');
+      rect(g, tx - 13, ty - 3, 26, 3, '#2a2a2e'); rect(g, tx - 13, ty - 3, 26, 1, '#4a4a50'); // the chassis
+      shade(g, [[tx - 14, ty - 12], [tx + 1, ty - 15], [tx + 3, ty - 5], [tx - 12, ty - 3]], (x, y) => rampAt(YL, 2.2 + (y - (ty - 15)) * -0.12 + (x - tx) / 14 * 0.6 + (((x - tx + 40) % 4) === 0 ? -0.9 : 0), x, y)); // the bed, tipped, ribbed
+      shade(g, [[tx - 14, ty - 12], [tx + 1, ty - 15], [tx + 1, ty - 17], [tx - 14, ty - 14]], (x, y) => rampAt(YL, 3.6, x, y)); rect(g, tx - 14, ty - 14, 1, 2, YL[5]); // the bed's rim, lit
+      shade(g, [[tx + 2, ty - 12], [tx + 12, ty - 12], [tx + 13, ty - 4], [tx + 2, ty - 4]], (x, y) => rampAt(YL, 2.4 + (y < ty - 11 ? 1.4 : 0) + (x - tx) / 12 * 0.5, x, y)); rect(g, tx + 4, ty - 11, 7, 1, YL[5]); // the cab
+      rect(g, tx + 4, ty - 10, 6, 4, '#1e2c38'); rect(g, tx + 5, ty - 9, 2, 1, '#8fb4cc'); rect(g, tx + 12, ty - 8, 2, 4, '#9a9aa0'); px(g, tx + 13, ty - 9, '#ffffff'); rect(g, tx + 11, ty - 5, 3, 1, '#3a3a3e'); // window, grille, headlight, bumper
+      for (const wx of [tx - 9, tx - 1, tx + 9]) { ell(g, wx, ty, 3.2, 3.2, '#1a1a1a'); ell(g, wx - 0.5, ty - 0.5, 1.5, 1.5, '#9a9aa0'); px(g, wx - 1, ty - 1, '#d8d8dc'); }
+      // the backhoe: tracks, a yellow cab with a window and a stack, the boom up and the dipper down into the hole, a toothed bucket
+      const bx = x0 + 52, by = y0 + 31; ell(g, bx + 2, by + 2, 11, 2, 'rgba(20,14,6,0.28)');
+      rect(g, bx - 9, by - 3, 18, 4, '#2a2a2e'); rect(g, bx - 9, by - 3, 18, 1, '#4a4a50'); for (let i = 0; i < 9; i++) px(g, bx - 8 + i * 2, by, '#5a5a60'); ell(g, bx - 8, by - 1, 1.5, 1.5, '#6a6a70'); ell(g, bx + 8, by - 1, 1.5, 1.5, '#6a6a70'); // the tracks, sprockets
+      shade(g, [[bx - 8, by - 12], [bx + 3, by - 12], [bx + 4, by - 3], [bx - 8, by - 3]], (x, y) => rampAt(YL, 2.4 + (y < by - 11 ? 1.4 : 0) + (x - bx) / 10 * 0.5, x, y)); rect(g, bx - 7, by - 11, 9, 1, YL[5]);
+      rect(g, bx - 6, by - 10, 5, 4, '#1e2c38'); px(g, bx - 5, by - 9, '#8fb4cc'); rect(g, bx + 1, by - 15, 2, 4, '#3a3a3e'); px(g, bx + 1, by - 16, '#6a6a70'); // window, exhaust stack
+      BZ.drawLine(g, bx + 3, by - 9, 3.2, bx + 11, by - 19, 2.6, YL[2], null, 0); BZ.drawLine(g, bx + 11, by - 19, 2.4, bx + 16, by - 8, 2, YL[3], null, 0); BZ.drawThin(g, bx + 4, by - 10, bx + 11, by - 20, YL[4]); px(g, bx + 11, by - 19, '#3a3a3e'); // boom, dipper, the pivot
+      shade(g, [[bx + 13, by - 8], [bx + 19, by - 8], [bx + 20, by - 2], [bx + 13, by - 3]], (x, y) => rampAt(['#2a2a2e', '#3c3c42', '#50505a'], 0.8 + (x - (bx + 13)) / 6 * 1.2, x, y)); for (let i = 0; i < 3; i++) px(g, bx + 14 + i * 2, by - 2, '#8a8a90'); for (let i = 0; i < 4; i++) px(g, bx + 14 + i, by - 5 + (i & 1), SAND[2]); // the bucket, teeth, sand in it
+      // a plastic shovel and a little blue bucket in the corner
+      BZ.drawThin(g, x1 - 15, y0 + 9, x1 - 10, y0 - 6, '#c84a3a'); BZ.drawThin(g, x1 - 14, y0 + 9, x1 - 9, y0 - 6, '#e86a5a'); rect(g, x1 - 18, y0 + 8, 7, 4, '#d8d8d8'); rect(g, x1 - 18, y0 + 8, 7, 1, '#f4f4f4'); px(g, x1 - 10, y0 - 7, '#e86a5a');
+      const ux = x0 + 63, uy = y0 + 10; shade(g, [[ux - 3, uy], [ux + 3, uy], [ux + 2, uy + 8], [ux - 2, uy + 8]], (x, y) => rampAt(['#2f5aa8', '#4f7fc9', '#7aa0dc'], 0.8 + (x - ux) / 3 * 0.8, x, y)); ellRing(g, ux, uy, 3, 1.1, '#7aa0dc'); BZ.drawThin(g, ux - 3, uy, ux, uy - 3, '#9a9aa0'); BZ.drawThin(g, ux, uy - 3, ux + 3, uy, '#9a9aa0');
     }
     // ── the landing and steps: weathered deck boards, posts, balusters, a top rail ──
     paintDeck(g, F) {
@@ -795,6 +914,7 @@ var BZ = window.BZ || (window.BZ = {});
         { key: 'potTop', type: 'ledge', x: X + sh.x0 + 14, y: Yo + sh.foot + 1, rootPx: sh.foot + 1 - sh.top, face: Math.PI / 2 - 0.3, surf: 'shelfTop', front: [X + sh.x0 + 18, Yo + sh.foot + 12] },
         { key: 'tire', type: 'tire', x: X + T.x, y: Yo + T.ground, cy: Yo + T.cy, R: T.R, r: T.r, ropeY: Yo + T.ropeY },
         { key: 'adk', type: 'adk', x: X + this.adk.x, y: Yo + this.adk.y, draw: true },
+        { key: 'dogbed', type: 'dogbed', x: X + this.dogBed.x, y: Yo + this.dogBed.y, draw: true },
       ];
     }
     surfaces() {
@@ -878,8 +998,8 @@ var BZ = window.BZ || (window.BZ = {});
         const q = this.squirrel; q.t++;
         if (q.st === 'down') { q.y += 1.6; if (q.y >= T.base - 2) { q.st = 'out'; q.y = T.base; } }
         else if (q.st === 'out') { const dx = q.gx - q.x, dy = q.gy - q.y, d = Math.hypot(dx, dy); if (d < 2) { q.st = 'sit'; q.t = 0; } else { q.x += (dx / d) * 2.2; q.y += (dy / d) * 1.2; } }
-        else if (q.st === 'sit') { const c = this.w.nearestCat(X + q.x, Yo + q.y), d = this.dog; if (q.t > 260 || (c && dist(c.x, c.y, X + q.x, Yo + q.y) < 70 * this.w.size) || (d && d.st === 'chase' && dist(d.x, d.y, X + q.x, Yo + q.y) < 150)) { q.st = 'home'; } }
-        else if (q.st === 'home') { const dx = T.x + 4 - q.x, dy = T.base - q.y, d = Math.hypot(dx, dy), v = this.dog && this.dog.st === 'chase' ? 4.6 : 3.2; if (d < 3) { q.st = 'up'; } else { q.x += (dx / d) * v; q.y += (dy / d) * v * 0.56; } }
+        else if (q.st === 'sit') { const c = this.w.nearestCat(X + q.x, Yo + q.y); if (q.t > 260 || (c && dist(c.x, c.y, X + q.x, Yo + q.y) < 70 * this.w.size)) { q.st = 'home'; } }
+        else if (q.st === 'home') { const dx = T.x + 4 - q.x, dy = T.base - q.y, d = Math.hypot(dx, dy), v = 3.2; if (d < 3) { q.st = 'up'; } else { q.x += (dx / d) * v; q.y += (dy / d) * v * 0.56; } }
         else if (q.st === 'up') { q.y -= 2.4; if (q.y < 20) { this.squirrel = null; this.sqWait = 1800 + Math.random() * 2600; } }
       }
       for (const f of this.ffl) { f.p += 0.05; f.x += Math.sin(f.p * 0.7) * f.v; f.y += Math.cos(f.p * 0.5) * f.v * 0.5; if (f.x < 0) f.x = W; if (f.x > W) f.x = 0; }
@@ -939,7 +1059,7 @@ var BZ = window.BZ || (window.BZ = {});
     }
     drawBirds(ctx, X, Yo) {
       for (const b of this.birds) {
-        const K = b.kind, s = K.size, x = Math.round(X + b.x), y = Math.round(Yo + b.y), f = b.f, fly = b.st !== 'perch', up = fly && ((b.t >> 1) & 1), cling = K.cling && b.st === 'perch', hd = K.headDown && cling;
+        const K = b.kind, s = K.size * 1.25, x = Math.round(X + b.x), y = Math.round(Yo + b.y), f = b.f, fly = b.st !== 'perch', up = fly && ((b.t >> 1) & 1), cling = K.cling && b.st === 'perch', hd = K.headDown && cling;
         const peck = b.st === 'perch' && (b.slot.k === 'ground' || b.slot.k === 'lawn' || b.slot.k === 'tray') && b.t % 90 > 70 && !K.slow;
         if (!fly && !cling) ell(ctx, x, y + 1, 3.5 * s, 1, 'rgba(20,14,6,0.18)');
         if (cling) { // flat against the pole or the trunk, head up (or down, for the nuthatch)
@@ -960,44 +1080,51 @@ var BZ = window.BZ || (window.BZ = {});
         px(ctx, hx + f * 0.8, hy - 0.3, '#111'); BZ.drawThin(ctx, hx + f * 1.8 * s, hy + (peck ? 0.6 : 0.1), hx + f * 3 * s, hy + (peck ? 1.2 : 0.3), K.bill); // eye, bill
       }
     }
-    // ── Juno: languid on the lawn, all eyebrows and ears, and a missile when the squirrel shows ──
+    // ── Juno: on her bed, watching the yard. She looks at whatever moves, dozes with her chin on her paws, sleeps, and
+    // reacts to a hand: ears soften, eyes squint, the tail thumps the bed. Bunny sometimes curls up at the foot of the bed. ──
     tickDog() {
-      const d = this.dog, w = this.w, X = this.st.x, Yo = this.st.y, S = this.S, F = this.F, H = this.st.h, T = this.tree, size = w.size, Ds = d.petScale;
-      d.t++; if (d.cool > 0) d.cool--;
-      const q = this.squirrel, sqOut = q && (q.st === 'out' || q.st === 'sit') && !this.night();
-      const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep), boD = bo ? dist(bo.x, bo.y, d.x, d.y) : 1e9;
-      const lawnY = (y) => Math.max(Yo + F + 46, Math.min(Yo + H - 50, y)), lawnX = (x, y) => Math.max(X + 26, Math.min(X + this.lawnEdge((y != null ? y : d.y) - Yo) - 34, x));
-      const go = (tx, ty, gait, v) => { const dx = tx - d.x, dy = (ty - d.y) / 0.56, dd = Math.hypot(dx, dy); if (dd < v + 1) { d.x = tx; d.y = ty; d.gait = null; return true; } const want = Math.atan2(dy, dx); let diff = Math.atan2(Math.sin(want - d.theta), Math.cos(want - d.theta)); d.theta += Math.max(-0.22, Math.min(0.22, diff)); d.x += Math.cos(d.theta) * v; d.y += Math.sin(d.theta) * v * 0.56; d.gait = gait; d.phase = (d.phase + v / (gait === 'gallop' ? 34 : 22)) % 1; d.anim = gait; return false; };
-      const set = (st, T2) => { d.st = st; d.t = 0; d.T = T2 || 0; };
-      // reflexes, in order of how much she cares
-      if (sqOut && d.st !== 'chase' && d.cool === 0 && !this.night()) { set('chase'); d.browT = 20; d.browTo = 1; d.earT = 20; d.earTo = 1; d.look = [X + q.x, Yo + q.y]; }
-      else if (bo && boD < 62 * size && d.st !== 'chase' && d.st !== 'avoid' && d.st !== 'tree') { set('avoid'); d.away = bo.x > d.x ? -1 : 1; d.earT = 60; d.earTo = -0.35; d.look = [bo.x, bo.y - 20]; }
-      switch (d.st) {
-        case 'chase': { // lightning: straight at it, no matter what
-          const tgt = q && q.st !== 'up' ? [X + q.x, Yo + q.y] : [X + T.x + 26, Yo + T.base + 12]; d.look = tgt; d.mouthT = 4;
-          if (go(tgt[0], tgt[1], 'gallop', 6.2 * size) || !q || q.st === 'up' || (q.st === 'down' && q.y < T.base - 30)) { if (dist(d.x, d.y, X + T.x + 26, Yo + T.base + 12) < 30) { set('tree', 150 + Math.random() * 120); d.wag = 200; } else { if (go(X + T.x + 26, Yo + T.base + 12, 'gallop', 6.2 * size)) { set('tree', 150 + Math.random() * 120); d.wag = 200; } } }
-          break; }
-        case 'tree': { // she lost it up the tree. again. a long look up, a wag, a sneeze of a bark
-          d.gait = null; d.anim = 'point'; d.look = [X + T.x, Yo + 20]; const face = d.x > X + T.x ? Math.PI - 0.35 : 0.35; d.theta += Math.atan2(Math.sin(face - d.theta), Math.cos(face - d.theta)) * 0.15; if (d.t === 30) d.mouthT = 10; // side-on to the trunk, nose up it
-          if (d.t > d.T) { d.cool = 900; set('wander'); d.wty = lawnY(Yo + F + 40 + Math.random() * 60); d.wtx = lawnX(X + T.x + 20 + Math.random() * 80, d.wty); } break; }
-        case 'avoid': { // not her favorite cat. a brisk trot elsewhere, one look back
-          const ty = lawnY(d.y + (Math.random() - 0.5) * 10), tx = lawnX(d.x + d.away * 150 * size, ty);
-          if (go(tx, ty, 'trot', 2.6 * size) || (bo && boD > 130 * size) || d.t > 160) { set('sit', 120 + Math.random() * 160); d.look = bo ? [bo.x, bo.y - 20] : null; d.browT = 40; d.browTo = 0.7; d.earT = 40; d.earTo = -0.2; }
-          break; }
-        case 'wander': { if (go(d.wtx, d.wty, 'trot', 1.3 * size) || d.t > 600) { const r = Math.random(); if (r < 0.45) set('rest', 500 + Math.random() * 900); else if (r < 0.7) set('sit', 200 + Math.random() * 300); else set('sun'); } if (d.t % 40 === 0) d.look = Math.random() < 0.5 ? null : [d.x + Math.cos(d.theta) * 80, d.y - 30]; break; }
-        case 'sun': { const p = this.pools[1]; const c = w.nearestCat(p.x, p.y); if (c && dist(c.x, c.y, p.x, p.y) < 40 * size) { set('wander'); d.wtx = this.dogHome[0]; d.wty = this.dogHome[1]; break; } if (go(lawnX(p.x, p.y + 4), lawnY(p.y + 4), 'trot', 1.3 * size)) set('rest', 900 + Math.random() * 900); break; }
-        case 'sit': { d.gait = null; d.anim = 'sit'; if (d.t % 90 === 45) { const c = w.nearestCat(d.x, d.y, (o) => !o.hidden); d.look = c && Math.random() < 0.6 ? [c.x, c.y - 20] : null; if (Math.random() < 0.4) { d.earT = 24; d.earTo = 0.5; } }
-          if (d.t > d.T) { if (Math.random() < 0.6) set('rest', 600 + Math.random() * 900); else { set('wander'); d.wty = lawnY(d.y + (Math.random() - 0.5) * 60); d.wtx = lawnX(d.x + (Math.random() - 0.5) * 160, d.wty); } } break; }
-        default: { // rest: sphinx, then the chin goes down; things lift the head (a bird landing, a cat crossing); eventually she gets up
-          d.gait = null; const drowsy = d.t > 320 && !(d.liftT > 0); d.anim = drowsy ? 'chin' : 'sphinx';
-          if (d.liftT > 0) d.liftT--;
-          const bird = this.birds.find((b) => b.st === 'in' && b.t < 4), c = w.nearestCat(d.x, d.y, (o) => !o.hidden && o.gait), near = c && dist(c.x, c.y, d.x, d.y) < 140 * size;
-          if ((bird || near || Math.random() < 0.004) && !(d.liftT > 0)) { d.liftT = 90 + Math.random() * 90; d.look = bird ? [X + bird.x, Yo + bird.y] : c ? [c.x, c.y - 20] : [d.x + (Math.random() - 0.5) * 200, d.y - 40]; d.browT = 50; d.browTo = 0.5 + Math.random() * 0.5; d.earT = 50; d.earTo = 0.4 + Math.random() * 0.5; }
-          else if (d.liftT === 0 && d.t % 70 === 0) { d.look = null; if (Math.random() < 0.3) { d.earT = 18; d.earTo = 0.35; } }
-          if (d.t > d.T + 300) { const r = Math.random(); if (r < 0.4) { set('wander'); d.wty = lawnY(d.y + (Math.random() - 0.5) * 80); d.wtx = lawnX(d.x + (Math.random() - 0.5) * 200, d.wty); } else if (r < 0.6) set('sun'); else set('sit', 150 + Math.random() * 250); }
-        }
+      const d = this.dog, w = this.w, X = this.st.x, Yo = this.st.y, size = w.size, nt = this.night(), p = w.pointer;
+      d.t++; if (d.T == null) d.T = 700;
+      if (d.liftT > 0) d.liftT--; if (d.wake > 0) d.wake--;
+      const set = (st, T) => { d.st = st; d.t = 0; d.T = T; };
+      const headAt = (c) => (c.screen ? [c.screen[BZ.IDX.head][0], c.screen[BZ.IDX.head][1]] : [c.x, c.y - 20 * size]);
+      // what's worth a look: a bird landing, the squirrel, a cat moving nearby, your hand close to her, the thing you're carrying
+      const bird = this.birds.find((b) => b.st === 'in' && b.t < 3), q = this.squirrel, sq = q && (q.st === 'out' || q.st === 'sit' || q.st === 'home');
+      const mover = w.nearestCat(d.x, d.y, (c) => !c.hidden && !c.asleep && (c.gait || c.state === 'held')), moverD = mover ? dist(mover.x, mover.y, d.x, d.y) : 1e9;
+      const hand = p.inside && dist(p.x, p.y, d.x, d.y - 20 * size) < 110 * size, held = w.heldCat;
+      const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep && !c.inBed), boD = bo ? dist(bo.x, bo.y, d.x, d.y) : 1e9;
+      const busyPet = d.liftT > 0 && d.leanT > 0;
+      if (d.leanT > 0) { d.leanT--; if (d.leanT === 0) d.leanTo = 0; }
+      const awake = d.st !== 'sleep';
+      if (awake && !busyPet) {
+        if (sq && !(d.sqT > 0)) { d.look = [X + q.x, Yo + q.y]; d.browT = 60; d.browTo = 0.9; d.earT = 60; d.earTo = 0.9; d.sqT = 90; d.liftT = 160; if (d.st !== 'watch') set('watch', 400); if (Math.random() < 0.4) d.mouthT = 12; } // the squirrel: that's the one thing that still gets a boof
+        else if (bird) { d.look = [X + bird.x, Yo + bird.y]; d.earT = 40; d.earTo = 0.6; d.browT = 40; d.browTo = 0.5; d.liftT = 120; }
+        else if (held && Math.random() < 0.03) { d.look = [held.x, held.y - 10]; d.browT = 30; d.browTo = 0.7; d.liftT = 90; } // a cat in the air: eyebrows
+        else if (mover && moverD < 190 * size && d.t % 12 === 0) { d.look = headAt(mover); d.liftT = Math.max(d.liftT, 60); if (moverD < 70 * size && Math.random() < 0.2) { d.earT = 30; d.earTo = 0.5; } }
+        else if (hand && d.t % 8 === 0) { d.look = [p.x, p.y]; d.liftT = Math.max(d.liftT, 40); }
       }
-      if (d.st !== 'chase') { d.y = lawnY(d.y); d.x = lawnX(d.x, d.y); }
+      if (d.sqT > 0) d.sqT--;
+      // Bo too close: she just watches Bo, eyebrows up, a little hopeful. Bo is the one who minds (see Cat.s_skeptic)
+      if (bo && boD < 85 * size && !(bo.cool.dog > 0) && !bo.asleep && !bo.inBed && !BZ.BUSY.includes(bo.state) && bo.state !== 'toBed' && bo.state !== 'nap') { bo.setState('skeptic'); bo.skepT = (70 + Math.random() * 90) | 0; bo.skepAt = d; bo.cool.dog = 700; if (awake) { d.look = headAt(bo); d.browT = 80; d.browTo = 0.8; d.liftT = 120; d.wag = 50; } }
+      // Bunny arriving on the bed: a tail thump and a look, then back to resting her chin
+      const bedCat = w.cats.find((c) => c.inBed && c.inBed.type === 'dogbed');
+      if (bedCat && !d.hadCat) { d.hadCat = true; d.wag = 90; d.look = headAt(bedCat); d.liftT = 150; d.browT = 60; d.browTo = 0.6; if (d.st === 'sleep') set('doze', 600); }
+      if (!bedCat) d.hadCat = false;
+      switch (d.st) {
+        case 'watch': { d.anim = 'sphinx';
+          if (d.t % 110 === 50 && !(d.liftT > 0) && !hand) d.look = Math.random() < 0.55 ? null : [d.x + (Math.random() - 0.3) * 260 * size, d.y - 20 - Math.random() * 90]; // an idle glance around the yard
+          if (d.t % 160 === 80 && Math.random() < 0.35) { d.earT = 20; d.earTo = Math.random() < 0.5 ? 0.4 : -0.2; }
+          if (d.t > d.T && !(d.liftT > 0)) { if (Math.random() < 0.35) d.yawnT = 40; set('doze', (nt ? 500 : 900) + Math.random() * 1100); d.look = null; }
+          break; }
+        case 'doze': { d.anim = d.liftT > 0 ? 'sphinx' : 'chin'; if (d.t % 90 === 30 && d.liftT === 0 && Math.random() < 0.25) { d.earT = 16; d.earTo = -0.1; } // an ear flicks
+          if (d.t > d.T && !(d.liftT > 0)) { if (Math.random() < (nt ? 0.75 : 0.45)) set('sleep', (nt ? 3000 : 1800) + Math.random() * 2600); else set('watch', 500 + Math.random() * 900); }
+          break; }
+        case 'sleep': { d.anim = d.wake > 0 ? 'chin' : 'sleep'; d.look = null; if (d.t % 200 === 100 && Math.random() < 0.3) { d.earT = 10; d.earTo = -0.3; } // a dream twitch
+          const loud = w.cats.some((c) => c.state === 'brawl' && dist(c.x, c.y, d.x, d.y) < 120 * size) || (sq && dist(X + q.x, Yo + q.y, d.x, d.y) < 90 * size);
+          if (d.t > d.T || loud || d.wake > 0 && d.wake < 2) { set('doze', 400 + Math.random() * 600); d.wake = 0; d.liftT = loud ? 120 : 0; if (loud) { d.look = sq ? [X + q.x, Yo + q.y] : null; d.earT = 40; d.earTo = 0.7; } }
+          break; }
+        default: set('watch', 700);
+      }
       d.animate();
     }
     // what's moving out here that a cat could care about
