@@ -8,7 +8,7 @@
 
 ## Cats (`src/cat.js`, `src/world.js`)
 
-(Juno the dog is `BZ.Dog` at the end of `cat.js`: a lying dog in the same Ballz vocabulary (poses `sphinx`, `chin`, `sleep`; a 3D head that yaws and pitches toward `look`; `pet(region, x, y)`, `tap()`, `at(x, y)` hit test), drawn through the shared `BZ.drawOutlined` pass. Her behavior is `Yard.tickDog` in `jungle.js` (watch → doze → sleep, reactions to birds, the squirrel, cats, your hand). Her bed is the `dogbed` fixture (`items.js`: registry, `bedGeom` with Bunny's spot at the foot, `paintDogbed`). `World.dogAt` routes pointer presses to her; `Cat.s_skeptic` is Bo's reaction.)
+(Juno the dog is `BZ.Dog` at the end of `cat.js`: a lying dog in the same Ballz vocabulary (poses `sphinx`, `chin`, `sleep`; a 3D head that yaws and pitches toward `look`; `pet(region, x, y)`, `tap()`, `at(x, y)` hit test), drawn through the shared `BZ.drawOutlined` pass. Her behavior is `Dog.tickRest(env)` (watch → doze → sleep, reactions); `Yard.tickDog` and `Jungle.tickDog` build `env`. In the room she lies on the daybed's left cushion (`furniture[0].dogOn`). Her bed is the `dogbed` fixture (`items.js`: registry, `bedGeom` with Bunny's spot at the foot, `paintDogbed`). `World.dogAt` routes pointer presses to her; `Cat.s_skeptic` is Bo's reaction.)
 
 - **Skeleton**: balls and tapered lines (`LINES`), placed by `buildSkeleton` from a pose. Front legs: IK 12+12 from the shoulder. Hind legs: thigh 7.5, shank 10.5, hock 11 above the paw. Roll about the spine with a ground-rest lift weighted by `min(1, |roll|/35)`.
 - **Poses**: `BZ.POSES` (stand, sit, loaf, sphinx, baguette, crescent, dangle, lounge, flop, crouch, beg, eat, graze, stretch, stretchBack, slink, rear, tussle, wallStretch, bellyup, lunge, crabArch, leap, pin, kick, flinch, held, ...). Keys: hip/chest positions, back lift, head offsets and angles, paw targets `[forward, up, side]` with leg modes `ik | flat | tuck | sit | hide`, tail shape, ears, lids.
@@ -30,7 +30,7 @@
 
 ## Scenes (`src/jungle.js`)
 
-Both scenes implement: `layout(stage)`, `paint()`, `drawBack(ctx)`, `drawFront(ctx)`, `floorY`, `fixtures()`, `surfaces()`, `birdSpot()`, and optionally `sunSpots()`, `props()` (things sorted with the cats: the tree trunk, the stone bunny, Juno, the easel, the kick wheel), `stimuli()` (butterflies, leaves, the squirrel, ground birds), `plotSlot()`, `slotPos()`. Static art is painted once into offscreen canvases and repainted when the time-of-day phase changes. Scenery is drawn with the item technique: `shade(g, pts, fn)` (per-pixel polygon fill), `rampAt` (ramp + ordered dither), `ellPts`, `leafPts`; the yard's painters are `paintRhodo`, `paintHydrangea`, `paintFeeder`, `paintStudioStuff` (easel, wheel; cached), `paintSandbox`.
+Both scenes implement: `layout(stage)`, `paint()`, `drawBack(ctx)`, `drawFront(ctx)`, `floorY`, `fixtures()`, `surfaces()`, `birdSpot()`, and optionally `sunSpots()`, `props()` (things sorted with the cats: the tree trunk, the stone bunny, Juno, the easel, the kick wheel), `stimuli()` (butterflies, leaves, the squirrel, ground birds), `plotSlot()`, `slotPos()`. Static art is painted once into offscreen canvases and repainted when the time-of-day phase changes (`BZ.hourOverride` pins the hour for renders). At night the room draws a dim with the lamp pools cut out (`Jungle.drawNight`). Scenery is drawn with the item technique: `shade(g, pts, fn)` (per-pixel polygon fill), `rampAt` (ramp + ordered dither), `ellPts`, `leafPts`; the yard's painters are `paintRhodo`, `paintHydrangea`, `paintFeeder`, `paintStudioStuff` (easel, wheel; cached), `paintSandbox`.
 
 ## Save format (v4)
 
@@ -52,6 +52,7 @@ Older saves (`items`, v3) load into both `room` and `desk`. The daybed and coffe
 | `node test/ux.js phone|tablet|desktop out.png` | A scripted walkthrough (pick, place, pet, laser, put down, switch to the yard) with touch or mouse; prints what happened. |
 | `node test/juno.js out.png` | Juno's pose sheet (resting, looking, alert, chin, asleep, petted). |
 | `node test/junoyard.js out.png` | Juno in the yard: Bunny on the bed, a hand on her head, Bo's look (three screenshots). |
+| `node test/gifs2.js <scenario> out.gif` | The art-directed GIF set by time of day (`dawn-room`, `day-laser`, `dusk-cubby`, `night-lamp`, `day-yard`, `dawn-feeder`, `dusk-doors`, `night-yard`); sets `BZ.hourOverride`. |
 | `xvfb-run -a npx electron --no-sandbox test/electron-smoke.js` | Boots the Mac app's windows headlessly and screenshots them. |
 | `node test/one.js "t=<type>&s=1.6&px=4" out.png` | Close-up of one item (`&lump=1&peek=30` for the blanket lump). |
 | `node test/scene.js room|yard out.png [ticks] [w] [h]` | The habitat window after N ticks. |

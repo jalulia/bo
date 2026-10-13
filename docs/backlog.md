@@ -17,6 +17,8 @@ Every request from Julia, in her words where possible. Status: `open`, `in progr
 
 | Date | Request | Round |
 |---|---|---|
+| 2026-10-12 | "in the living room, can juno please be on the daybed" | 2026-10-12i |
+| 2026-10-12 | "a few cute gifs of different times of days, the various interactions. 3-4 per outside and inside", with orchids, the floral and bee chair and the table lamp out; two full screen, the rest cropped; art directed | 2026-10-12i (`gifs/2026-10-12/`) |
 | 2026-10-12 | "Pause fully building Juno briefly, and just have Juno on a big dog bed. Sort of to the side watching the scene. you can pet her and she reacts, and she looks around and naps, but stays on the bed. Bunny sometimes naps with her but Bo doesn't, looks skeptical of her occasionally when she gets too close" | 2026-10-12h |
 | 2026-10-12 | "Please REALLY work on the art fidelity for everything, the easel, hydrangea, pottery wheel, etc, are all so bad lol"; "the ears perked and nose / eyes ratio were slightly better" (first Juno) | 2026-10-12h |
 | 2026-10-12 | "Complete pass to make the UX and the UI clean, clear, organized, and working well on mobile as well in the browser"; "things like this pop up i think are unnecessary" (hover tag) | 2026-10-12g |

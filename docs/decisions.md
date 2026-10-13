@@ -2,6 +2,13 @@
 
 Short records of choices someone might later undo by accident. Newest first.
 
+**2026-10-12 · One Juno behavior, two scenes.** `Dog.tickRest(env)` holds the watch/doze/sleep machine and every reaction; `Yard.tickDog` and `Jungle.tickDog` only build `env` (events, Bo nearby, a cat on her bed, night, loud things). Add reactions in one place.
+
+**2026-10-12 · In the room Juno takes the daybed's left cushion.** `furniture[0].dogOn = true` makes that bed unavailable to cats (`startNap`, `bedUnder`, the "join her" rule); the right cushion (`seat`) stays available with the dog-bed weights (Bo 0, Bunny 4). She sorts at `daybed.y + 0.305`, between the two cushions' cats.
+
+**2026-10-12 · Night in the room is a dim with holes, not darker art.** `Jungle.drawNight` fills `rgba(12,18,52,0.30)` over the stage and punches the lamp table's pool out with destination-out ellipses, so the lamp reads as the light source and nothing else had to be repainted for night.
+
+
 **2026-10-12 · Juno stays on her bed.** The walking Saluki (1.55x scale, IK legs, chase/avoid/wander) read as "terrifying" at this resolution; Julia paused the full build. `BZ.Dog` is now a lying dog only (poses `sphinx`, `chin`, `sleep`; head yaw/pitch, ears, brows, lids, tail, lean) at 1.28x world.size, and `Yard.tickDog` is a bed-bound state machine (watch → doze → sleep) with petting (`Dog.pet`, `Dog.tap`, hit test `Dog.at`) and no locomotion. If the walking build comes back, start from this head and these proportions; the old skeleton is in git history (`0eb9c79`).
 
 **2026-10-12 · Bo never picks the dog bed; Bunny sometimes does.** `startNap` bed weights: `dogbed: isBo ? 0 : 5` (the map uses `??`, not `||`, so a 0 weight stays 0). Bo's reaction is `Cat.s_skeptic` (in BUSY), triggered by the yard when she is within 85*size of the dog, cooldown `cool.dog = 700`.

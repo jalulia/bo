@@ -29,7 +29,7 @@ var BZ = window.BZ || (window.BZ = {});
     dusk:  { sky: ['#3e4685', '#6a5d97', '#b56f86', '#e8946a', '#f5b878'], far: '#7d6a85', beam: 0.55, cloud: ['#f7c6a0', '#d88f86', '#8d6a86'], lit: 0.35 },
     night: { sky: ['#0d1430', '#131d3e', '#1a274c', '#22325a', '#2b3d66'], far: '#1c2645', beam: 0.18, cloud: ['#3a4672', '#2e3961', '#242e52'], lit: 0.6 },
   };
-  function phaseNow() { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 5.5 || h >= 20.5 ? 'night' : h < 8 ? 'dawn' : h < 17.5 ? 'day' : 'dusk'; }
+  function phaseNow() { if (BZ.hourOverride != null) { const h = BZ.hourOverride; return h < 5.5 || h >= 20.5 ? 'night' : h < 8 ? 'dawn' : h < 17.5 ? 'day' : 'dusk'; } const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 5.5 || h >= 20.5 ? 'night' : h < 8 ? 'dawn' : h < 17.5 ? 'day' : 'dusk'; } // BZ.hourOverride (ours): pin the hour for renders and tests
   function mk() { return document.createElement('canvas'); }
   function ell(ctx, cx, cy, rx, ry, col) { BZ.ellipse(ctx, cx, cy, rx, ry, col); }
   function ellRing(ctx, cx, cy, rx, ry, col) { let px = null, py = null; for (let i = 0; i <= 48; i++) { const a = (i / 48) * Math.PI * 2, x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry; if (px !== null) BZ.drawThin(ctx, px, py, x, y, col); px = x; py = y; } }
@@ -75,6 +75,12 @@ var BZ = window.BZ || (window.BZ = {});
       // the room's own furniture (fixtures, not toy-box things): the daybed against the wall, the carved table out on the rug
       { const x0 = Math.round(W * 0.23), x1 = Math.round(W * 0.46); this.bookcase = { x0, x1, topY: F - 70, baseY: F + 5, mid: F - 38 }; this.cube = { x0: x1 - 50, x1: x1 - 6, y0: F - 35, y1: F - 2 }; this.cube.hx = Math.round((this.cube.x0 + this.cube.x1) / 2); this.cube.hy = this.cube.y1 - 15; }
       this.furniture = [{ key: 'daybed', type: 'daybed', x: st.x + Math.round(W * 0.6), y: st.y + F + 17 }, { key: 'ctable', type: 'ctable', x: st.x + Math.round(W * 0.43), y: st.y + Math.round(F + (H - F) * 0.62) }];
+      // Juno on the daybed: the left cushion is hers, head and forelegs draped toward you over the front edge; the right cushion stays Bunny's
+      const db = this.furniture[0], k = this.w.size * 0.95, dx = db.x - 17 * k, dy = db.y - 28 * k;
+      db.dogOn = true;
+      if (!this.dog) { this.dog = new BZ.Dog(this.w, dx, dy); this.dog.theta = Math.PI - 0.55; this.dog.anim = 'sphinx'; this.dog.st = 'watch'; this.dog.t = 0; this.dog.T = 700; for (let i = 0; i < 30; i++) this.dog.animate(); }
+      else { this.dog.x = dx; this.dog.y = dy; }
+      this.dogSortY = db.y + 0.305;
       this.paint();
     }
     paint() {
@@ -440,14 +446,35 @@ var BZ = window.BZ || (window.BZ = {});
         ell(ctx, cx, cy + 2 * s, 14 * s, 3 * s, P.cloud[2]); ell(ctx, cx - 5 * s, cy, 7 * s, 4 * s, P.cloud[1]); ell(ctx, cx + 4 * s, cy - 1 * s, 8 * s, 5 * s, P.cloud[0]); ell(ctx, cx + 11 * s, cy + 1 * s, 5 * s, 3 * s, P.cloud[1]);
       }
       ctx.restore();
-      this.tickBird(); this.drawBird(ctx, X, Y);
+      this.tickBird(); this.drawBird(ctx, X, Y); this.tickDog();
       ctx.drawImage(this.frame, X, Y);
       this.drawCurtains(ctx, X, Y, t);
       this.drawClock(ctx, X, Y);
       ctx.drawImage(this.over, X, Y);
       this.drawShaft(ctx, X, Y, t);
     }
-    drawFront(ctx) { ctx.drawImage(this.fg, this.st.x, this.st.y); }
+    drawFront(ctx) { ctx.drawImage(this.fg, this.st.x, this.st.y); if (this.phase === 'night') this.drawNight(ctx); }
+    // night in the room: a cool dim over everything, with the lamp's warm pool cut out of it
+    drawNight(ctx) {
+      const st = this.st, w = this.w; if (!this.nightC) this.nightC = mk(); const c = this.nightC; c.width = st.w; c.height = st.h; const g = c.getContext('2d');
+      g.fillStyle = 'rgba(12,18,52,0.30)'; g.fillRect(0, 0, st.w, st.h); g.globalCompositeOperation = 'destination-out';
+      for (const it of w.items) if (it.type === 'lamptable' && !it.held) { const k = w.size * 0.95, cx = it.x - st.x + 1 * k, cy = it.y - st.y - 40 * k; for (let r = 1; r <= 6; r++) BZ.ellipse(g, cx, cy + r * 5 * k, 16 * k + r * 8 * k, 14 * k + r * 6 * k, 'rgba(0,0,0,0.2)'); }
+      g.globalCompositeOperation = 'source-over'; ctx.drawImage(c, st.x, st.y);
+    }
+    props() { return [{ y: this.dogSortY, draw: (ctx) => this.dog.draw(ctx) }]; }
+    // ── Juno on the daybed: the room tells her what's going on (Dog.tickRest does the rest) ──
+    tickDog() {
+      const d = this.dog, w = this.w, size = w.size, p = w.pointer, ev = [];
+      const b = this.bird; if (b && b.st === 'in' && Math.abs(b.x - b.tx) < 12) ev.push({ kind: 'bird', at: [this.st.x + this.win.x0 + b.x, this.st.y + this.win.y0 + b.y] }); // the pigeon landing on the ledge
+      if (w.heldCat) ev.push({ kind: 'held', at: [w.heldCat.x, w.heldCat.y - 10] });
+      const mover = w.nearestCat(d.x, d.y, (c) => !c.hidden && !c.asleep && (c.gait || c.state === 'held')), moverD = mover ? Math.hypot(mover.x - d.x, mover.y - d.y) : 1e9;
+      if (mover && moverD < 190 * size) ev.push({ kind: 'mover', at: mover.screen ? [mover.screen[BZ.IDX.head][0], mover.screen[BZ.IDX.head][1]] : [mover.x, mover.y - 20 * size], close: moverD < 70 * size });
+      if (p.inside && Math.hypot(p.x - d.x, p.y - (d.y - 20 * size)) < 110 * size) ev.push({ kind: 'hand', at: [p.x, p.y] });
+      const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep && !c.inBed && Math.hypot(c.x - d.x, c.y - d.y) < 80 * size);
+      const loud = w.cats.some((c) => c.state === 'brawl' && Math.hypot(c.x - d.x, c.y - d.y) < 120 * size) ? { at: null } : null;
+      const seat = w.items.find((i) => i.type === 'seat' && i.parent && i.parent.key === 'daybed');
+      d.tickRest({ night: this.phase === 'night', events: ev, loud, bedCat: w.cats.find((c) => c.inBed && seat && c.inBed === seat), bo });
+    }
     // where a cat should look to chatter at the pigeon (stage coords), or null
     fixtures() { const X = this.st.x, Y = this.st.y, F = this.floorY, cb = this.cube; return [{ key: 'cubby', type: 'cubby', draw: true, x: X + cb.hx, y: Y + F + 7, rootPx: F + 7 - cb.y1, hole: { cx: X + cb.hx, cy: Y + cb.hy, rx: 12.5, ry: 12 }, box: { x0: X + cb.x0, x1: X + cb.x1, y0: Y + cb.y0, y1: Y + cb.y1 } }]; }
     // places a small thing can be set down: the sill, the bookcase top and its two shelves (stage coords; `ground` sorts it)
@@ -517,7 +544,7 @@ var BZ = window.BZ || (window.BZ = {});
       for (const p of this.plots) p.slots = p.slots.map(([x, y]) => [st.x + x, st.y + y]);
       this.adk = { x: Math.round(Math.max(W * 0.36, S - 36)), y: Math.round(fy(0.3)) };
       // sun pools on the ground: they drift with the hour, like the real dapple did
-      const hr = new Date().getHours() + new Date().getMinutes() / 60, drift = Math.max(-1, Math.min(1, (hr - 13) / 5)) * 18;
+      const hr = BZ.hourOverride != null ? BZ.hourOverride : new Date().getHours() + new Date().getMinutes() / 60, drift = Math.max(-1, Math.min(1, (hr - 13) / 5)) * 18;
       this.pools = [[S + 128 + drift, fy(0.3)], [W * 0.3 + drift, fy(0.5)], [S + 40 + drift, fy(0.74)]].map(([x, y]) => ({ x: st.x + x, y: st.y + y, rx: 34, ry: 10 }));
       this.sun = this.pools[0];
       this.ffl = Array.from({ length: 12 }, () => ({ x: Math.random() * W, y: F - 30 + Math.random() * (H - F + 10), p: Math.random() * 6.28, v: 0.3 + Math.random() * 0.5 }));
@@ -588,8 +615,8 @@ var BZ = window.BZ || (window.BZ = {});
       win(S + 180, S + 200, wt + 4, F - 42, 3);
       for (let x = S + 290; x + 22 < W - 4; x += 64) win(x, x + 22, wt + 4, F - 42, x);
       // French doors (drawn by drawBack so they can swing); the porch light beside them
-      const lx = S + 126, ly = this.door.y0 + 8; rect(g, lx - 3, ly - 5, 6, 7, Y.trim[2]); ell(g, lx + 2, ly, 3, 3, '#2a2724'); ell(g, lx + 5, ly + 2, 2, 2, nt ? '#fff1c0' : '#d8d2c2');
-      if (nt) for (let k = 1; k <= 4; k++) ell(g, lx + 5, ly + 2, 4 + k * 5, 3 + k * 4, 'rgba(255,220,150,0.07)');
+      const lx = S + 126, ly = this.door.y0 + 8, porch = nt || this.phase === 'dusk'; rect(g, lx - 3, ly - 5, 6, 7, Y.trim[2]); ell(g, lx + 2, ly, 3, 3, '#2a2724'); ell(g, lx + 5, ly + 2, 2, 2, porch ? '#fff1c0' : '#d8d2c2'); // the porch light comes on at dusk
+      if (porch) for (let k = 1; k <= 4; k++) ell(g, lx + 5, ly + 2, 4 + k * 5, 3 + k * 4, `rgba(255,220,150,${nt ? 0.07 : 0.04})`);
       rect(g, S + 168, F - 52, 4, 6, '#e2e2dc'); rect(g, S + 169, F - 51, 2, 2, '#9a9a94'); // an outdoor outlet
       // a downspout at the right
       const dx = Math.min(W - 6, S + 212); rect(g, dx, eave, 3, F - eave, Y.trim[2]); rect(g, dx, eave, 1, F - eave, Y.trim[4]);
@@ -1083,52 +1110,18 @@ var BZ = window.BZ || (window.BZ = {});
         px(ctx, hx + f * 0.8, hy - 0.3, '#111'); BZ.drawThin(ctx, hx + f * 1.8 * s, hy + (peck ? 0.6 : 0.1), hx + f * 3 * s, hy + (peck ? 1.2 : 0.3), K.bill); // eye, bill
       }
     }
-    // ── Juno: on her bed, watching the yard. She looks at whatever moves, dozes with her chin on her paws, sleeps, and
-    // reacts to a hand: ears soften, eyes squint, the tail thumps the bed. Bunny sometimes curls up at the foot of the bed. ──
+    // ── Juno on her bed: the yard tells her what's going on (Dog.tickRest does the rest) ──
     tickDog() {
-      const d = this.dog, w = this.w, X = this.st.x, Yo = this.st.y, size = w.size, nt = this.night(), p = w.pointer;
-      d.t++; if (d.T == null) d.T = 700;
-      if (d.liftT > 0) d.liftT--; if (d.wake > 0) d.wake--;
-      const set = (st, T) => { d.st = st; d.t = 0; d.T = T; };
-      const headAt = (c) => (c.screen ? [c.screen[BZ.IDX.head][0], c.screen[BZ.IDX.head][1]] : [c.x, c.y - 20 * size]);
-      // what's worth a look: a bird landing, the squirrel, a cat moving nearby, your hand close to her, the thing you're carrying
-      const bird = this.birds.find((b) => b.st === 'in' && b.t < 3), q = this.squirrel, sq = q && (q.st === 'out' || q.st === 'sit' || q.st === 'home');
+      const d = this.dog, w = this.w, X = this.st.x, Yo = this.st.y, size = w.size, p = w.pointer, ev = [];
+      const q = this.squirrel; if (q && (q.st === 'out' || q.st === 'sit' || q.st === 'home')) ev.push({ kind: 'squirrel', at: [X + q.x, Yo + q.y] });
+      const bird = this.birds.find((b) => b.st === 'in' && b.t < 3); if (bird) ev.push({ kind: 'bird', at: [X + bird.x, Yo + bird.y] });
+      if (w.heldCat) ev.push({ kind: 'held', at: [w.heldCat.x, w.heldCat.y - 10] });
       const mover = w.nearestCat(d.x, d.y, (c) => !c.hidden && !c.asleep && (c.gait || c.state === 'held')), moverD = mover ? dist(mover.x, mover.y, d.x, d.y) : 1e9;
-      const hand = p.inside && dist(p.x, p.y, d.x, d.y - 20 * size) < 110 * size, held = w.heldCat;
-      const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep && !c.inBed), boD = bo ? dist(bo.x, bo.y, d.x, d.y) : 1e9;
-      const busyPet = d.liftT > 0 && d.leanT > 0;
-      if (d.leanT > 0) { d.leanT--; if (d.leanT === 0) d.leanTo = 0; }
-      const awake = d.st !== 'sleep';
-      if (awake && !busyPet) {
-        if (sq && !(d.sqT > 0)) { d.look = [X + q.x, Yo + q.y]; d.browT = 60; d.browTo = 0.9; d.earT = 60; d.earTo = 0.9; d.sqT = 90; d.liftT = 160; if (d.st !== 'watch') set('watch', 400); if (Math.random() < 0.4) d.mouthT = 12; } // the squirrel: that's the one thing that still gets a boof
-        else if (bird) { d.look = [X + bird.x, Yo + bird.y]; d.earT = 40; d.earTo = 0.6; d.browT = 40; d.browTo = 0.5; d.liftT = 120; }
-        else if (held && Math.random() < 0.03) { d.look = [held.x, held.y - 10]; d.browT = 30; d.browTo = 0.7; d.liftT = 90; } // a cat in the air: eyebrows
-        else if (mover && moverD < 190 * size && d.t % 12 === 0) { d.look = headAt(mover); d.liftT = Math.max(d.liftT, 60); if (moverD < 70 * size && Math.random() < 0.2) { d.earT = 30; d.earTo = 0.5; } }
-        else if (hand && d.t % 8 === 0) { d.look = [p.x, p.y]; d.liftT = Math.max(d.liftT, 40); }
-      }
-      if (d.sqT > 0) d.sqT--;
-      // Bo too close: she just watches Bo, eyebrows up, a little hopeful. Bo is the one who minds (see Cat.s_skeptic)
-      if (bo && boD < 85 * size && !(bo.cool.dog > 0) && !bo.asleep && !bo.inBed && !BZ.BUSY.includes(bo.state) && bo.state !== 'toBed' && bo.state !== 'nap') { bo.setState('skeptic'); bo.skepT = (70 + Math.random() * 90) | 0; bo.skepAt = d; bo.cool.dog = 700; if (awake) { d.look = headAt(bo); d.browT = 80; d.browTo = 0.8; d.liftT = 120; d.wag = 50; } }
-      // Bunny arriving on the bed: a tail thump and a look, then back to resting her chin
-      const bedCat = w.cats.find((c) => c.inBed && c.inBed.type === 'dogbed');
-      if (bedCat && !d.hadCat) { d.hadCat = true; d.wag = 90; d.look = headAt(bedCat); d.liftT = 150; d.browT = 60; d.browTo = 0.6; if (d.st === 'sleep') set('doze', 600); }
-      if (!bedCat) d.hadCat = false;
-      switch (d.st) {
-        case 'watch': { d.anim = 'sphinx';
-          if (d.t % 110 === 50 && !(d.liftT > 0) && !hand) d.look = Math.random() < 0.55 ? null : [d.x + (Math.random() - 0.3) * 260 * size, d.y - 20 - Math.random() * 90]; // an idle glance around the yard
-          if (d.t % 160 === 80 && Math.random() < 0.35) { d.earT = 20; d.earTo = Math.random() < 0.5 ? 0.4 : -0.2; }
-          if (d.t > d.T && !(d.liftT > 0)) { if (Math.random() < 0.35) d.yawnT = 40; set('doze', (nt ? 500 : 900) + Math.random() * 1100); d.look = null; }
-          break; }
-        case 'doze': { d.anim = d.liftT > 0 ? 'sphinx' : 'chin'; if (d.t % 90 === 30 && d.liftT === 0 && Math.random() < 0.25) { d.earT = 16; d.earTo = -0.1; } // an ear flicks
-          if (d.t > d.T && !(d.liftT > 0)) { if (Math.random() < (nt ? 0.75 : 0.45)) set('sleep', (nt ? 3000 : 1800) + Math.random() * 2600); else set('watch', 500 + Math.random() * 900); }
-          break; }
-        case 'sleep': { d.anim = d.wake > 0 ? 'chin' : 'sleep'; d.look = null; if (d.t % 200 === 100 && Math.random() < 0.3) { d.earT = 10; d.earTo = -0.3; } // a dream twitch
-          const loud = w.cats.some((c) => c.state === 'brawl' && dist(c.x, c.y, d.x, d.y) < 120 * size) || (sq && dist(X + q.x, Yo + q.y, d.x, d.y) < 90 * size);
-          if (d.t > d.T || loud || d.wake > 0 && d.wake < 2) { set('doze', 400 + Math.random() * 600); d.wake = 0; d.liftT = loud ? 120 : 0; if (loud) { d.look = sq ? [X + q.x, Yo + q.y] : null; d.earT = 40; d.earTo = 0.7; } }
-          break; }
-        default: set('watch', 700);
-      }
-      d.animate();
+      if (mover && moverD < 190 * size) ev.push({ kind: 'mover', at: mover.screen ? [mover.screen[BZ.IDX.head][0], mover.screen[BZ.IDX.head][1]] : [mover.x, mover.y - 20 * size], close: moverD < 70 * size });
+      if (p.inside && dist(p.x, p.y, d.x, d.y - 20 * size) < 110 * size) ev.push({ kind: 'hand', at: [p.x, p.y] });
+      const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep && !c.inBed && dist(c.x, c.y, d.x, d.y) < 85 * size);
+      const loud = w.cats.some((c) => c.state === 'brawl' && dist(c.x, c.y, d.x, d.y) < 120 * size) ? { at: null } : (q && (q.st === 'out' || q.st === 'sit') && dist(X + q.x, Yo + q.y, d.x, d.y) < 90 * size) ? { at: [X + q.x, Yo + q.y] } : null;
+      d.tickRest({ night: this.night(), events: ev, loud, bedCat: w.cats.find((c) => c.inBed && c.inBed.type === 'dogbed'), bo });
     }
     // what's moving out here that a cat could care about
     stimuli() {

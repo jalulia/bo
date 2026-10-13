@@ -333,8 +333,8 @@ var BZ = window.BZ || (window.BZ = {});
       const w = this.w, b = this.buddy, p = this.pers, opts = {};
       const freeSlots = (s) => s.slots.filter((sl) => !w.cats.some((c) => c !== this && c.napSpot && dist(c.napSpot[0], c.napSpot[1], sl[0], sl[1]) < 5));
       if (!target) {
-        w.items.forEach((it, i) => { if (BZ.ITEMS[it.type].bed && !it.held && !it.occupant) opts['bed:' + i] = { pod: this.isBo ? 5 : 3, pillow: 5, blanket: 6, box: 3 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), bag: 3.5 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), lamptable: 6 + (BZ.isNight() ? 3 : 0), ledge: 2.5, daybed: 7, seat: 7, ctable: 3.5, adk: 7, stoop: 3, tire: 4, cubby: this.isBo ? 7 : 4, dogbed: this.isBo ? 0 : 5 }[it.type] ?? 3.5; });
-        if (b && b.asleep && b.bedItem && ['daybed', 'adk', 'lamptable', 'seat'].includes(b.bedItem.type)) { const sib = b.bedItem.type !== 'seat' ? w.items.find((i) => i.type === 'seat' && i.parent === b.bedItem) : b.bedItem.parent; const si = w.items.indexOf(sib); if (sib && si >= 0 && !sib.occupant) opts['bed:' + si] = 16 * w.rel(this, b).bond; } // she's on the daybed: join her
+        w.items.forEach((it, i) => { if (BZ.ITEMS[it.type].bed && !it.held && !it.occupant && !it.dogOn) opts['bed:' + i] = { pod: this.isBo ? 5 : 3, pillow: 5, blanket: 6, box: 3 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), bag: 3.5 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), lamptable: 6 + (BZ.isNight() ? 3 : 0), ledge: 2.5, daybed: 7, seat: 7, ctable: 3.5, adk: 7, stoop: 3, tire: 4, cubby: this.isBo ? 7 : 4, dogbed: this.isBo ? 0 : 5 }[it.type] ?? 3.5; if (it.type === 'seat' && it.parent && it.parent.dogOn) opts['bed:' + i] = this.isBo ? 0 : 4; });
+        if (b && b.asleep && b.bedItem && ['daybed', 'adk', 'lamptable', 'seat'].includes(b.bedItem.type)) { const sib = b.bedItem.type !== 'seat' ? w.items.find((i) => i.type === 'seat' && i.parent === b.bedItem) : b.bedItem.parent; const si = w.items.indexOf(sib); if (sib && si >= 0 && !sib.occupant && !sib.dogOn) opts['bed:' + si] = 16 * w.rel(this, b).bond; } // she's on the daybed: join her
         w.sunSpots().forEach((s, i) => { if (freeSlots(s).length) opts['sun:' + i] = (s.item ? 6 : s.yard ? 5 : 2.5) * (0.6 + p.sleepy / 100); });
         if (b && b.asleep && !b.inBed) { const rel = w.rel(this, b); if (rel.bond > 0.55 && rel.tension < 0.4) opts.buddy = 4 * rel.bond; }
         const sunB = b && b.asleep && !b.inBed && w.inSun(b.x, b.y) && w.rel(this, b).tension < 0.5;
@@ -1466,7 +1466,7 @@ var BZ = window.BZ || (window.BZ = {});
     // a free bed under the pointer (generous target: the whole pod / seat)
     bedUnder(x, y, cat) {
       for (let i = this.items.length - 1; i >= 0; i--) {
-        const it = this.items[i]; if (!BZ.ITEMS[it.type].bed || it.held || (it.occupant && it.occupant !== cat.id)) continue;
+        const it = this.items[i]; if (!BZ.ITEMS[it.type].bed || it.held || it.dogOn || (it.occupant && it.occupant !== cat.id)) continue;
         const g = BZ.bedGeom(it, this.size);
         if (BZ.itemHit(it, x, y, this.size) || dist(x, y, g.spot[0], g.spot[1] - g.rootPx - 14 * this.size) < (it.fixed ? 26 : 36) * this.size) return it;
       }

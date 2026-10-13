@@ -84,7 +84,7 @@ var BZ = window.BZ || (window.BZ = {});
     ['Treats', ['treat', 'shrimp', 'bowl']],
     ['Garden', [...Object.keys(BZ.GARDEN).map((k) => 'seed_' + k), 'can', 'trowel'], 'yard'],
   ];
-  BZ.isNight = () => { const h = new Date().getHours() + new Date().getMinutes() / 60; return h < 6 || h >= 20.5; };
+  BZ.isNight = () => { const h = BZ.hourOverride != null ? BZ.hourOverride : new Date().getHours() + new Date().getMinutes() / 60; return h < 6 || h >= 20.5; };
 
   BZ.growSprout = function (it) { // growth is in seconds of sun (watered plants get more of them)
     const g = it.g || 0, st = g < 25 ? 0 : g < 110 ? 1 : g < 260 ? 2 : 3;
@@ -532,7 +532,7 @@ var BZ = window.BZ || (window.BZ = {});
   };
   // the desktop sunbeam brings its own window
   BZ.drawSunWindow = function (ctx, it, s, t) {
-    const k = s, wx = it.x + 30 * k, wy = it.y - 82 * k, W = 22 * k, H = 26 * k, night = BZ.isNight(), h = new Date().getHours();
+    const k = s, wx = it.x + 30 * k, wy = it.y - 82 * k, W = 22 * k, H = 26 * k, night = BZ.isNight(), h = BZ.hourOverride != null ? Math.floor(BZ.hourOverride) : new Date().getHours();
     const sky = night ? ['#141c3a', '#2b3d66'] : h >= 17 ? ['#6a5d97', '#f0a46e'] : h < 8 ? ['#b0b3d6', '#f8dcbc'] : ['#6fa8d6', '#d6e9f3'];
     // light falling from the panes onto the patch (drawn first, under the frame)
     BZ.fillPoly(ctx, [[wx - W + 2, wy + H], [wx + W - 2, wy + H], [it.x + 40 * k + 6 * k, it.y - 12 * k], [it.x - 40 * k - 6 * k, it.y - 12 * k]], `rgba(255,236,190,${night ? 0.03 : 0.07})`);
@@ -921,8 +921,9 @@ var BZ = window.BZ || (window.BZ = {});
   function lampTable(ctx, it, s, t) {
     const k = s * 0.95, w = 50 * k, h = 82 * k, ox = 25 * k, oy = 78 * k;
     ctx.drawImage(cached('lamptable' + s, w, h, ox, oy, (g, X, Y) => paintLampTable(g, X, Y, k)), Math.round(it.x - ox), Math.round(it.y - oy));
-    const glow = BZ.isNight() ? 0.1 : 0.045, lx = it.x + 1 * k, ly = it.y - 58 * k; // warm light pooling under the shade
-    for (let r = 1; r <= 4; r++) ell(ctx, lx, ly + 10 * k + r * 2 * k, 12 * k + r * 6 * k, 4 * k + r * 3 * k, `rgba(255,206,130,${glow})`);
+    const night = BZ.isNight(), glow = night ? 0.13 : 0.045, lx = it.x + 1 * k, ly = it.y - 58 * k; // warm light pooling under the shade
+    if (night) { const sy = it.y - 64 * k; BZ.fillPoly(ctx, [[lx - 13 * k, sy + 3 * k], [lx + 13 * k, sy + 3 * k], [lx + 9 * k, sy - 3 * k], [lx - 9 * k, sy - 3 * k]], 'rgba(255,230,170,0.5)'); ell(ctx, lx, sy + 3.5 * k, 13 * k, 2.2 * k, 'rgba(255,240,200,0.35)'); } // the shade lit from inside
+    for (let r = 1; r <= (night ? 5 : 4); r++) ell(ctx, lx, ly + 10 * k + r * 2 * k, 12 * k + r * 6 * k, 4 * k + r * 3 * k, `rgba(255,206,130,${glow})`);
     void t;
   }
   BZ.drawSweaterIcon = function (ctx, x, y, s) { // a little folded cream sweater with a green bow

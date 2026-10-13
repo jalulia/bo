@@ -1,6 +1,6 @@
 {
  "name": "Desktop Bo",
- "version": "2.8.0",
+ "version": "2.9.0",
  "provenance_note": "breed_standard = CFA Cornish Rex standard (cfa.org/?p=21290); photos = Julia's reference photos of Bo; read_out = PF.Magic engine rules via petz.js kb; ours = choices made here",
  "body": {
   "source": "breed_standard + photos",
@@ -388,7 +388,9 @@
   "bed": "fixture dogbed at (tree.x+6, F+76) stage px; painter paintDogbed: RX 44k RY 16.5k (k = world.size), rolled rim ramp GR #3a3b3e..#848689, pad with a quatrefoil lattice (cell 9k, vertical half) in #b9bbbd/#d9dbdc/#eceeee, a hollow and creases; Bunny's spot (x-23k, y+5k) rootPx 3k sortY y+0.8 face pi/2+0.55; the dog's origin (bed.x - 1*size, bed.y + 0.5), theta 0.35",
   "behavior": "watch (sphinx; idle glances every 110 frames, ear flicks; 700-1600 frames) -> doze (chin; 900-2000 by day, 500-1600 at night; a 35% yawn on the way) -> sleep (45% by day, 75% at night; 1800-4400 by day, 3000-5600 at night) -> doze -> watch. Head lifts (liftT) for: a bird landing (120), the squirrel (160, brows 0.9, ears 0.9, 40% boof), a held cat (3%/frame, 90), a moving cat within 190*size (60, ears 0.5 if within 70), your hand within 110*size of her head (40). Sleep breaks for a brawl within 120*size or the squirrel within 90*size. Bo within 85*size: Bo -> s_skeptic (70-160 frames, ears back 0.55, flick, maybe a meow, cooldown 700); Juno looks at her, brows 0.8, wag 50. Bunny arriving on the bed: wag 90, look, brows 0.6.",
   "petting": "press on her (World.dogAt -> Dog.at hit regions head/back/leg/tail), every 5th moved frame -> pet(): ears -0.45 for 30, lids 0.6 for 30, wag 40, liftT 160, lean +-0.8 toward the hand (head) or 0.3; wakes her from sleep into chin for 200 frames. A quick tap -> tap(): liftT 120, brows 0.8, ears 0.7, look at the pointer, wag 20.",
-  "bed_choice": "startNap weight dogbed: Bo 0, others 5"
+  "bed_choice": "startNap weight dogbed: Bo 0, others 5",
+  "room": "on the daybed: origin (daybed.x - 17k, daybed.y - 28k), k = 0.95*size, theta pi - 0.55 (facing left, draped toward you), sorted at daybed.y + 0.305; the daybed (left cushion) has dogOn = true: no cat picks it; the seat (right cushion) keeps dog-bed weights (Bo 0, Bunny 4); events: the pigeon landing (bird), a held cat, a moving cat within 190*size, your hand within 110*size, Bo within 80*size -> s_skeptic",
+  "behavior_api": "Dog.tickRest(env): env = { night, events: [{kind: squirrel|bird|held|mover|hand, at, close}], loud: {at}|null, bedCat, bo }; the scene builds env each tick"
  },
  "yard_2026_10_12h": {
   "layout": "tire.x = tree.x - 40 (left of the tree); easel (S+216, F+34), wheel (S+182, F+66) on the patio right of the steps, cached 80x76 canvases drawn as props; feeder pole at S-30, base F-2, top F-72; rhododendron (S-62, F-3, r 27) painted before the feeder, hydrangea (S-10, F+4, r 17) after it; sandbox corner (-30..84, H-44..H-8) rails 6 px; pools[1] at (0.3W, fy(0.5)); lawnBed at fy(0.66); adk at (max(0.36W, S-36), fy(0.3))",
@@ -400,5 +402,25 @@
   "kick_wheel": "flywheel: shadow disc at foot-3 then the lit top at foot-7 (17x5.2) ramp #3b3b40..#9a9aa0, rim #9a9aa0, clay spatter; shaft 3 px steel foot-30..foot-4 with a bearing collar; splash pan 11x3.6 dark green; wheel head 7.5x2.4 steel with rings; pot profile r(t) = 3.4 + 2.2 sin(pi min(1,1.25t)) - 0.6t, 10 tall, ramp #7a4a30..#e0b48e with throwing rings every 3 rows and a wet highlight; plank seat 16 wide at foot-16 on two legs with a towel; bucket of slip 10x11 at x-22 with a handle and a dribble; sponge #e8c860; wire tool",
   "sandbox": "sand ramp #b49a66..#f6e6c0 in shadow under the rails; 4 paired footprints; two tire ruts; hole at (x0+66, y0+25) and heap at (x0+52, y0+11); rails 6 px cedar ramp #5a3c22..#d2a468 with grain, lit top, dark underside, a corner seat 11 wide with two screws; dump truck at (x0+24, y1-13): chassis, ribbed bed tipped (rim lit), cab with window/grille/headlight/bumper, three 6.4 px tires with silver hubs, yellow ramp #9c7210..#fff0a8; backhoe at (x0+52, y0+31): tracks with sprockets, cab with window and exhaust stack, boom to (bx+11, by-19), dipper to (bx+16, by-8), bucket with 3 teeth and sand in it; red shovel at the corner; blue bucket at (x0+63, y0+10)",
   "birds": "drawn at 1.25 x kind.size"
+ },
+ "room_night_2026_10_12": {
+  "dim": "Jungle.drawNight: rgba(12,18,52,0.30) over the stage; destination-out ellipses around each lamp table at (x + k, y - 40k) + r*5k, radii 16k + 8k r by 14k + 6k r, r = 1..6, alpha 0.2 each",
+  "lamp": "at night the shade is overlaid rgba(255,230,170,0.5) with a rim ellipse rgba(255,240,200,0.35); the pool glow 0.13 x 5 rings (0.045 x 4 by day)",
+  "porch_light": "lit at dusk and night; glow rings 0.04 at dusk, 0.07 at night",
+  "hour_override": "BZ.hourOverride (hours, fractional) pins phaseNow, isNight, the sun-pool drift and the roam window's sky"
+ },
+ "gifs_2026_10_12": {
+  "harness": "test/gifs2.js <scenario> out.gif; 15 fps, 2 ticks per frame, palettegen 128 colors diff, neighbor scaling",
+  "room_furnishing": "pod (58,256), lamptable (372,250), floral (100,320), dfly (326,324), grass (240,344), orchid on the sill at x 293",
+  "scenarios": {
+   "dawn-room": "6.6h full frame scale 2: Bo dangle in the dragonfly chair, Bunny on ledgeL watching, pigeon lands at frame 40, Juno dozing",
+   "day-laser": "11h crop (50,215,300,140) x2.5: laser on a figure-eight over the rug, Bo watching from the floral chair",
+   "dusk-cubby": "18.4h crop (box.x0-30, box.y0-6, 236,126) x3: Bo dangle in the cube, Bunny burrowed in a blanket at (cub.x+62, cub.y+30) peeking every 70 frames",
+   "night-lamp": "22h crop (236,150,200,134) x3: Bunny asleep on the lamp table's right slot, Bo in her sweater on the floor, a hand pets her from frame 45",
+   "day-yard": "13h full frame: Bunny in the tire, Bo grazing cat grass in lawnBed slot 2, poppy and lavender in wallBed, cardinal/chickadee/robin landed, squirrel raid at frame 75",
+   "dawn-feeder": "7h crop (tree.x+8, F-108, 236, 128) x2.5: Bo on the potting-shelf top (potTop) chattering at the feeder, cardinals/chickadee/robin, raid at frame 25",
+   "dusk-doors": "19h crop (S+64, F-76, 176, 136) x3: the cats come out through the doors (enterDelay 10 and 70), Bo takes the stoop at frame 85",
+   "night-yard": "22.5h crop (4, F-6, 236, 128) x2.5: Bo dangle in the Adirondack, Bunny curled on the dog bed, Juno asleep, fireflies, a hand on Juno from frame 100"
+  }
  }
 }

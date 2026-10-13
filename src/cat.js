@@ -486,6 +486,49 @@ var BZ = window.BZ || (window.BZ = {});
       if (Math.random() < 0.05) this.sighT = 1;
     }
     tap() { this.liftT = 120; this.browT = 40; this.browTo = 0.8; this.earT = 40; this.earTo = 0.7; this.look = [this.w.pointer.x, this.w.pointer.y]; this.wag = 20; }
+    // ── resting on a bed, anywhere: watch → doze → sleep, with reactions. The scene passes what's going on around her:
+    // env = { night, events: [{ kind: squirrel|bird|held|mover|hand, at: [x, y] }], loud, bedCat (a cat sharing her bed), bo (Bo, awake, nearby), nearest (a cat to glance at) }
+    tickRest(env) {
+      const d = this, w = this.w, size = w.size;
+      d.t++; if (d.T == null) d.T = 700; if (d.st == null) d.st = 'watch';
+      if (d.liftT > 0) d.liftT--; if (d.wake > 0) d.wake--; if (d.sqT > 0) d.sqT--;
+      if (d.leanT > 0) { d.leanT--; if (d.leanT === 0) d.leanTo = 0; }
+      const set = (st, T) => { d.st = st; d.t = 0; d.T = T; };
+      const awake = d.st !== 'sleep', busyPet = d.liftT > 0 && d.leanT > 0;
+      if (awake && !busyPet) for (const e of env.events || []) { // in order of how much she cares; the first that applies wins
+        if (e.kind === 'squirrel' && !(d.sqT > 0)) { d.look = e.at; d.browT = 60; d.browTo = 0.9; d.earT = 60; d.earTo = 0.9; d.sqT = 90; d.liftT = 160; if (d.st !== 'watch') set('watch', 400); if (Math.random() < 0.4) d.mouthT = 12; break; } // the one thing that still gets a boof
+        if (e.kind === 'bird') { d.look = e.at; d.earT = 40; d.earTo = 0.6; d.browT = 40; d.browTo = 0.5; d.liftT = 120; break; }
+        if (e.kind === 'held' && Math.random() < 0.03) { d.look = e.at; d.browT = 30; d.browTo = 0.7; d.liftT = 90; break; } // a cat in the air: eyebrows
+        if (e.kind === 'mover' && d.t % 12 === 0) { d.look = e.at; d.liftT = Math.max(d.liftT, 60); if (e.close && Math.random() < 0.2) { d.earT = 30; d.earTo = 0.5; } break; }
+        if (e.kind === 'hand' && d.t % 8 === 0) { d.look = e.at; d.liftT = Math.max(d.liftT, 40); break; }
+      }
+      // Bo too close: she just watches Bo, eyebrows up, a little hopeful. Bo is the one who minds (Cat.s_skeptic)
+      const bo = env.bo;
+      if (bo && !(bo.cool.dog > 0) && !bo.asleep && !bo.inBed && !BZ.BUSY.includes(bo.state) && bo.state !== 'toBed' && bo.state !== 'nap') {
+        bo.setState('skeptic'); bo.skepT = (70 + Math.random() * 90) | 0; bo.skepAt = d; bo.cool.dog = 700;
+        if (awake) { d.look = bo.screen ? [bo.screen[BZ.IDX.head][0], bo.screen[BZ.IDX.head][1]] : [bo.x, bo.y - 20]; d.browT = 80; d.browTo = 0.8; d.liftT = 120; d.wag = 50; }
+      }
+      // a cat arriving on her bed: a tail thump and a look, then back to resting her chin
+      const bc = env.bedCat;
+      if (bc && !d.hadCat) { d.hadCat = true; d.wag = 90; d.look = bc.screen ? [bc.screen[BZ.IDX.head][0], bc.screen[BZ.IDX.head][1]] : [bc.x, bc.y - 20]; d.liftT = 150; d.browT = 60; d.browTo = 0.6; if (d.st === 'sleep') set('doze', 600); }
+      if (!bc) d.hadCat = false;
+      const nt = env.night, hand = (env.events || []).some((e) => e.kind === 'hand');
+      switch (d.st) {
+        case 'watch': { d.anim = 'sphinx';
+          if (d.t % 110 === 50 && !(d.liftT > 0) && !hand) d.look = Math.random() < 0.55 ? null : [d.x + (Math.random() - 0.3) * 260 * size, d.y - 20 - Math.random() * 90]; // an idle glance around
+          if (d.t % 160 === 80 && Math.random() < 0.35) { d.earT = 20; d.earTo = Math.random() < 0.5 ? 0.4 : -0.2; }
+          if (d.t > d.T && !(d.liftT > 0)) { if (Math.random() < 0.35) d.yawnT = 40; set('doze', (nt ? 500 : 900) + Math.random() * 1100); d.look = null; }
+          break; }
+        case 'doze': { d.anim = d.liftT > 0 ? 'sphinx' : 'chin'; if (d.t % 90 === 30 && d.liftT === 0 && Math.random() < 0.25) { d.earT = 16; d.earTo = -0.1; } // an ear flicks
+          if (d.t > d.T && !(d.liftT > 0)) { if (Math.random() < (nt ? 0.75 : 0.45)) set('sleep', (nt ? 3000 : 1800) + Math.random() * 2600); else set('watch', 500 + Math.random() * 900); }
+          break; }
+        case 'sleep': { d.anim = d.wake > 0 ? 'chin' : 'sleep'; d.look = null; if (d.t % 200 === 100 && Math.random() < 0.3) { d.earT = 10; d.earTo = -0.3; } // a dream twitch
+          if (d.t > d.T || env.loud || (d.wake > 0 && d.wake < 2)) { set('doze', 400 + Math.random() * 600); d.wake = 0; d.liftT = env.loud ? 120 : 0; if (env.loud) { d.look = env.loud.at || null; d.earT = 40; d.earTo = 0.7; } }
+          break; }
+        default: set('watch', 700);
+      }
+      d.animate();
+    }
     build() {
       const p = this.pose, s = this.petScale, pts = {}, br = this.breath;
       pts.hip = [p.hip[0], p.hip[1] + br * 0.5, 0]; pts.back = [p.back[0], p.back[1] + br * 0.8, 0]; pts.chest = [p.chest[0], p.chest[1] + br, 0]; pts.throat = [p.throat[0], p.throat[1] + br * 0.6, 0];
