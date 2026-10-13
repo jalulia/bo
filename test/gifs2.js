@@ -17,28 +17,28 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     window.__crop = [st.x, st.y, st.w, st.h]; window.__scale = 2; window.__script = () => {}; P.inside = false;
     const room = sc.endsWith('room') || sc === 'day-laser' || sc === 'dusk-cubby' || sc === 'night-lamp';
     if (room) { // the living room, furnished: the lamp table, the floral chair, the dragonfly chair, the orchid on the coffee table, Juno on the daybed
-      world.removeItem(find('grass')); const pod = find('pod'); pod.x = st.x + 58; pod.y = st.y + 256;
-      put('lamptable', 372, 250); put('floral', 100, 320); put('dfly', 326, 324); put('grass', 240, 344); { const CT = find('ctable'); put('orchid', CT.x - st.x + 12, CT.y - st.y - 27.5 * SZ * 0.95); }
+      world.removeItem(find('grass')); const pod = find('pod'); pod.x = st.x + 40; pod.y = st.y + 246;
+      put('poppy', 104, 324); put('dfly', 330, 322); put('lamptable', 400, 298); put('grass', 150, 352); { const CT = find('ctable'); put('orchid', CT.x - st.x + 12, CT.y - st.y - 27.5 * SZ * 0.95); }
       world.scene.paint(); const J = world.scene.dog; settle(60);
-      const DB = find('daybed'), SEAT = world.items.find((i) => i.type === 'seat' && i.parent === DB), DF = find('dfly'), FL = find('floral'), LT = find('lamptable'), LS = world.items.find((i) => i.type === 'seat' && i.parent === LT), CUB = find('cubby');
+      const DB = find('daybed'), SEAT = world.items.find((i) => i.type === 'seat' && i.parent === DB), DF = find('dfly'), FL = find('poppy'), LT = find('lamptable'), LS = world.items.find((i) => i.type === 'seat' && i.parent === LT), CUB = find('cubby');
       if (sc === 'dawn-room') { // full frame: first light. Bo asleep in the dragonfly chair, an arm over the edge; Bunny on the sill as the pigeon lands; Juno lifts her head to it
         bed(bo, DF, 'dangle', 400); const L = world.items.find((i) => i.type === 'ledge' && i.key === 'ledgeL'); bed(bu, L, 'loaf', 100); bu.bedPlan = { watch: 9999, end1: 0, end2: 0, it: L };
         J.st = 'doze'; J.t = 100; J.T = 9999; J.anim = 'chin'; for (let i = 0; i < 40; i++) J.animate(); world.scene.birdWait = 1e9;
         let f = 0; window.__script = () => { f++; if (f === 80) world.scene.birdWait = 1; };
       }
-      if (sc === 'day-laser') { // the laser over the rug: Bunny chases, Bo keeps her seat in the floral chair and watches
+      if (sc === 'day-laser') { // the laser over the rug: Bunny chases, Bo keeps her seat in the poppy chair and watches
         bed(bo, FL, 'loaf', 60); bo.bedPlan = { watch: 9999, end1: 0, end2: 0, it: FL }; rest(bu, st.x + 250, st.y + 300, Math.PI); bu.excitement = 80; bu.needs.energy = 95;
-        J.st = 'watch'; J.t = 10; J.T = 9999; world.cmd('carry', 'laser'); window.__crop = [st.x + 50, st.y + 215, 300, 140]; window.__scale = 2.5;
-        let f = 0; window.__script = () => { f++; P.inside = true; const u = f / 240 * Math.PI * 2; P.x = st.x + 200 + Math.sin(u * 2) * 95; P.y = st.y + 300 + Math.cos(u) * 28; world.onMove(); };
+        J.st = 'watch'; J.t = 10; J.T = 9999; world.cmd('carry', 'laser'); window.__crop = [st.x + 68, st.y + 212, 262, 150]; window.__scale = 3;
+        let f = 0; window.__script = () => { f++; P.inside = true; const u = f / 240 * Math.PI * 2; P.x = st.x + 210 + Math.sin(u * 2) * 80; P.y = st.y + 304 + Math.cos(u) * 26; world.onMove(); };
       }
       if (sc === 'dusk-cubby') { // dusk: Bo in the felt cube with an arm hanging out; Bunny under the blanket in front, peeking
-        bed(bo, CUB, 'dangle', 200); const bl = put('blanket', CUB.x + 62, CUB.y + 30); bed(bu, bl, 'crescent', 50); bu.bedPlan = { burrow: true, end1: 0, end2: 0, it: bl };
-        J.st = 'doze'; J.t = 100; J.T = 9999; window.__crop = [CUB.box.x0 - 42, CUB.box.y0 + 4, 236, 126]; window.__scale = 3;
+        bed(bo, CUB, 'dangle', 200); const bl = put('blanket', CUB.x - 30, CUB.y + 14); bed(bu, bl, 'crescent', 50); bu.bedPlan = { burrow: true, end1: 0, end2: 0, it: bl };
+        J.st = 'doze'; J.t = 100; J.T = 9999; window.__crop = [CUB.box.x0 - 82, CUB.box.y0 - 16, 134, 114]; window.__scale = 4;
         let f = 0; window.__script = () => { f++; if (f % 70 === 40 && bl.lump) bl.lump.peek = 45; };
       }
-      if (sc === 'night-lamp') { // night: the lamp's pool of light, both cats up on the table, Bo in her sweater; a hand on Bo
-        world.dress(bo); bed(bu, LS, 'crescent', 100); bu.needs.energy = 10; bu.napLen = 99999; bu.nextShift = 99999; rest(bo, LT.x - 40 * SZ, LT.y + 26, Math.PI / 2 + 0.2, 'stare'); J.st = 'sleep'; J.t = 10; J.T = 9999; J.anim = 'sleep';
-        window.__crop = [st.x + 236, st.y + 150, 200, 134]; window.__scale = 3;
+      if (sc === 'night-lamp') { // night: the reading nook in the lamp's pool of light. Bunny asleep in the dragonfly chair, Bo in her sweater on the rug; a hand on Bo
+        world.dress(bo); bed(bu, DF, 'crescent', 100); bu.needs.energy = 10; bu.napLen = 99999; bu.nextShift = 99999; rest(bo, DF.x - 40 * SZ, DF.y + 8, Math.PI / 2 + 0.25, 'stare'); J.st = 'sleep'; J.t = 10; J.T = 9999; J.anim = 'sleep';
+        window.__crop = [st.x + 222, st.y + 196, 200, 150]; window.__scale = 3;
         let f = 0; window.__script = () => { f++;
           if (f === 90) { P.inside = true; P.x = bo.screen[BZ.IDX.head][0] + 40; P.y = bo.screen[BZ.IDX.head][1] + 30; }
           if (f > 90 && f < 260) { const u = Math.min(1, (f - 90) / 30), H = bo.screen[BZ.IDX.head]; P.x = H[0] + 40 * (1 - u) + Math.sin(f * 0.35) * 6 * u; P.y = H[1] + 30 * (1 - u) - 4 * u + (f & 1); world.onMove(); if (f === 122) world.onDown(); }
