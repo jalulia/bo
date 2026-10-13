@@ -7,8 +7,8 @@ const cv = document.getElementById('c'); cv.width = 560; cv.height = 240; cv.sty
 const g = cv.getContext('2d'); g.fillStyle = '#7f9c5e'; g.fillRect(0, 0, 560, 240);
 const fake = { size: 1.2, frame: 0, pointer: { x: 0, y: 0 } };
 const set = [
-  ['sphinx', 0.35, (d) => {}],
-  ['sphinx', 0.35, (d) => { d.look = [d.x + 40, d.y + 120]; }],
+  ['sphinx', Math.PI - 0.38, (d) => {}],
+  ['sphinx', Math.PI - 0.38, (d) => { d.look = [d.x - 40, d.y + 120]; }],
   ['sphinx', 0.35, (d) => { d.look = [d.x - 30, d.y - 120]; d.browT = 999; d.browTo = 0.9; d.earT = 999; d.earTo = 0.95; }],
   ['sphinx', Math.PI / 2 + 0.25, (d) => { d.look = [d.x - 10, d.y + 100]; }],
   ['chin', 0.35, (d) => {}],

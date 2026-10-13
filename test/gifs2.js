@@ -16,9 +16,9 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
     const settle = (n) => { for (let i = 0; i < n; i++) world.tick(); };
     window.__crop = [st.x, st.y, st.w, st.h]; window.__scale = 2; window.__script = () => {}; P.inside = false;
     const room = sc.endsWith('room') || sc === 'day-laser' || sc === 'dusk-cubby' || sc === 'night-lamp';
-    if (room) { // the living room, furnished: the lamp table, the floral chair, the dragonfly chair, the orchid on the sill, Juno on the daybed
+    if (room) { // the living room, furnished: the lamp table, the floral chair, the dragonfly chair, the orchid on the coffee table, Juno on the daybed
       world.removeItem(find('grass')); const pod = find('pod'); pod.x = st.x + 58; pod.y = st.y + 256;
-      put('lamptable', 372, 250); put('floral', 100, 320); put('dfly', 326, 324); put('grass', 240, 344); put('orchid', 293, world.scene.win.y1 + 2);
+      put('lamptable', 372, 250); put('floral', 100, 320); put('dfly', 326, 324); put('grass', 240, 344); { const CT = find('ctable'); put('orchid', CT.x - st.x + 12, CT.y - st.y - 27.5 * SZ * 0.95); }
       world.scene.paint(); const J = world.scene.dog; settle(60);
       const DB = find('daybed'), SEAT = world.items.find((i) => i.type === 'seat' && i.parent === DB), DF = find('dfly'), FL = find('floral'), LT = find('lamptable'), LS = world.items.find((i) => i.type === 'seat' && i.parent === LT), CUB = find('cubby');
       if (sc === 'dawn-room') { // full frame: first light. Bo asleep in the dragonfly chair, an arm over the edge; Bunny on the sill as the pigeon lands; Juno lifts her head to it
@@ -33,7 +33,7 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
       }
       if (sc === 'dusk-cubby') { // dusk: Bo in the felt cube with an arm hanging out; Bunny under the blanket in front, peeking
         bed(bo, CUB, 'dangle', 200); const bl = put('blanket', CUB.x + 62, CUB.y + 30); bed(bu, bl, 'crescent', 50); bu.bedPlan = { burrow: true, end1: 0, end2: 0, it: bl };
-        J.st = 'doze'; J.t = 100; J.T = 9999; window.__crop = [CUB.box.x0 - 30, CUB.box.y0 - 6, 236, 126]; window.__scale = 3;
+        J.st = 'doze'; J.t = 100; J.T = 9999; window.__crop = [CUB.box.x0 - 42, CUB.box.y0 + 4, 236, 126]; window.__scale = 3;
         let f = 0; window.__script = () => { f++; if (f % 70 === 40 && bl.lump) bl.lump.peek = 45; };
       }
       if (sc === 'night-lamp') { // night: the lamp's pool of light, both cats up on the table, Bo in her sweater; a hand on Bo

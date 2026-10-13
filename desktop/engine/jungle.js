@@ -75,12 +75,12 @@ var BZ = window.BZ || (window.BZ = {});
       // the room's own furniture (fixtures, not toy-box things): the daybed against the wall, the carved table out on the rug
       { const x0 = Math.round(W * 0.23), x1 = Math.round(W * 0.46); this.bookcase = { x0, x1, topY: F - 70, baseY: F + 5, mid: F - 38 }; this.cube = { x0: x1 - 50, x1: x1 - 6, y0: F - 35, y1: F - 2 }; this.cube.hx = Math.round((this.cube.x0 + this.cube.x1) / 2); this.cube.hy = this.cube.y1 - 15; }
       this.furniture = [{ key: 'daybed', type: 'daybed', x: st.x + Math.round(W * 0.6), y: st.y + F + 17 }, { key: 'ctable', type: 'ctable', x: st.x + Math.round(W * 0.43), y: st.y + Math.round(F + (H - F) * 0.62) }];
-      // Juno on the daybed: the left cushion is hers, head and forelegs draped toward you over the front edge; the right cushion stays Bunny's
-      const db = this.furniture[0], k = this.w.size * 0.95, dx = db.x - 17 * k, dy = db.y - 28 * k;
-      db.dogOn = true;
-      if (!this.dog) { this.dog = new BZ.Dog(this.w, dx, dy); this.dog.theta = Math.PI - 0.55; this.dog.anim = 'sphinx'; this.dog.st = 'watch'; this.dog.t = 0; this.dog.T = 700; for (let i = 0; i < 30; i++) this.dog.animate(); }
+      // Juno on the daybed: the right cushion is hers (head toward the window end, forelegs toward you); the left cushion, against the near arm, stays Bunny's
+      const db = this.furniture[0], k = this.w.size * BZ.DAYBED_K, dx = db.x + 9 * k, dy = db.y - 25 * k;
+      db.dogSeat = true;
+      if (!this.dog) { this.dog = new BZ.Dog(this.w, dx, dy); this.dog.theta = 0.5; this.dog.anim = 'sphinx'; this.dog.st = 'watch'; this.dog.t = 0; this.dog.T = 700; for (let i = 0; i < 30; i++) this.dog.animate(); }
       else { this.dog.x = dx; this.dog.y = dy; }
-      this.dogSortY = db.y + 0.305;
+      this.dogSortY = db.y + 0.295;
       this.paint();
     }
     paint() {
@@ -472,8 +472,8 @@ var BZ = window.BZ || (window.BZ = {});
       if (p.inside && Math.hypot(p.x - d.x, p.y - (d.y - 20 * size)) < 110 * size) ev.push({ kind: 'hand', at: [p.x, p.y] });
       const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep && !c.inBed && Math.hypot(c.x - d.x, c.y - d.y) < 80 * size);
       const loud = w.cats.some((c) => c.state === 'brawl' && Math.hypot(c.x - d.x, c.y - d.y) < 120 * size) ? { at: null } : null;
-      const seat = w.items.find((i) => i.type === 'seat' && i.parent && i.parent.key === 'daybed');
-      d.tickRest({ night: this.phase === 'night', events: ev, loud, bedCat: w.cats.find((c) => c.inBed && seat && c.inBed === seat), bo });
+      const db = w.items.find((i) => i.key === 'daybed');
+      d.tickRest({ night: this.phase === 'night', events: ev, loud, bedCat: w.cats.find((c) => c.inBed && db && c.inBed === db), bo });
     }
     // where a cat should look to chatter at the pigeon (stage coords), or null
     fixtures() { const X = this.st.x, Y = this.st.y, F = this.floorY, cb = this.cube; return [{ key: 'cubby', type: 'cubby', draw: true, x: X + cb.hx, y: Y + F + 7, rootPx: F + 7 - cb.y1, hole: { cx: X + cb.hx, cy: Y + cb.hy, rx: 12.5, ry: 12 }, box: { x0: X + cb.x0, x1: X + cb.x1, y0: Y + cb.y0, y1: Y + cb.y1 } }]; }

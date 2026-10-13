@@ -969,7 +969,7 @@ var BZ = window.BZ || (window.BZ = {});
       const hx = p.head[0] + this.lean * 1.5, hy = p.head[1] + br * 0.4, hz = this.lean * 2.5, rot = (v) => { // rotate a head-local offset by pitch (about z) then yaw (about y)
         const c = Math.cos(-pitch * Math.PI / 180), sn = Math.sin(-pitch * Math.PI / 180); let x = v[0] * c - v[1] * sn, y = v[0] * sn + v[1] * c, z = v[2];
         const cy = Math.cos(yaw), sy = Math.sin(yaw); const x2 = x * cy - z * sy, z2 = x * sy + z * cy; return [hx + x2, hy + y, hz + z2]; };
-      pts.head = [hx, hy, hz]; pts.dome = rot([0.5, 3, 0]); pts.bridge = rot([6.5, -1.4, 0]); pts.muzzle = rot([11.5, -3, 0]); pts.nose = rot([15.6, -3.6, 0]); pts.chin = rot([11.2, -4.6, 0]); pts.jaw = rot([6.5, -4.6, 0]);
+      pts.head = [hx, hy, hz]; pts.dome = rot([0.8, 2.4, 0]); pts.bridge = rot([6.5, -1.6, 0]); pts.muzzle = rot([11.5, -3.1, 0]); pts.nose = rot([15.6, -3.7, 0]); pts.chin = rot([11, -4.8, 0]); pts.jaw = rot([6.5, -4.8, 0]);
       pts.blaze0 = rot([1.5, 4.8, 0]); pts.blaze1 = rot([13.2, -2, 0]);
       for (const [nm, z] of [['L', 1], ['R', -1]]) {
         pts['eye' + nm] = rot([4.8, 1.2, z * 3.5]); pts['patch' + nm] = rot([4.3, 1.7, z * 3.7]);
@@ -980,11 +980,11 @@ var BZ = window.BZ || (window.BZ = {});
       pts.tongue = rot([12, -7.2 - (p.mouth || 0) * 1.5, 0]);
       // forelegs: from the shoulder down to the elbow, then straight out along the ground; the near paw crossed over the far one
       const cr = this.cross;
-      pts.flr = [p.chest[0] + 1, p.chest[1] - 1.5, 4.4]; pts.flk = [p.chest[0] + 6, 3.4, 5]; pts.flp = [26.5, 1.4, 2.6 + (cr > 0 ? 0 : -3.2)];
-      pts.frr = [p.chest[0] + 1, p.chest[1] - 1.5, -4.4]; pts.frk = [p.chest[0] + 6, 3.4, -5]; pts.frp = [28.5, 2 + (cr > 0 ? 0.9 : 0), -2.6 + (cr > 0 ? 3.4 : 0)];
+      pts.flr = [p.chest[0] + 1, p.chest[1] - 1.5, 4.4]; pts.flk = [p.chest[0] + 5, 3, 5]; pts.flp = [30, 1.4, 2.6 + (cr > 0 ? 0 : -3.2)];
+      pts.frr = [p.chest[0] + 1, p.chest[1] - 1.5, -4.4]; pts.frk = [p.chest[0] + 5, 3, -5]; pts.frp = [32, 2 + (cr > 0 ? 0.9 : 0), -2.6 + (cr > 0 ? 3.4 : 0)];
       // hind legs: the far haunch tucked, the near leg flopped out to the side, hock on the ground
-      pts.blh = [p.hip[0] - 1, p.hip[1] - 1.5, 5.4]; pts.blk = [p.hip[0] - 8, 2.4, 7]; pts.blp = [p.hip[0] - 2, 1.2, 8.5];
-      pts.brh = [p.hip[0] - 1, p.hip[1] - 1.4, -5.8]; pts.brk = [p.hip[0] - 10, 2, -8.5]; pts.brp = [p.hip[0] - 3, 1.2, -10.5];
+      pts.blh = [p.hip[0] - 1, p.hip[1] - 1.5, 5.4]; pts.blk = [p.hip[0] - 9, 2.4, 7]; pts.blp = [p.hip[0] + 1, 1.2, 8.5];
+      pts.brh = [p.hip[0] - 1, p.hip[1] - 1.4, -5.8]; pts.brk = [p.hip[0] - 12, 2, -9]; pts.brp = [p.hip[0] + 2, 1.2, -11.5];
       // the tail: long, lying along the bed, the plume curling; wagging thumps it side to side
       const tc = p.tailCurl || 0, wg = this.wag > 0 ? Math.sin(this.t * 0.5) * 5 : 0, t0 = [p.hip[0] - 6.5, p.hip[1] - 1, 1];
       pts.t0 = t0; pts.t1 = [t0[0] - 9, 2.8, 2 - tc * 4 + wg * 0.4]; pts.t2 = [t0[0] - 18 + tc * 2, 1.8, 2.5 - tc * 9 + wg * 0.8]; pts.t3 = [t0[0] - 26 + tc * 9, 3, 1 - tc * 12 + wg];
@@ -1006,14 +1006,14 @@ var BZ = window.BZ || (window.BZ = {});
       // the neck, arched, cream in front, sable along the crest
       line('chest', 'throat', 8.5, 6.4, col('cream', 2)); line('throat', 'head', 6.4, 6.8, col('cream', 3)); items.push({ z: S.throat[2] - 0.2, kind: 'crest' });
       // hind legs
-      for (const nm of ['bl', 'br']) { const h = nm + 'h', k = nm + 'k', pw = nm + 'p', nr = near(h); ball(h, 10, nr ? col('sable', 3) : col('sable', 2), null, S[h][2] + (nr ? -0.2 : 0.4)); line(h, k, 6, 3.6, nr ? col('cream', 2) : col('cream', 1)); line(k, pw, 3.4, 2.8, col('white', 2)); ball(pw, 3.8, col('white', 3)); ball(k, 3.6, col('cream', 2)); }
+      for (const nm of ['bl', 'br']) { const h = nm + 'h', k = nm + 'k', pw = nm + 'p', nr = near(h); ball(h, 10, nr ? col('sable', 3) : col('sable', 2), null, S[h][2] + (nr ? -0.2 : 0.4)); line(h, k, 6, 3.4, nr ? col('cream', 2) : col('cream', 1)); line(k, pw, 3.2, 2.6, col('white', 2)); ball(pw, 3.6, col('white', 3)); ball(k, 3.4, col('cream', 2)); }
       // forelegs: cream upper, white socks, the long straight forearms
-      for (const nm of ['fl', 'fr']) { const r = nm + 'r', k = nm + 'k', pw = nm + 'p'; line(r, k, 5.6, 4.2, col('cream', 2)); line(k, pw, 3.8, 3, col('white', 2)); ball(k, 4.2, col('cream', 2)); ball(pw, 4.2, col('white', 3)); }
+      for (const nm of ['fl', 'fr']) { const r = nm + 'r', k = nm + 'k', pw = nm + 'p'; line(r, k, 5.6, 4, col('cream', 2)); line(k, pw, 3.4, 2.8, col('white', 2)); ball(k, 4, col('cream', 2)); ball(pw, 3.8, col('white', 3)); }
       // the tail, feathered underneath
       line('t0', 't1', 3.6, 2.8, col('sable', 2)); line('t1', 't2', 2.8, 2.2, col('cream', 2)); line('t2', 't3', 2.2, 1.6, col('cream', 3));
       for (const [a, b] of [['t1', 't2'], ['t2', 't3']]) items.push({ z: (S[a][2] + S[b][2]) / 2 + 0.25, kind: 'flag', A: S[a], B: S[b], c: col('cream', 3), c2: col('cream', 2) });
       // head: the dome, the long muzzle, the blaze, nose, chin, a mouth
-      ball('head', 10.8, col('cream', 3)); ball('dome', 8, col('cream', 3)); line('head', 'bridge', 9, 7, col('cream', 3)); ball('bridge', 7.4, col('white', 2)); line('bridge', 'muzzle', 7, 5.4, col('white', 2)); ball('muzzle', 5.6, col('white', 2)); line('muzzle', 'nose', 5.4, 3.4, col('white', 3)); ball('nose', 2.6, C.nose, null, S.nose[2] - 0.6);
+      ball('head', 10.8, col('cream', 3)); ball('dome', 6.5, col('cream', 3)); line('head', 'bridge', 9.4, 7.2, col('cream', 3)); ball('bridge', 6.6, col('white', 2)); line('bridge', 'muzzle', 7.2, 5.2, col('white', 2)); ball('muzzle', 4.8, col('white', 2)); line('muzzle', 'nose', 5.2, 3, col('white', 3)); ball('nose', 2.6, C.nose, null, S.nose[2] - 0.6);
       ball('chin', 2.4, col('white', 3), null, S.chin[2] - 0.3); thin('jaw', 'chin', col('cream', 0), S.chin[2] - 0.35);
       items.push({ z: S.bridge[2] - 0.5, kind: 'blaze' });
       if ((this.pose.mouth || 0) > 0.25) { line('jaw', 'tongue', 2.6, 2, col('sable', 0), S.chin[2] - 0.4); ball('tongue', 2.6 * Math.min(1, this.pose.mouth * 1.4), C.tongue, null, S.tongue[2] - 0.5); }
@@ -1074,7 +1074,7 @@ var BZ = window.BZ || (window.BZ = {});
     ledge:  { label: 'Window ledge', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     seat:   { label: 'Daybed seat', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     ctable: { label: 'Coffee table', hint: 'carved antique: nap on it, lurk under it', r: 36, h: 30, bed: true, hide: true },
-    daybed: { label: 'Daybed', hint: 'room for two, with woven pillows', r: 50, h: 48, bed: true, soft: true },
+    daybed: { label: 'Daybed', hint: 'room for two, with woven pillows', r: 57, h: 55, bed: true, soft: true },
     treat:  { label: 'Treat',        hint: 'click to drop',      r: 7, h: 10, consumable: true, snack: true },
     shrimp: { label: 'Shrimp',       hint: 'a fancy snack',      r: 7, h: 10, consumable: true, snack: true },
     bowl:   { label: 'Food',         hint: 'a full bowl',        r: 16, h: 12 },
@@ -1172,7 +1172,7 @@ var BZ = window.BZ || (window.BZ = {});
     if (it.type === 'tire') { const T = BZ.tireGeom(it, s); return { front: [it.x + 6 * s, it.y + 13 * s], spot: [T.cx, it.y], rootPx: it.y - (T.cy + T.r * 0.82), clip: null, sortY: it.y + 0.05, face: Math.PI / 2 - 0.15, tire: true }; }
     if (it.type === 'adk' || (it.type === 'seat' && it.parent && it.parent.type === 'adk')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 13 : -13) * k, P.y + 13 * k], spot: [P.x + (slot ? 8 : -9) * k, P.y - 3 * k], rootPx: 15 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.55 : Math.PI / 2 + 0.55 }; }
     if (it.type === 'lamptable' || (it.type === 'seat' && it.parent && it.parent.type === 'lamptable')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 12 : -12) * k, P.y + 12 * k], spot: [P.x + (slot ? 9 : -9) * k, P.y - 2 * k], rootPx: 27.5 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.4 : Math.PI / 2 + 0.4 }; }
-    if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 16 : -16) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : -17) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; }
+    if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * BZ.DAYBED_K, L = P.dogSeat ? -27 : -17; return { front: [P.x + (slot ? 16 : L + 1) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : L) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; } // with Juno on it, the left cushion hugs the near arm
     if (it.type === 'dogbed') { const k = s; return { front: [it.x - 26 * k, it.y + 18 * k], spot: [it.x - 23 * k, it.y + 5 * k], rootPx: 3 * k, clip: null, sortY: it.y + 0.8, face: Math.PI / 2 + 0.55 }; }
     if (it.type === 'pillow') { const k = s * 0.95; return { front: [it.x + 2 * k, it.y + 12 * k], spot: [it.x, it.y - 1 * k], rootPx: 5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.4 }; }
     if (it.type === 'blanket') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 13 * k], spot: [it.x + 2 * k, it.y - 1 * k], rootPx: 2 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.5 }; }
@@ -1709,8 +1709,9 @@ var BZ = window.BZ || (window.BZ = {});
     ctx.fillStyle = BURL[6]; ctx.fillRect(Math.round(X - W + 3 * k), Math.round(Y - railT), Math.round(W * 2 - 6 * k), 1); ctx.fillStyle = BURL[0]; ctx.fillRect(Math.round(X - W + 3 * k), Math.round(Y - 5 * k), Math.round(W * 2 - 6 * k), 1);
     endPanel(X - W + 4 * k, -1, 42); // the near end last, in front of everything
   }
+  BZ.DAYBED_K = 1.09; // the daybed is 15% bigger than the other furniture (2026-10-12: Juno has to fit on it)
   function daybed(ctx, it, s) {
-    const k = s * 0.95, w = 120 * k, h = 70 * k, ox = 56 * k, oy = 60 * k;
+    const k = s * BZ.DAYBED_K, w = 120 * k, h = 70 * k, ox = 56 * k, oy = 60 * k;
     const c = cached('daybed' + s, w, h, ox, oy, (g, X, Y) => paintDaybed(g, X, Y, k));
     ctx.drawImage(c, Math.round(it.x - ox), Math.round(it.y - oy));
   }
@@ -2684,7 +2685,7 @@ var BZ = window.BZ || (window.BZ = {});
       const w = this.w, b = this.buddy, p = this.pers, opts = {};
       const freeSlots = (s) => s.slots.filter((sl) => !w.cats.some((c) => c !== this && c.napSpot && dist(c.napSpot[0], c.napSpot[1], sl[0], sl[1]) < 5));
       if (!target) {
-        w.items.forEach((it, i) => { if (BZ.ITEMS[it.type].bed && !it.held && !it.occupant && !it.dogOn) opts['bed:' + i] = { pod: this.isBo ? 5 : 3, pillow: 5, blanket: 6, box: 3 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), bag: 3.5 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), lamptable: 6 + (BZ.isNight() ? 3 : 0), ledge: 2.5, daybed: 7, seat: 7, ctable: 3.5, adk: 7, stoop: 3, tire: 4, cubby: this.isBo ? 7 : 4, dogbed: this.isBo ? 0 : 5 }[it.type] ?? 3.5; if (it.type === 'seat' && it.parent && it.parent.dogOn) opts['bed:' + i] = this.isBo ? 0 : 4; });
+        w.items.forEach((it, i) => { if (BZ.ITEMS[it.type].bed && !it.held && !it.occupant && !it.dogOn) opts['bed:' + i] = { pod: this.isBo ? 5 : 3, pillow: 5, blanket: 6, box: 3 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), bag: 3.5 + (w.frame - (it.placedAt || -1e9) < 5400 ? 6 : 0), lamptable: 6 + (BZ.isNight() ? 3 : 0), ledge: 2.5, daybed: 7, seat: 7, ctable: 3.5, adk: 7, stoop: 3, tire: 4, cubby: this.isBo ? 7 : 4, dogbed: this.isBo ? 0 : 5 }[it.type] ?? 3.5; if (it.dogSeat) opts['bed:' + i] = this.isBo ? 0 : 4; }); // the cushion beside Juno: Bunny sometimes, Bo never
         if (b && b.asleep && b.bedItem && ['daybed', 'adk', 'lamptable', 'seat'].includes(b.bedItem.type)) { const sib = b.bedItem.type !== 'seat' ? w.items.find((i) => i.type === 'seat' && i.parent === b.bedItem) : b.bedItem.parent; const si = w.items.indexOf(sib); if (sib && si >= 0 && !sib.occupant && !sib.dogOn) opts['bed:' + si] = 16 * w.rel(this, b).bond; } // she's on the daybed: join her
         w.sunSpots().forEach((s, i) => { if (freeSlots(s).length) opts['sun:' + i] = (s.item ? 6 : s.yard ? 5 : 2.5) * (0.6 + p.sleepy / 100); });
         if (b && b.asleep && !b.inBed) { const rel = w.rel(this, b); if (rel.bond > 0.55 && rel.tension < 0.4) opts.buddy = 4 * rel.bond; }
@@ -3670,7 +3671,7 @@ var BZ = window.BZ || (window.BZ = {});
       if (sc && sc.win) { const y = this.floorTop + 1, top = st.y + sc.win.y1 + 1; put({ key: 'ledgeL', type: 'ledge', x: st.x + sc.win.x0 + 22, y, rootPx: y - top, face: -Math.PI / 2 + 0.3 }); put({ key: 'ledgeR', type: 'ledge', x: st.x + sc.win.x1 - 20, y: y + 0.5, rootPx: y + 0.5 - top, face: -Math.PI / 2 - 0.3 }); }
       if (sc && sc.furniture) for (const f of sc.furniture) put(Object.assign({ draw: true }, f)); // the scene's own furniture: drawn and sat on, never dragged
       if (sc && sc.fixtures) for (const f of sc.fixtures(this)) put(f);
-      for (const it of [...this.items]) if ((it.type === 'daybed' || it.type === 'adk' || it.type === 'lamptable') && (!it.fixed || keep.has(it))) put({ key: 'seat:' + (it.uid || (it.uid = it.key || Math.random().toString(36).slice(2))), type: 'seat', parent: it, x: it.x + 1, y: it.y });
+      for (const it of [...this.items]) if ((it.type === 'daybed' || it.type === 'adk' || it.type === 'lamptable') && (!it.fixed || keep.has(it))) put({ key: 'seat:' + (it.uid || (it.uid = it.key || Math.random().toString(36).slice(2))), type: 'seat', parent: it, x: it.x + 1, y: it.y, dogOn: !!it.dogSeat }); // dogOn: Juno's cushion, nobody else's
       for (const o of old) if (!keep.has(o)) { o.gone = true; this.items.splice(this.items.indexOf(o), 1); }
     }
     clampItem(it) { if (it.surf) return; const st = this.stage; it.x = clamp(it.x, st.x + 14, st.x + st.w - 14); it.y = clamp(it.y, this.floorTop + 2, st.y + st.h - 3); }
@@ -4118,12 +4119,12 @@ var BZ = window.BZ || (window.BZ = {});
       // the room's own furniture (fixtures, not toy-box things): the daybed against the wall, the carved table out on the rug
       { const x0 = Math.round(W * 0.23), x1 = Math.round(W * 0.46); this.bookcase = { x0, x1, topY: F - 70, baseY: F + 5, mid: F - 38 }; this.cube = { x0: x1 - 50, x1: x1 - 6, y0: F - 35, y1: F - 2 }; this.cube.hx = Math.round((this.cube.x0 + this.cube.x1) / 2); this.cube.hy = this.cube.y1 - 15; }
       this.furniture = [{ key: 'daybed', type: 'daybed', x: st.x + Math.round(W * 0.6), y: st.y + F + 17 }, { key: 'ctable', type: 'ctable', x: st.x + Math.round(W * 0.43), y: st.y + Math.round(F + (H - F) * 0.62) }];
-      // Juno on the daybed: the left cushion is hers, head and forelegs draped toward you over the front edge; the right cushion stays Bunny's
-      const db = this.furniture[0], k = this.w.size * 0.95, dx = db.x - 17 * k, dy = db.y - 28 * k;
-      db.dogOn = true;
-      if (!this.dog) { this.dog = new BZ.Dog(this.w, dx, dy); this.dog.theta = Math.PI - 0.55; this.dog.anim = 'sphinx'; this.dog.st = 'watch'; this.dog.t = 0; this.dog.T = 700; for (let i = 0; i < 30; i++) this.dog.animate(); }
+      // Juno on the daybed: the right cushion is hers (head toward the window end, forelegs toward you); the left cushion, against the near arm, stays Bunny's
+      const db = this.furniture[0], k = this.w.size * BZ.DAYBED_K, dx = db.x + 9 * k, dy = db.y - 25 * k;
+      db.dogSeat = true;
+      if (!this.dog) { this.dog = new BZ.Dog(this.w, dx, dy); this.dog.theta = 0.5; this.dog.anim = 'sphinx'; this.dog.st = 'watch'; this.dog.t = 0; this.dog.T = 700; for (let i = 0; i < 30; i++) this.dog.animate(); }
       else { this.dog.x = dx; this.dog.y = dy; }
-      this.dogSortY = db.y + 0.305;
+      this.dogSortY = db.y + 0.295;
       this.paint();
     }
     paint() {
@@ -4515,8 +4516,8 @@ var BZ = window.BZ || (window.BZ = {});
       if (p.inside && Math.hypot(p.x - d.x, p.y - (d.y - 20 * size)) < 110 * size) ev.push({ kind: 'hand', at: [p.x, p.y] });
       const bo = w.cats.find((c) => c.isBo && !c.hidden && !c.asleep && !c.inBed && Math.hypot(c.x - d.x, c.y - d.y) < 80 * size);
       const loud = w.cats.some((c) => c.state === 'brawl' && Math.hypot(c.x - d.x, c.y - d.y) < 120 * size) ? { at: null } : null;
-      const seat = w.items.find((i) => i.type === 'seat' && i.parent && i.parent.key === 'daybed');
-      d.tickRest({ night: this.phase === 'night', events: ev, loud, bedCat: w.cats.find((c) => c.inBed && seat && c.inBed === seat), bo });
+      const db = w.items.find((i) => i.key === 'daybed');
+      d.tickRest({ night: this.phase === 'night', events: ev, loud, bedCat: w.cats.find((c) => c.inBed && db && c.inBed === db), bo });
     }
     // where a cat should look to chatter at the pigeon (stage coords), or null
     fixtures() { const X = this.st.x, Y = this.st.y, F = this.floorY, cb = this.cube; return [{ key: 'cubby', type: 'cubby', draw: true, x: X + cb.hx, y: Y + F + 7, rootPx: F + 7 - cb.y1, hole: { cx: X + cb.hx, cy: Y + cb.hy, rx: 12.5, ry: 12 }, box: { x0: X + cb.x0, x1: X + cb.x1, y0: Y + cb.y0, y1: Y + cb.y1 } }]; }

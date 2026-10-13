@@ -538,7 +538,7 @@ var BZ = window.BZ || (window.BZ = {});
       const hx = p.head[0] + this.lean * 1.5, hy = p.head[1] + br * 0.4, hz = this.lean * 2.5, rot = (v) => { // rotate a head-local offset by pitch (about z) then yaw (about y)
         const c = Math.cos(-pitch * Math.PI / 180), sn = Math.sin(-pitch * Math.PI / 180); let x = v[0] * c - v[1] * sn, y = v[0] * sn + v[1] * c, z = v[2];
         const cy = Math.cos(yaw), sy = Math.sin(yaw); const x2 = x * cy - z * sy, z2 = x * sy + z * cy; return [hx + x2, hy + y, hz + z2]; };
-      pts.head = [hx, hy, hz]; pts.dome = rot([0.5, 3, 0]); pts.bridge = rot([6.5, -1.4, 0]); pts.muzzle = rot([11.5, -3, 0]); pts.nose = rot([15.6, -3.6, 0]); pts.chin = rot([11.2, -4.6, 0]); pts.jaw = rot([6.5, -4.6, 0]);
+      pts.head = [hx, hy, hz]; pts.dome = rot([0.8, 2.4, 0]); pts.bridge = rot([6.5, -1.6, 0]); pts.muzzle = rot([11.5, -3.1, 0]); pts.nose = rot([15.6, -3.7, 0]); pts.chin = rot([11, -4.8, 0]); pts.jaw = rot([6.5, -4.8, 0]);
       pts.blaze0 = rot([1.5, 4.8, 0]); pts.blaze1 = rot([13.2, -2, 0]);
       for (const [nm, z] of [['L', 1], ['R', -1]]) {
         pts['eye' + nm] = rot([4.8, 1.2, z * 3.5]); pts['patch' + nm] = rot([4.3, 1.7, z * 3.7]);
@@ -549,11 +549,11 @@ var BZ = window.BZ || (window.BZ = {});
       pts.tongue = rot([12, -7.2 - (p.mouth || 0) * 1.5, 0]);
       // forelegs: from the shoulder down to the elbow, then straight out along the ground; the near paw crossed over the far one
       const cr = this.cross;
-      pts.flr = [p.chest[0] + 1, p.chest[1] - 1.5, 4.4]; pts.flk = [p.chest[0] + 6, 3.4, 5]; pts.flp = [26.5, 1.4, 2.6 + (cr > 0 ? 0 : -3.2)];
-      pts.frr = [p.chest[0] + 1, p.chest[1] - 1.5, -4.4]; pts.frk = [p.chest[0] + 6, 3.4, -5]; pts.frp = [28.5, 2 + (cr > 0 ? 0.9 : 0), -2.6 + (cr > 0 ? 3.4 : 0)];
+      pts.flr = [p.chest[0] + 1, p.chest[1] - 1.5, 4.4]; pts.flk = [p.chest[0] + 5, 3, 5]; pts.flp = [30, 1.4, 2.6 + (cr > 0 ? 0 : -3.2)];
+      pts.frr = [p.chest[0] + 1, p.chest[1] - 1.5, -4.4]; pts.frk = [p.chest[0] + 5, 3, -5]; pts.frp = [32, 2 + (cr > 0 ? 0.9 : 0), -2.6 + (cr > 0 ? 3.4 : 0)];
       // hind legs: the far haunch tucked, the near leg flopped out to the side, hock on the ground
-      pts.blh = [p.hip[0] - 1, p.hip[1] - 1.5, 5.4]; pts.blk = [p.hip[0] - 8, 2.4, 7]; pts.blp = [p.hip[0] - 2, 1.2, 8.5];
-      pts.brh = [p.hip[0] - 1, p.hip[1] - 1.4, -5.8]; pts.brk = [p.hip[0] - 10, 2, -8.5]; pts.brp = [p.hip[0] - 3, 1.2, -10.5];
+      pts.blh = [p.hip[0] - 1, p.hip[1] - 1.5, 5.4]; pts.blk = [p.hip[0] - 9, 2.4, 7]; pts.blp = [p.hip[0] + 1, 1.2, 8.5];
+      pts.brh = [p.hip[0] - 1, p.hip[1] - 1.4, -5.8]; pts.brk = [p.hip[0] - 12, 2, -9]; pts.brp = [p.hip[0] + 2, 1.2, -11.5];
       // the tail: long, lying along the bed, the plume curling; wagging thumps it side to side
       const tc = p.tailCurl || 0, wg = this.wag > 0 ? Math.sin(this.t * 0.5) * 5 : 0, t0 = [p.hip[0] - 6.5, p.hip[1] - 1, 1];
       pts.t0 = t0; pts.t1 = [t0[0] - 9, 2.8, 2 - tc * 4 + wg * 0.4]; pts.t2 = [t0[0] - 18 + tc * 2, 1.8, 2.5 - tc * 9 + wg * 0.8]; pts.t3 = [t0[0] - 26 + tc * 9, 3, 1 - tc * 12 + wg];
@@ -575,14 +575,14 @@ var BZ = window.BZ || (window.BZ = {});
       // the neck, arched, cream in front, sable along the crest
       line('chest', 'throat', 8.5, 6.4, col('cream', 2)); line('throat', 'head', 6.4, 6.8, col('cream', 3)); items.push({ z: S.throat[2] - 0.2, kind: 'crest' });
       // hind legs
-      for (const nm of ['bl', 'br']) { const h = nm + 'h', k = nm + 'k', pw = nm + 'p', nr = near(h); ball(h, 10, nr ? col('sable', 3) : col('sable', 2), null, S[h][2] + (nr ? -0.2 : 0.4)); line(h, k, 6, 3.6, nr ? col('cream', 2) : col('cream', 1)); line(k, pw, 3.4, 2.8, col('white', 2)); ball(pw, 3.8, col('white', 3)); ball(k, 3.6, col('cream', 2)); }
+      for (const nm of ['bl', 'br']) { const h = nm + 'h', k = nm + 'k', pw = nm + 'p', nr = near(h); ball(h, 10, nr ? col('sable', 3) : col('sable', 2), null, S[h][2] + (nr ? -0.2 : 0.4)); line(h, k, 6, 3.4, nr ? col('cream', 2) : col('cream', 1)); line(k, pw, 3.2, 2.6, col('white', 2)); ball(pw, 3.6, col('white', 3)); ball(k, 3.4, col('cream', 2)); }
       // forelegs: cream upper, white socks, the long straight forearms
-      for (const nm of ['fl', 'fr']) { const r = nm + 'r', k = nm + 'k', pw = nm + 'p'; line(r, k, 5.6, 4.2, col('cream', 2)); line(k, pw, 3.8, 3, col('white', 2)); ball(k, 4.2, col('cream', 2)); ball(pw, 4.2, col('white', 3)); }
+      for (const nm of ['fl', 'fr']) { const r = nm + 'r', k = nm + 'k', pw = nm + 'p'; line(r, k, 5.6, 4, col('cream', 2)); line(k, pw, 3.4, 2.8, col('white', 2)); ball(k, 4, col('cream', 2)); ball(pw, 3.8, col('white', 3)); }
       // the tail, feathered underneath
       line('t0', 't1', 3.6, 2.8, col('sable', 2)); line('t1', 't2', 2.8, 2.2, col('cream', 2)); line('t2', 't3', 2.2, 1.6, col('cream', 3));
       for (const [a, b] of [['t1', 't2'], ['t2', 't3']]) items.push({ z: (S[a][2] + S[b][2]) / 2 + 0.25, kind: 'flag', A: S[a], B: S[b], c: col('cream', 3), c2: col('cream', 2) });
       // head: the dome, the long muzzle, the blaze, nose, chin, a mouth
-      ball('head', 10.8, col('cream', 3)); ball('dome', 8, col('cream', 3)); line('head', 'bridge', 9, 7, col('cream', 3)); ball('bridge', 7.4, col('white', 2)); line('bridge', 'muzzle', 7, 5.4, col('white', 2)); ball('muzzle', 5.6, col('white', 2)); line('muzzle', 'nose', 5.4, 3.4, col('white', 3)); ball('nose', 2.6, C.nose, null, S.nose[2] - 0.6);
+      ball('head', 10.8, col('cream', 3)); ball('dome', 6.5, col('cream', 3)); line('head', 'bridge', 9.4, 7.2, col('cream', 3)); ball('bridge', 6.6, col('white', 2)); line('bridge', 'muzzle', 7.2, 5.2, col('white', 2)); ball('muzzle', 4.8, col('white', 2)); line('muzzle', 'nose', 5.2, 3, col('white', 3)); ball('nose', 2.6, C.nose, null, S.nose[2] - 0.6);
       ball('chin', 2.4, col('white', 3), null, S.chin[2] - 0.3); thin('jaw', 'chin', col('cream', 0), S.chin[2] - 0.35);
       items.push({ z: S.bridge[2] - 0.5, kind: 'blaze' });
       if ((this.pose.mouth || 0) > 0.25) { line('jaw', 'tongue', 2.6, 2, col('sable', 0), S.chin[2] - 0.4); ball('tongue', 2.6 * Math.min(1, this.pose.mouth * 1.4), C.tongue, null, S.tongue[2] - 0.5); }

@@ -26,7 +26,7 @@ var BZ = window.BZ || (window.BZ = {});
     ledge:  { label: 'Window ledge', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     seat:   { label: 'Daybed seat', hint: '', bed: true, fixed: true, r: 0, h: 0 },
     ctable: { label: 'Coffee table', hint: 'carved antique: nap on it, lurk under it', r: 36, h: 30, bed: true, hide: true },
-    daybed: { label: 'Daybed', hint: 'room for two, with woven pillows', r: 50, h: 48, bed: true, soft: true },
+    daybed: { label: 'Daybed', hint: 'room for two, with woven pillows', r: 57, h: 55, bed: true, soft: true },
     treat:  { label: 'Treat',        hint: 'click to drop',      r: 7, h: 10, consumable: true, snack: true },
     shrimp: { label: 'Shrimp',       hint: 'a fancy snack',      r: 7, h: 10, consumable: true, snack: true },
     bowl:   { label: 'Food',         hint: 'a full bowl',        r: 16, h: 12 },
@@ -124,7 +124,7 @@ var BZ = window.BZ || (window.BZ = {});
     if (it.type === 'tire') { const T = BZ.tireGeom(it, s); return { front: [it.x + 6 * s, it.y + 13 * s], spot: [T.cx, it.y], rootPx: it.y - (T.cy + T.r * 0.82), clip: null, sortY: it.y + 0.05, face: Math.PI / 2 - 0.15, tire: true }; }
     if (it.type === 'adk' || (it.type === 'seat' && it.parent && it.parent.type === 'adk')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 13 : -13) * k, P.y + 13 * k], spot: [P.x + (slot ? 8 : -9) * k, P.y - 3 * k], rootPx: 15 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.55 : Math.PI / 2 + 0.55 }; }
     if (it.type === 'lamptable' || (it.type === 'seat' && it.parent && it.parent.type === 'lamptable')) { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 12 : -12) * k, P.y + 12 * k], spot: [P.x + (slot ? 9 : -9) * k, P.y - 2 * k], rootPx: 27.5 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.4 : Math.PI / 2 + 0.4 }; }
-    if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95; return { front: [P.x + (slot ? 16 : -16) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : -17) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; }
+    if (it.type === 'daybed' || it.type === 'seat') { const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * BZ.DAYBED_K, L = P.dogSeat ? -27 : -17; return { front: [P.x + (slot ? 16 : L + 1) * k, P.y + 13 * k], spot: [P.x + (slot ? 15 : L) * k, P.y - 3 * k], rootPx: 22 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.5 : Math.PI / 2 + 0.5 }; } // with Juno on it, the left cushion hugs the near arm
     if (it.type === 'dogbed') { const k = s; return { front: [it.x - 26 * k, it.y + 18 * k], spot: [it.x - 23 * k, it.y + 5 * k], rootPx: 3 * k, clip: null, sortY: it.y + 0.8, face: Math.PI / 2 + 0.55 }; }
     if (it.type === 'pillow') { const k = s * 0.95; return { front: [it.x + 2 * k, it.y + 12 * k], spot: [it.x, it.y - 1 * k], rootPx: 5 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.4 }; }
     if (it.type === 'blanket') { const k = s * 0.95; return { front: [it.x + 4 * k, it.y + 13 * k], spot: [it.x + 2 * k, it.y - 1 * k], rootPx: 2 * k, clip: null, sortY: it.y + 0.3, face: Math.PI / 2 + 0.5 }; }
@@ -661,8 +661,9 @@ var BZ = window.BZ || (window.BZ = {});
     ctx.fillStyle = BURL[6]; ctx.fillRect(Math.round(X - W + 3 * k), Math.round(Y - railT), Math.round(W * 2 - 6 * k), 1); ctx.fillStyle = BURL[0]; ctx.fillRect(Math.round(X - W + 3 * k), Math.round(Y - 5 * k), Math.round(W * 2 - 6 * k), 1);
     endPanel(X - W + 4 * k, -1, 42); // the near end last, in front of everything
   }
+  BZ.DAYBED_K = 1.09; // the daybed is 15% bigger than the other furniture (2026-10-12: Juno has to fit on it)
   function daybed(ctx, it, s) {
-    const k = s * 0.95, w = 120 * k, h = 70 * k, ox = 56 * k, oy = 60 * k;
+    const k = s * BZ.DAYBED_K, w = 120 * k, h = 70 * k, ox = 56 * k, oy = 60 * k;
     const c = cached('daybed' + s, w, h, ox, oy, (g, X, Y) => paintDaybed(g, X, Y, k));
     ctx.drawImage(c, Math.round(it.x - ox), Math.round(it.y - oy));
   }

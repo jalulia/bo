@@ -4,7 +4,7 @@ Short records of choices someone might later undo by accident. Newest first.
 
 **2026-10-12 · One Juno behavior, two scenes.** `Dog.tickRest(env)` holds the watch/doze/sleep machine and every reaction; `Yard.tickDog` and `Jungle.tickDog` only build `env` (events, Bo nearby, a cat on her bed, night, loud things). Add reactions in one place.
 
-**2026-10-12 · In the room Juno takes the daybed's left cushion.** `furniture[0].dogOn = true` makes that bed unavailable to cats (`startNap`, `bedUnder`, the "join her" rule); the right cushion (`seat`) stays available with the dog-bed weights (Bo 0, Bunny 4). She sorts at `daybed.y + 0.305`, between the two cushions' cats.
+**2026-10-12 · In the room Juno takes the daybed's right cushion, facing the window end.** First try was the left cushion facing left: her head reached past the tall near-end sleigh scroll, which then sat between her head and her body and read as an arm in front of her neck. Facing right, her head overhangs the far scroll (drawn behind her), which reads fine. `furniture[0].dogSeat = true` → the `seat` fixture gets `dogOn` (no cat picks it: `startNap`, `bedUnder`, the "join her" rule); the daybed's own cushion moves to the near arm (`bedGeom` L = -27k) with the dog-bed weights (Bo 0, Bunny 4). She sorts at `daybed.y + 0.295`, just behind the cushion cat. The daybed itself is 15% bigger (`BZ.DAYBED_K = 1.09`) so she fits.
 
 **2026-10-12 · Night in the room is a dim with holes, not darker art.** `Jungle.drawNight` fills `rgba(12,18,52,0.30)` over the stage and punches the lamp table's pool out with destination-out ellipses, so the lamp reads as the light source and nothing else had to be repainted for night.
 
