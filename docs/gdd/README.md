@@ -17,6 +17,8 @@ Published: https://claude.ai/artifact/1pQ1vEAJshbkc8B429Yeo8 (private to Julia u
 | 11 | Recipes | run it; add a thing / nap pose / behavior / scenery / bird; record a GIF; ship; update this document |
 | A–D | Appendices | desktop-bo-spec.json, ballz-technique.json (both with Copy), GIFs, document history |
 
+Repo: https://github.com/jalulia/bo
+
 ## Rebuild and republish
 
 ```sh

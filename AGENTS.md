@@ -35,7 +35,7 @@ Each place keeps its own things. The toy box (the panel) puts out furniture, pla
 | `build.py` | Copies `src/` into `desktop/engine/` and inlines it into `web/desktop-bo.html`. |
 | `dist/update/` | The update payload: `engine/` + `update.sh` (swaps the engine inside the installed app, re-signs, relaunches). |
 | `test/` | Playwright harnesses: contact sheets, soaks, close-ups. See `docs/04-architecture.md#testing`. |
-| `docs/` | The record. Start with `docs/01-brief.md`. |
+| `docs/` | The record. Start with `docs/01-brief.md`. `docs/gdd/` is the game design document (published as an artifact; see its README). |
 | `refs/` | Every reference Julia has sent, filed and described. `refs/README.md` is the index. |
 
 ## The docs, in reading order
@@ -58,7 +58,7 @@ Each place keeps its own things. The toy box (the panel) puts out furniture, pla
 - Causal claims: give the caveat or source first.
 - If she's terse, keep working productively rather than asking.
 - She does not run payloads herself: build, deploy to her Mac, and verify it landed.
-- If a git push fails, hand over a `.bundle` and the two commands to apply it.
+- The remote is https://github.com/jalulia/bo (`main`). Push every round. If a push fails, hand over a `.bundle` and the two commands to apply it.
 - Never tell her to go to bed. Don't speak in litotes ("not bad", "not unlike").
 
 ## The one-minute workflow
