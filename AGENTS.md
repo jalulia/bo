@@ -35,7 +35,7 @@ Each place keeps its own things. The toy box (the panel) puts out furniture, pla
 | `build.py` | Copies `src/` into `desktop/engine/` and inlines it into `web/desktop-bo.html`. |
 | `dist/update/` | The update payload: `engine/` + `update.sh` (swaps the engine inside the installed app, re-signs, relaunches). |
 | `test/` | Playwright harnesses: contact sheets, soaks, close-ups. See `docs/04-architecture.md#testing`. |
-| `docs/` | The record. Start with `docs/01-brief.md`. `docs/gdd/` is the game design document (published as an artifact; see its README). |
+| `docs/` | The record. Start with `docs/01-brief.md`. `docs/gdd/` is the game design document; `python3 docs/gdd/build.py site` writes it to `index.html` at the root, which GitHub Pages serves at https://jalulia.github.io/bo/. |
 | `refs/` | Every reference Julia has sent, filed and described. `refs/README.md` is the index. |
 
 ## The docs, in reading order

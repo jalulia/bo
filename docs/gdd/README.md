@@ -1,6 +1,6 @@
 # The game design document ("Bo 95")
 
-Published: https://claude.ai/artifact/1pQ1vEAJshbkc8B429Yeo8 (private to Julia until shared). v1.1: a neutral, class-structured document (v1.0 was a Win95-desktop presentation; Julia asked for the information to lead).
+Live: https://jalulia.github.io/bo/ (GitHub Pages, from `index.html` at the repo root). Also published as a private artifact: https://claude.ai/artifact/1pQ1vEAJshbkc8B429Yeo8. v1.1: a neutral, class-structured document (v1.0 was a Win95-desktop presentation; Julia asked for the information to lead).
 
 | § | Section | What it holds |
 |---|---|---|
@@ -22,9 +22,9 @@ Repo: https://github.com/jalulia/bo
 ## Rebuild and republish
 
 ```sh
-python3 docs/gdd/build.py dist/gdd          # page + engine copies + refs + GIFs into dist/gdd
-node docs/gdd/shots.js dist/gdd/img         # room/yard day + night shots (run from the repo root)
-node test/juno.js dist/gdd/img/juno-sheet.png; node test/moments.js dist/gdd/img/moments.png   # if they changed
-# times-of-day.png is the 8-frame sheet from test/gifs2.js frames (see gifs/2026-10-12/)
+python3 docs/gdd/build.py site              # -> index.html + play/index.html at the repo root; commit and push: Pages serves it
+node docs/gdd/shots.js docs/gdd/img         # room/yard day + night shots (run from the repo root) when the scenes change
+node test/juno.js docs/gdd/img/juno-sheet.png; node test/moments.js docs/gdd/img/moments.png   # if they changed
+python3 docs/gdd/build.py artifact dist/gdd # a self-contained copy (engine copies, img, gif) for publishing as an artifact
 ```
-Then publish `dist/gdd/index.html` to the URL above with every other file under `dist/gdd` as a supporting file at the same path. The prose in `template.html` quotes live engine values only where it reads them from `BZ` (portraits, personalities, icons, ramps, item flags); the weight tables and bed weights are typed in and must be re-checked against `world.js` when those change.
+The site build loads the engine from `src/` directly, images from `docs/gdd/img/` and GIFs from `gifs/`, so nothing is duplicated in the repo. The prose in `template.html` quotes live engine values only where it reads them from `BZ` (portraits, personalities, icons, ramps, item flags); the transcribed tables (states, `pickActivity`, bed weights, verbs, systems) must be re-checked against `world.js` when those change.
