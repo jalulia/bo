@@ -2,6 +2,9 @@
 
 What Julia can see, by round. Newest first.
 
+## 2026-10-20 · The game design document
+- **Bo 95** (`docs/gdd/`, published as its own artifact): the GDD Julia asked for, modeled on her Mad Money Tycoon document. A Win95 desktop whose windows are the chapters: PLAYPEN.EXE runs the shipping engine live (with a CRT readout and hour pins), CATZ.EXE draws the portraits and personality bars from `rex.js`, BEHAVIOR.DAT has the state diagram and every `pickActivity` and bed weight, CLOSET.EXE catalogues all 52 things with engine-drawn icons, PLACES.MAP shows both places by day and night, BALLZ.DOC explains the technique with an exploded cat and the live ramps, ENGINE.SYS the architecture and tests, HOWTO.TXT nine recipes, ROUNDS.LOG the campaign, REFS, ALBUM, and SPEC.JSON with both specs and Copy buttons. `docs/gdd/README.md` says how to rebuild and republish it.
+
 ## 2026-10-12i · Juno on the daybed, night in the room, the GIF set
 - **Juno in the living room**: she lies on the right cushion of the daybed, head toward the window end over the far scroll, forelegs toward you, watching the room (the pigeon landing, cats crossing, your hand, a cat in the air), dozing, sleeping, pettable, same as out back. The right cushion is hers; the left one, against the near arm, stays Bunny's (Bo won't share a bed with her, and gives her the look when she passes close). Her rest behavior is now one thing (`Dog.tickRest`) that both scenes feed.
 - **Juno's build, from Julia's screenshot**: the muzzle is one smooth wedge now (the joint balls bulged past the lines and made it bumpy), the forelegs and the flopped hind leg are longer and thinner, and the daybed is 15% bigger so she sits on it properly.

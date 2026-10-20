@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLAYPEN.EXE</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<style>
+  :root { --face: #C0C0C0; --lt: #fff; --sh: #808080; --dk: #000; --title: #2f6e5c; --winbar: #3a3030; --winpaper: #f4eee4; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--face); font: 12px/1.35 Tahoma, "Segoe UI", Arial, sans-serif; color: #000; }
+  #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 300px; gap: 8px; padding: 8px; }
+  #hab { position: relative; min-width: 0; background: var(--winpaper); border: 2px solid var(--winbar); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  #hab .bar { height: 30px; flex: none; display: flex; align-items: center; gap: 7px; padding: 0 10px; background: var(--winbar); color: #f2ebdc; font: 400 13px 'BoPixel', ui-monospace, monospace; }
+  #hab .bar i { width: 10px; height: 10px; border-radius: 50%; background: #e2675b; } #hab .bar i:nth-child(2) { background: #e9b949; } #hab .bar i:nth-child(3) { background: #69b765; margin-right: 6px; }
+  #hab .bar b { font-weight: 400; flex: 1; }
+  #hab .stage { flex: 1; }
+  canvas#c { position: fixed; left: 0; top: 0; image-rendering: pixelated; z-index: 2; pointer-events: none; }
+  canvas#o { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+  #side { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+  .crt { white-space: pre; background: #000; color: #00C000; font-family: "VT323", "Courier New", monospace; font-size: 19px; line-height: 1.05; padding: 7px 9px; border: 1px solid; border-color: var(--sh) var(--lt) var(--lt) var(--sh); box-shadow: inset 1px 1px var(--dk), inset -1px -1px var(--face); flex: none; overflow: hidden; }
+  .crt .dim { color: #007000; } .crt .hot { color: #FFD000; }
+  .row { display: flex; gap: 4px; flex-wrap: wrap; flex: none; }
+  .btn { font: inherit; padding: 2px 8px; background: var(--face); border: 1px solid; border-color: var(--lt) var(--dk) var(--dk) var(--lt); box-shadow: inset 1px 1px var(--face), inset -1px -1px var(--sh); cursor: pointer; }
+  .btn[aria-pressed=true] { border-color: var(--dk) var(--lt) var(--lt) var(--dk); background: repeating-conic-gradient(#fff 0 25%, var(--face) 0 50%) 0 0/2px 2px; font-weight: 700; }
+  #dock { flex: 1; min-height: 0; overflow: auto; border: 1px solid; border-color: var(--sh) var(--lt) var(--lt) var(--sh); background: #fff; }
+  #dock .bo-panel { max-width: none; border: 0; border-radius: 0; box-shadow: none; }
+  @media (max-width: 760px) { #wrap { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 44%); } #side { min-height: 0; } }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hab"><div class="bar"><i></i><i></i><i></i><b id="title">Bo's Jungle</b></div><div class="stage" id="stage"></div></div>
+  <div id="side">
+    <div class="crt" id="hud">booting…</div>
+    <div class="row" id="hours"><button class="btn" data-h="" aria-pressed="true">Live clock</button><button class="btn" data-h="6.6">Dawn</button><button class="btn" data-h="12">Day</button><button class="btn" data-h="18.6">Dusk</button><button class="btn" data-h="22">Night</button></div>
+    <div id="dock"></div>
+  </div>
+</div>
+<canvas id="c"></canvas><canvas id="o"></canvas>
+<script src="engine/font-data.js"></script>
+<script src="engine/raster.js"></script>
+<script src="engine/rex.js"></script>
+<script src="engine/cat.js"></script>
+<script src="engine/items.js"></script>
+<script src="engine/sound.js"></script>
+<script src="engine/world.js"></script>
+<script src="engine/jungle.js"></script>
+<script src="engine/panel.js"></script>
+<script>
+  // The real engine, hosted the way web/playpen.src.html hosts it, with a readout beside it.
+  const world = new BZ.World(document.getElementById('c'), document.getElementById('o'), {});
+  const stageEl = document.getElementById('stage'), dock = document.getElementById('dock'), hud = document.getElementById('hud'), title = document.getElementById('title');
+  const small = () => innerWidth < 760;
+  world.setHabitat(true, () => { const r = stageEl.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, minW: small() ? Math.max(r.width, Math.min(900, r.height * 1.6)) : 0 }; }); // a phone shows part of the room and follows the cats
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('desktop-bo-gdd') || 'null'); } catch (e) {}
+  world.load(saved);
+  world.sound.enabled = false; // a design document stays quiet until you turn it up
+  world.host.save = (d) => { try { localStorage.setItem('desktop-bo-gdd', JSON.stringify(d)); } catch (e) {} };
+  const panel = BZ.Panel(dock, { get: () => world.summary(), modes: true, cmd: (n, a) => { if (n === 'mode') { /* habitat only */ } else world.cmd(n, a); } });
+  const roamBtn = dock.querySelector('.bo-where button[data-mode="roam"]'); if (roamBtn) roamBtn.hidden = true; // no desktop to roam inside a document
+  world.host.onChange = () => { panel.refresh(); title.textContent = world.sceneKey === 'yard' ? 'Backyard' : "Bo's Jungle"; };
+  world.host.onChange();
+  document.getElementById('hours').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; for (const o of e.currentTarget.querySelectorAll('button')) o.setAttribute('aria-pressed', o === b); BZ.hourOverride = b.dataset.h === '' ? null : +b.dataset.h; if (world.scene) world.scene.paint(); });
+  const pad = (s, n) => (s + '                ').slice(0, n);
+  setInterval(() => {
+    const s = world.summary(), lines = [];
+    lines.push(`<span class="dim">PLACE</span>      ${s.scene === 'yard' ? 'Backyard' : "Bo's Jungle"}`);
+    lines.push(`<span class="dim">HOUR</span>       ${BZ.hourOverride != null ? BZ.hourOverride + 'h (pinned)' : 'live ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+    lines.push(`<span class="dim">PHASE</span>      ${BZ.phaseNow()}`);
+    for (const c of world.cats) lines.push(`<span class="hot">${pad(c.name.toUpperCase(), 8)}</span> ${pad(c.state, 11)} ${pad(c.moodLabel, 12)}\n  <span class="dim">belly</span> ${pad(String(Math.round(c.needs.belly)), 4)}<span class="dim">energy</span> ${pad(String(Math.round(c.needs.energy)), 4)}<span class="dim">love</span> ${Math.round(c.needs.love)}`);
+    const d = world.scene && world.scene.dog; if (d) lines.push(`<span class="hot">JUNO</span>     ${pad(d.st, 11)} ${d.anim}`);
+    lines.push(`<span class="dim">IN HAND</span>    ${s.carrying || s.tool || '-'}`);
+    lines.push(`<span class="dim">THINGS OUT</span> ${Object.keys(s.placed).length}`);
+    hud.innerHTML = lines.join('\n');
+  }, 500);
+</script>
+</body>
+</html>

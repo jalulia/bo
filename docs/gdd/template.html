@@ -1,0 +1,880 @@
+<title>Desktop Bo GDD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<style>
+:root{
+  --desk:#5f7873; --face:#C0C0C0; --lt:#FFFFFF; --sh:#808080; --dk:#000000;
+  --title:#2f6e5c; --title2:#1f4a3e; --ink:#000; --link:#1f4a3e;
+  --crt:#000; --crt-ink:#00C000; --crt-dim:#007000; --hot:#FFD000;
+  --bo:#3ccbdb; --bunny:#e6bf1e; --juno:#cdb998; --julia:#c66472;
+  --fs:12px; --mono:"VT323","Courier New",monospace; --ui:Tahoma,"MS Sans Serif","Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+/* layout: a Win95 desktop; each chapter is a window on it, the engine runs live in PLAYPEN.EXE; single deliberate look (no dark variant) */
+html,body{background:var(--desk);color:var(--ink);margin:0}
+body{font:var(--fs)/1.38 var(--ui);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 64px;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:700}
+p{margin:0}
+a{color:var(--link)}
+img{max-width:100%;height:auto;display:block}
+::selection{background:var(--title);color:#fff}
+.raised{background:var(--face);border:1px solid;border-color:var(--lt) var(--dk) var(--dk) var(--lt);box-shadow:inset 1px 1px var(--face),inset -1px -1px var(--sh)}
+.sunken{background:#fff;border:1px solid;border-color:var(--sh) var(--lt) var(--lt) var(--sh);box-shadow:inset 1px 1px var(--dk),inset -1px -1px var(--face)}
+.groove{border:1px solid;border-color:var(--sh) var(--lt) var(--lt) var(--sh);padding:10px 8px 8px;position:relative;margin-top:10px}
+.groove>.lg{position:absolute;top:-8px;left:8px;background:var(--face);padding:0 3px;font-weight:700}
+/* desktop icons */
+.icons{display:flex;gap:10px 12px;flex-wrap:wrap;margin-bottom:16px}
+.icon{width:78px;background:none;border:0;color:#fff;text-align:center;cursor:pointer;padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.icon:focus-visible span,.icon:hover span{outline:1px dotted #fff;outline-offset:1px}
+.icon span{background:var(--desk);padding:0 2px;line-height:1.2;font-size:11px}
+.icon i{display:block;width:32px;height:32px;image-rendering:pixelated;border:1px solid #000;background:#fff}
+/* windows */
+.desk{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;align-items:start}
+.win{display:flex;flex-direction:column;min-width:0}
+.win.wide,.win.max{grid-column:1/-1}
+.win.min .body,.win.min .status,.win.min .menubar{display:none}
+.win[hidden]{display:none}
+.tbar{background:var(--title);color:#fff;font-weight:700;font-size:11px;padding:2px 3px 2px 5px;display:flex;align-items:center;gap:6px;margin:1px;user-select:none}
+.tbar .ti{width:14px;height:14px;flex:none;border:1px solid #000;background:#fff}
+.tbar .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbar .ctl{display:flex;gap:2px}
+.tbar button{width:16px;height:14px;padding:0;line-height:1;font-size:9px;font-weight:700;display:grid;place-items:center;cursor:pointer;color:#000}
+.body{padding:8px;overflow:auto;min-width:0}
+.body.pad0{padding:0}
+.status{display:flex;gap:3px;padding:2px 3px 3px;font-size:11px}
+.status>span{flex:1;padding:1px 4px;border:1px solid;border-color:var(--sh) var(--lt) var(--lt) var(--sh);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status>span.fx{flex:none}
+.menubar{display:flex;gap:2px;padding:1px 2px;font-size:12px;border-bottom:1px solid var(--sh);box-shadow:0 1px var(--lt)}
+.menubar span{padding:1px 6px}
+.menubar span u{text-decoration:underline}
+/* text */
+.txt{white-space:pre-wrap;font-family:var(--ui);font-size:12px;line-height:1.45;max-width:72ch}
+.txt b{font-weight:700}
+.note{padding:6px 8px;background:#fff}
+.crt{white-space:pre;background:var(--crt);color:var(--crt-ink);font-family:var(--mono);font-size:19px;line-height:1.05;padding:8px 10px;border:1px solid;border-color:var(--sh) var(--lt) var(--lt) var(--sh);box-shadow:inset 1px 1px var(--dk),inset -1px -1px var(--face);overflow-x:auto}
+.crt .dim{color:var(--crt-dim)}.crt .hot{color:var(--hot)}.crt .red{color:#FF4040}
+.julia{border-left:3px solid var(--julia);background:#fff;padding:4px 8px;margin:6px 0;font-style:italic}
+.julia::before{content:"Julia: ";font-style:normal;font-weight:700;color:var(--julia)}
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:12px}
+.lv{background:#fff}
+.lv th{text-align:left;font-weight:400;padding:2px 6px;background:var(--face);border:1px solid;border-color:var(--lt) var(--dk) var(--dk) var(--lt);white-space:nowrap}
+.lv td{padding:3px 6px;vertical-align:top;border-bottom:1px dotted #ddd}
+.lv tr:hover td{background:#e8f1ee}
+.lv td.n,.lv th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lv td code,.txt code,li code,p code{font:12px/1.2 "Courier New",monospace;background:#f1f1f1;padding:0 2px}
+.scroll{overflow-x:auto}
+.scroll table{min-width:520px}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:8px}
+.card{background:#fff;padding:0 8px 8px;overflow:hidden}
+.card .strip{margin:0 -8px 6px;padding:3px 8px;color:#fff;font-weight:700;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.card .strip small{font-weight:400;opacity:.9}
+.card h3{font-size:12px}
+.card .top{display:grid;grid-template-columns:100px 1fr;gap:8px;align-items:start}
+.card canvas.port{display:block;width:100px;height:100px;background:#c9d3c4;border:1px solid #000;image-rendering:pixelated}
+.card ul{margin:4px 0 0;padding-left:14px}
+.card li{margin:1px 0}
+.stat{display:grid;grid-template-columns:70px 1fr 40px;gap:6px;align-items:center;font-size:11px;margin-top:2px}
+.bar{height:8px;background:#fff;border:1px solid;border-color:var(--sh) var(--lt) var(--lt) var(--sh);position:relative}
+.bar i{position:absolute;inset:0;right:auto;background:repeating-linear-gradient(90deg,var(--c,#000080) 0 5px,transparent 5px 6px)}
+.stat .v{font-family:var(--mono);font-size:16px;line-height:1;text-align:right;font-variant-numeric:tabular-nums}
+.thought{margin-top:6px;font-size:11px;color:#222;background:#FFFFE1;border:1px solid #000;padding:2px 5px;display:inline-block}
+.thought::before{content:"💭 ";font-size:10px}
+/* closet */
+.closet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr));gap:6px}
+.tile{background:#fff;padding:6px;display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:start}
+.tile canvas{width:96px;height:66px;background:#c9d3c4;border:1px solid #000;image-rendering:pixelated;display:block}
+.tile b{display:block;font-size:12px}
+.tile small{color:#444;display:block;font-size:11px}
+.flags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.flag{font-size:9px;letter-spacing:.04em;padding:0 4px;border:1px solid #000;background:var(--face)}
+.flag.bed{background:#d9ead3}.flag.tool{background:#fff2cc}.flag.yard{background:#cfe2f3}.flag.fixed{background:#e6e6e6}
+/* ramps */
+.ramps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:6px}
+.ramp{background:#fff;padding:4px 6px;font-size:11px}
+.ramp .sw{display:flex;height:16px;border:1px solid #000;margin-top:3px}
+.ramp .sw i{flex:1}
+/* tree */
+.tree{list-style:none;margin:0;padding:6px 8px;font-size:12px;background:#fff}
+.tree li{padding-left:16px;position:relative;margin:2px 0}
+.tree li::before{content:"";position:absolute;left:4px;top:0;bottom:0;border-left:1px dotted #666}
+.tree li::after{content:"";position:absolute;left:4px;top:8px;width:8px;border-top:1px dotted #666}
+.tree>li{padding-left:0}.tree>li::before,.tree>li::after{display:none}
+.tree ul{list-style:none;padding:0;margin:0}
+.tree .box{display:inline-block;width:9px;height:9px;border:1px solid #666;background:#fff;margin-right:4px;vertical-align:-1px;font-size:8px;line-height:7px;text-align:center}
+/* tabs */
+.tabs{display:flex;gap:0;margin-top:6px;flex-wrap:wrap}
+.tab{padding:2px 10px;border:1px solid;border-color:var(--lt) var(--dk) transparent var(--lt);background:var(--face);cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected=true]{background:#fff;position:relative;z-index:1;padding-bottom:3px}
+.tabpanel{background:#fff;border:1px solid;border-color:var(--lt) var(--dk) var(--dk) var(--lt);padding:8px}
+.tabpanel[hidden]{display:none}
+pre.json,pre.code{margin:0;font:12px/1.35 "Courier New",monospace;white-space:pre;overflow:auto;max-height:420px;background:#fff;padding:8px}
+pre.code{max-height:none;background:#fbfbf6;border:1px dotted #999}
+.btn{padding:3px 12px;min-width:74px;cursor:pointer}
+.btn:active{border-color:var(--dk) var(--lt) var(--lt) var(--dk)}
+.btnrow{display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+/* figures */
+.fig{background:#fff;padding:4px;border:1px solid;border-color:var(--sh) var(--lt) var(--lt) var(--sh)}
+.fig img{image-rendering:auto}
+.fig.px img{image-rendering:pixelated}
+.fig figcaption{font-size:11px;padding:4px 2px 0;color:#222}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.two>*{min-width:0}
+.groove{min-width:0}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:6px}
+.refs figure{margin:0;background:#fff;padding:4px;font-size:11px}
+.refs img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid #000}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:8px}
+.album figure{margin:0;background:#fff;padding:4px;font-size:11px}
+.album img{width:100%;border:1px solid #000;image-rendering:pixelated}
+/* state diagram */
+svg.sm{display:block;width:100%;height:auto;background:#fff;border:1px solid #000}
+svg.sm text{font:11px Tahoma,Arial,sans-serif}
+svg.sm .hub rect{fill:#2f6e5c}
+svg.sm .hub text{fill:#fff;font-weight:700}
+svg.sm .st rect{fill:#fff;stroke:#000}
+svg.sm .busy rect{fill:#fff2cc}
+svg.sm .nap rect{fill:#d9ead3}
+svg.sm .grp{fill:#555;font-weight:700;font-size:10px;letter-spacing:.06em}
+svg.sm line,svg.sm path{stroke:#444;fill:none}
+/* iframe */
+.playframe{width:100%;height:640px;border:0;display:block;background:#C0C0C0}
+/* taskbar */
+.taskbar{position:fixed;left:0;right:0;bottom:0;padding:2px max(2px,env(safe-area-inset-right,0px)) calc(2px + env(safe-area-inset-bottom,0px)) max(2px,env(safe-area-inset-left,0px));background:var(--face);border-top:1px solid var(--lt);box-shadow:0 -1px var(--sh);display:flex;gap:3px;align-items:stretch;z-index:50}
+.start{font-weight:700;padding:1px 6px 1px 4px;display:flex;align-items:center;gap:4px;cursor:pointer;flex:none}
+.start i{width:14px;height:14px;background:linear-gradient(90deg,#f00 50%,#0a0 50%) top/14px 7px no-repeat,linear-gradient(90deg,#00f 50%,#ff0 50%) bottom/14px 7px no-repeat}
+.tasks{flex:1;display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}
+.tasks::-webkit-scrollbar{display:none}
+.task{padding:1px 8px;white-space:nowrap;cursor:pointer;font-size:11px;flex:none;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.task[aria-pressed=true]{border-color:var(--dk) var(--lt) var(--lt) var(--dk);background:repeating-conic-gradient(#fff 0 25%,var(--face) 0 50%) 0 0/2px 2px;font-weight:700}
+.tray{flex:none;padding:1px 8px;font-size:11px;display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.smenu{position:fixed;left:2px;bottom:calc(30px + env(safe-area-inset-bottom,0px));width:210px;z-index:60;padding:2px;display:flex}
+.smenu[hidden]{display:none}
+.smenu .band{width:22px;background:var(--title2);color:#fff;writing-mode:vertical-rl;transform:rotate(180deg);font-weight:700;font-size:15px;padding:6px 3px;letter-spacing:.06em;flex:none}
+.smenu ul{list-style:none;margin:0;padding:2px 0;flex:1}
+.smenu li{padding:5px 8px 5px 10px;cursor:pointer}
+.smenu li:hover{background:var(--title);color:#fff}
+.smenu li.sep{border-top:1px solid var(--sh);border-bottom:1px solid var(--lt);padding:0;margin:2px 0}
+.dlg{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));z-index:100;box-shadow:4px 4px 0 rgba(0,0,0,.35)}
+.dlg[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="icons" aria-label="Desktop">
+  <button class="icon" data-go="w-readme"><i style="background:linear-gradient(#fff,#fff) 4px 2px/24px 28px no-repeat,linear-gradient(#000,#000) 8px 8px/16px 1px no-repeat,linear-gradient(#000,#000) 8px 12px/16px 1px no-repeat,linear-gradient(#000,#000) 8px 16px/12px 1px no-repeat"></i><span>README.TXT</span></button>
+  <button class="icon" data-go="w-play"><i style="background:#f4eee4;background-image:linear-gradient(#3a3030,#3a3030);background-size:32px 7px;background-repeat:no-repeat"></i><span>PLAYPEN.EXE</span></button>
+  <button class="icon" data-go="w-catz"><i style="background:radial-gradient(circle at 50% 60%,#e2d6be 0 9px,transparent 10px),radial-gradient(circle at 36% 54%,#3ccbdb 0 2px,transparent 3px),radial-gradient(circle at 64% 54%,#3ccbdb 0 2px,transparent 3px),#c9d3c4"></i><span>CATZ.EXE</span></button>
+  <button class="icon" data-go="w-closet"><i style="background:linear-gradient(#e2675b,#e2675b) 4px 6px/24px 20px no-repeat,linear-gradient(#f2c640,#f2c640) 4px 4px/24px 3px no-repeat,#fff"></i><span>CLOSET.EXE</span></button>
+  <button class="icon" data-go="w-beh"><i style="background:linear-gradient(90deg,#2f6e5c 25%,#d9ead3 25% 50%,#fff2cc 50% 75%,#c66472 75%) 2px 10px/28px 12px no-repeat,#fff"></i><span>BEHAVIOR.DAT</span></button>
+  <button class="icon" data-go="w-places"><i style="background:linear-gradient(#5a8f3c,#5a8f3c) 0 16px/32px 16px no-repeat,linear-gradient(#7cb4de,#7cb4de) 0 0/32px 16px no-repeat"></i><span>PLACES.MAP</span></button>
+  <button class="icon" data-go="w-art"><i style="background:linear-gradient(90deg,#6e604c 0 20%,#9a8a70 0 40%,#b8a888 0 60%,#d0c0a0 0 80%,#f2ebdc 0) 2px 10px/28px 12px no-repeat,#fff"></i><span>BALLZ.DOC</span></button>
+  <button class="icon" data-go="w-eng"><i style="background:linear-gradient(#000,#000) 4px 4px/24px 24px no-repeat,linear-gradient(#00C000,#00C000) 8px 9px/14px 2px no-repeat,linear-gradient(#00C000,#00C000) 8px 14px/10px 2px no-repeat,#fff"></i><span>ENGINE.SYS</span></button>
+  <button class="icon" data-go="w-howto"><i style="background:linear-gradient(#fff,#fff) 4px 2px/24px 28px no-repeat,linear-gradient(#2f6e5c,#2f6e5c) 8px 8px/16px 2px no-repeat,linear-gradient(#2f6e5c,#2f6e5c) 8px 14px/10px 2px no-repeat,linear-gradient(#2f6e5c,#2f6e5c) 8px 20px/14px 2px no-repeat"></i><span>HOWTO.TXT</span></button>
+  <button class="icon" data-go="w-rounds"><i style="background:linear-gradient(#a08000,#a08000) 6px 20px/4px 8px no-repeat,linear-gradient(#a08000,#a08000) 14px 12px/4px 16px no-repeat,linear-gradient(#a08000,#a08000) 22px 6px/4px 22px no-repeat,#fff"></i><span>ROUNDS.LOG</span></button>
+  <button class="icon" data-go="w-refs"><i style="background:linear-gradient(#c66472,#c66472) 4px 4px/12px 12px no-repeat,linear-gradient(#3ccbdb,#3ccbdb) 16px 4px/12px 12px no-repeat,linear-gradient(#cdb998,#cdb998) 4px 16px/12px 12px no-repeat,linear-gradient(#5a8f3c,#5a8f3c) 16px 16px/12px 12px no-repeat"></i><span>REFS</span></button>
+  <button class="icon" data-go="w-spec"><i style="background:linear-gradient(#fff,#fff) 4px 2px/24px 28px no-repeat,linear-gradient(#000080,#000080) 8px 8px/16px 2px no-repeat,linear-gradient(#000080,#000080) 8px 14px/10px 2px no-repeat,linear-gradient(#000080,#000080) 8px 20px/14px 2px no-repeat"></i><span>SPEC.JSON</span></button>
+</div>
+
+<main class="desk" id="desk">
+
+<!-- PLAYPEN -->
+<section class="win raised wide" id="w-play" data-title="PLAYPEN.EXE">
+  <div class="tbar"><i class="ti" style="background:#f4eee4"></i><span class="t">PLAYPEN.EXE - Bo's Jungle (the shipping engine, live)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body pad0"><iframe class="playframe" src="play/index.html" title="Desktop Bo, running" loading="lazy"></iframe></div>
+  <div class="status"><span>Not a mock: engine build 2026-10-12j. Pick a thing in the toy box and click the window to put it down. Press and stroke a cat to pet her; press and drag to carry her; drop her in a bed. Click Juno. Pin the hour to see dawn, dusk and night.</span><span class="fx">33 ms tick · PX 2</span></div>
+</section>
+
+<!-- README -->
+<section class="win raised" id="w-readme" data-title="README.TXT - Notepad">
+  <div class="tbar"><i class="ti"></i><span class="t">README.TXT - Notepad</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="menubar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>S</u>earch</span><span><u>H</u>elp</span></div>
+  <div class="body sunken" style="border-radius:0;max-height:560px">
+<div class="txt"><b>DESKTOP BO</b>
+A desktop pet starring Julia's real cats, drawn the way PF Magic drew <i>Catz</i> in 1996, living in rooms painted the way RollerCoaster Tycoon painted parks.
+
+<b>Elevator pitch.</b> Catz, except the cats are Bo and Bunny, the furniture is Julia's furniture, the backyard is her mother's backyard with her mother's dog in it, and nothing is a chore. No meter punishes you. Nothing dies. The only objective is that she looks at it and says "that's so Bo."
+
+<b>Tone.</b> Soothing, funny, specific. Her words, collected: "so cute and soothing"; "cats are superlanguine"; "intention in the physical geometry of the walk"; "snappy-stretchy"; "the comraderie comfort part"; "RCT-quality scenery."
+
+<b>Core loop.</b>
+  1. They live. A state machine picks what each cat does from weighted wants: nap, wander, groom, graze, watch the pigeon, start a fight.
+  2. You put things out. The toy box holds one of each thing per place: beds, chairs, plants, toys, treats, seeds and tools.
+  3. You touch. Pet (press and stroke), poke (tap a face, a leg, a tail), carry (press and drag), set her down in a bed, brush her, dress her, play the laser.
+  4. Time passes on the real clock. Dawn, day, dusk, night change the light. The garden grows while the app is closed.
+  5. A second cat changes the room. Bunny wallops Bo; they brawl; they nap together in the sun. Bond and tension drift.
+  6. Out back, Juno watches from her bed. Bunny sometimes joins her. Bo gives her the look.
+
+<b>Win / lose.</b> The player cannot win or lose. The builder can: a cat sinks into the floor, a leg goes stumpy, a thing needs explaining, Juno is terrifying. Those are the fail states, and the record of each one is in ROUNDS.LOG.
+
+<b>Player role.</b> The hand. You are the person they live with, which is the only reason they look up.
+
+<b>Three places.</b> Bo's Jungle (the room, a window into it), the Backyard (out the studio doors), My desktop (they roam the whole screen; Mac app only).
+
+<b>How to play (PLAYPEN.EXE window).</b> The window on the left is the habitat; the toy box on the right is the real toy box. Click a thing, then click in the window to put it down (small things go on the sill, the shelves, the table). Press and stroke a cat. Press and drag her and drop her in a bed; a warm ring shows where she'll land. Comfort → Sweaters, then click a cat. Garden → a seed packet, then click a bed or a grass patch; the can waters, the trowel digs up. Press the hour buttons to pin the time of day.
+
+<b>Casting.</b> Bo (seal point & white Cornish Rex, 19, aloof). Bunny (all white, older, tinier, feisty). Juno (Mom's Saluki, on a bed). Five more rexes can be adopted after Bunny; each has a personality and a name from the hat.
+</div>
+  </div>
+  <div class="status"><span>Ln 1, Col 1</span><span class="fx">v2.9.0 · 2026-10-20</span></div>
+</section>
+
+<!-- CATZ -->
+<section class="win raised wide" id="w-catz" data-title="CATZ.EXE - Characters">
+  <div class="tbar"><i class="ti" style="background:#e2d6be"></i><span class="t">CATZ.EXE - Characters (2 cats, 1 dog, 5 adoptables)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <p class="txt" style="margin-bottom:8px">Catz rated pets on how they felt. Here every cat is a <b>personality record</b> in <code>rex.js</code>: ten numbers that feed every weight in the behavior machine, a nap mix, and a baseline mood. The portraits below are drawn by the engine as you read this.</p>
+    <div class="cards" id="cats"></div>
+    <div class="two" style="margin-top:8px">
+      <figure class="fig px"><img src="img/juno-sheet.png" alt="Juno's pose sheet: resting, looking at you, alert, chin down, asleep, petted"><figcaption>Juno's pose sheet (<code>test/juno.js</code>): resting with ears perked, looking at you, alert at a bird, facing you, chin down, asleep, petted, ears back.</figcaption></figure>
+      <div>
+        <div class="groove"><span class="lg">Adoptables</span>
+          <table class="lv"><thead><tr><th>Coat</th><th>Note</th><th>Personality</th><th>Baseline</th></tr></thead><tbody id="adopt"></tbody></table>
+          <p style="font-size:11px;margin-top:4px">Bunny comes first (the × on her chip sends her home). The others unlock after her and draw a name from the hat: Mochi, Pickle, Noodle, Tofu, Juniper, Olive, Pepper, Miso, Fig, Basil, Moth, Pilot, Velvet, Crumb, Radish, Wren, Pip, Marcel, Quill, Biscotti.</p>
+        </div>
+        <div class="groove"><span class="lg">Voice</span>
+          <p style="font-size:11px">A formant synth, no samples: <code>mew</code>, <code>meow</code>, <code>trill</code> (the happy one), <code>chirp</code> (at a bat), <code>chatter</code> (at a bird), <code>hiss</code> (a brawl), and the purr while she's petted. Juno gets one soft boof, at the squirrel. Sound is off in this document until you tick it in the toy box.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="status"><span>Personality numbers are the live values from rex.js. Change them there, not here.</span></div>
+</section>
+
+<!-- BEHAVIOR -->
+<section class="win raised wide" id="w-beh" data-title="BEHAVIOR.DAT - The Machine">
+  <div class="tbar"><i class="ti" style="background:#d9ead3"></i><span class="t">BEHAVIOR.DAT - The state machine, attention, needs, beds, the dog</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <p class="txt" style="margin-bottom:8px">Each cat is a state machine. Every state is a method <code>s_&lt;name&gt;()</code> on <code>Cat</code> in <code>world.js</code>, run every tick; <code>setState()</code> resets per-state fields. From <code>idle</code>, <code>pickActivity()</code> draws from a weighted table that personality, needs, mood, the other cat and the things in the room all push on. <b>BUSY</b> states can't be interrupted by the world; <b>NAPPING</b> states recover energy.</p>
+    <svg class="sm" viewBox="0 0 1000 440" role="img" aria-label="State machine: idle in the center; rest, move, play, eat, social and reaction groups around it">
+      <g class="grp"><text x="30" y="24">REST</text><text x="30" y="214">EAT</text><text x="420" y="24">MOVE</text><text x="420" y="300">PLAY</text><text x="760" y="24">SOCIAL</text><text x="760" y="214">REACTIONS (world → cat)</text></g>
+      <g class="hub"><rect x="430" y="170" width="140" height="60" rx="4"/><text x="500" y="196" text-anchor="middle">idle</text><text x="500" y="212" text-anchor="middle" style="font-weight:400;font-size:10px">pickActivity()</text></g>
+      <g class="st nap"><rect x="30" y="40" width="110" height="24"/><text x="85" y="56" text-anchor="middle">nap (floor, sun)</text></g>
+      <g class="st nap"><rect x="30" y="74" width="110" height="24"/><text x="85" y="90" text-anchor="middle">toBed → bed</text></g>
+      <g class="st busy"><rect x="30" y="108" width="110" height="24"/><text x="85" y="124" text-anchor="middle">bedHop</text></g>
+      <g class="st"><rect x="30" y="142" width="110" height="24"/><text x="85" y="158" text-anchor="middle">wake</text></g>
+      <g class="st"><rect x="30" y="230" width="110" height="24"/><text x="85" y="246" text-anchor="middle">graze / plantPlay</text></g>
+      <g class="st busy"><rect x="30" y="264" width="110" height="24"/><text x="85" y="280" text-anchor="middle">eatBowl / eatTreat</text></g>
+      <g class="st"><rect x="30" y="298" width="110" height="24"/><text x="85" y="314" text-anchor="middle">beg</text></g>
+      <g class="st"><rect x="420" y="40" width="100" height="24"/><text x="470" y="56" text-anchor="middle">wander</text></g>
+      <g class="st"><rect x="530" y="40" width="100" height="24"/><text x="580" y="56" text-anchor="middle">come / follow</text></g>
+      <g class="st busy"><rect x="420" y="74" width="100" height="24"/><text x="470" y="90" text-anchor="middle">zoom</text></g>
+      <g class="st busy"><rect x="530" y="74" width="100" height="24"/><text x="580" y="90" text-anchor="middle">enter (doors)</text></g>
+      <g class="st"><rect x="420" y="316" width="100" height="24"/><text x="470" y="332" text-anchor="middle">engage</text></g>
+      <g class="st busy"><rect x="530" y="316" width="100" height="24"/><text x="580" y="332" text-anchor="middle">pounce → land</text></g>
+      <g class="st"><rect x="420" y="350" width="100" height="24"/><text x="470" y="366" text-anchor="middle">lurk</text></g>
+      <g class="st busy"><rect x="530" y="350" width="100" height="24"/><text x="580" y="366" text-anchor="middle">chaseBuddy</text></g>
+      <g class="st busy"><rect x="420" y="384" width="210" height="24"/><text x="525" y="400" text-anchor="middle">scratch (wall stretch) · sunroll · statue</text></g>
+      <g class="st"><rect x="760" y="40" width="100" height="24"/><text x="810" y="56" text-anchor="middle">visit</text></g>
+      <g class="st"><rect x="870" y="40" width="100" height="24"/><text x="920" y="56" text-anchor="middle">groomBuddy</text></g>
+      <g class="st"><rect x="760" y="74" width="100" height="24"/><text x="810" y="90" text-anchor="middle">ambush</text></g>
+      <g class="st busy"><rect x="870" y="74" width="100" height="24"/><text x="920" y="90" text-anchor="middle">brawl</text></g>
+      <g class="st busy"><rect x="760" y="108" width="100" height="24"/><text x="810" y="124" text-anchor="middle">react</text></g>
+      <g class="st busy"><rect x="870" y="108" width="100" height="24"/><text x="920" y="124" text-anchor="middle">flee</text></g>
+      <g class="st busy"><rect x="760" y="230" width="100" height="24"/><text x="810" y="246" text-anchor="middle">petted</text></g>
+      <g class="st busy"><rect x="870" y="230" width="100" height="24"/><text x="920" y="246" text-anchor="middle">held</text></g>
+      <g class="st busy"><rect x="760" y="264" width="100" height="24"/><text x="810" y="280" text-anchor="middle">startle</text></g>
+      <g class="st busy"><rect x="870" y="264" width="100" height="24"/><text x="920" y="280" text-anchor="middle">flinch</text></g>
+      <g class="st"><rect x="760" y="298" width="100" height="24"/><text x="810" y="314" text-anchor="middle">confused</text></g>
+      <g class="st busy"><rect x="870" y="298" width="100" height="24"/><text x="920" y="314" text-anchor="middle">skeptic (Bo+Juno)</text></g>
+      <g class="st"><rect x="760" y="332" width="210" height="36"/><text x="865" y="346" text-anchor="middle">idle acts: perch · stand · stare · groom</text><text x="865" y="360" text-anchor="middle">loaf · sphinx · stretch · yawn · meow · chatter</text></g>
+      <path d="M430 190 L140 52"/><path d="M430 196 L140 86"/><path d="M430 206 L140 242"/><path d="M430 210 L140 276"/>
+      <path d="M470 170 L470 64"/><path d="M580 170 L580 98"/><path d="M470 230 L470 316"/><path d="M580 230 L580 316"/><path d="M500 230 L500 384"/>
+      <path d="M570 186 L760 52"/><path d="M570 190 L760 86"/><path d="M570 200 L760 120"/><path d="M570 210 L760 242" stroke-dasharray="3 2"/><path d="M570 214 L760 276" stroke-dasharray="3 2"/><path d="M570 218 L760 310" stroke-dasharray="3 2"/>
+      <text x="40" y="428" style="font-size:10px;fill:#444">green = NAPPING (energy recovers) · yellow = BUSY (the world can't interrupt) · dashed = entered from outside (your hand, the other cat, the dog)</text>
+    </svg>
+    <div class="two" style="margin-top:8px">
+      <div>
+        <div class="groove"><span class="lg">pickActivity() weights (from world.js)</span>
+          <div class="scroll"><table class="lv"><thead><tr><th>Want</th><th>Weight</th><th>Only when</th></tr></thead><tbody>
+            <tr><td>perch</td><td class="n">10</td><td>always; the resting default</td></tr>
+            <tr><td>stand</td><td class="n">3 + energy/20</td><td></td></tr>
+            <tr><td>stare</td><td class="n">2 + affection/14 (+3)</td><td>+3 if your pointer is in the window</td></tr>
+            <tr><td>groom</td><td class="n">7 + grump×4</td><td>a grumpy cat grooms</td></tr>
+            <tr><td>loaf / sphinx</td><td class="n">3 + sleepy/14 · 2 + sleepy/25</td><td></td></tr>
+            <tr><td>wander</td><td class="n">4 + energy/6 + excitement/12</td><td></td></tr>
+            <tr><td>nap</td><td class="n">((100−energy)/100)^1.6 × sleepy × 0.7</td><td>×1.8 when a sunbeam is out</td></tr>
+            <tr><td>seek (come to you)</td><td class="n">(100−love)/9 × affection/60 × (0.5+cuddle)</td><td>love &lt; 70 and your pointer is in</td></tr>
+            <tr><td>grass / gardenGrass</td><td class="n">greens/5 × grass/50</td><td>cat grass with servings left</td></tr>
+            <tr><td>catnip</td><td class="n">2 + curious/18</td><td>not on the 6000-tick cooldown</td></tr>
+            <tr><td>eat</td><td class="n">(60−belly) × 0.8</td><td>a bowl with food, belly &lt; 55</td></tr>
+            <tr><td>chatter</td><td class="n">10 (0.6) + chatty/30</td><td>10 when a bird is at the feeder</td></tr>
+            <tr><td>ledge</td><td class="n">1 + curious/50 (+7)</td><td>+7 when a bird is out</td></tr>
+            <tr><td>scratch (wall stretch)</td><td class="n">1.4 + energy/40 (+6)</td><td>+6 just after waking</td></tr>
+            <tr><td>statue</td><td class="n">1.6 + curious/60 (Bunny) · 0.3</td><td>the stone bunny, yard</td></tr>
+            <tr><td>plant</td><td class="n">(1.2 + curious/30 + greens/40) × up to 2.5</td><td>any plant out</td></tr>
+            <tr><td>lurk</td><td class="n">1 + play×2 + sass/50</td><td>a coffee table or a plant to hide behind</td></tr>
+            <tr><td>sunroll</td><td class="n">(cuddle + play) × 3</td><td>standing in sun, energy &gt; 30</td></tr>
+            <tr><td>boxIn</td><td class="n">14</td><td>a box put out in the last 5400 ticks</td></tr>
+            <tr><td>biscuits</td><td class="n">1.5 + cuddle×3</td><td>a pillow or blanket, cuddle &gt; 0.4</td></tr>
+            <tr><td>zoom</td><td class="n">1.5 × play</td><td>excitement &gt; 65, energy &gt; 45</td></tr>
+            <tr><td>visit / groomBuddy</td><td class="n">affection/30 × bond × (1−tension)</td><td>a buddy; grooming needs bond &gt; .55</td></tr>
+            <tr><td>ambush</td><td class="n">play × energy/60 × (sass/100+.35) × 3</td><td>buddy awake and not busy</td></tr>
+            <tr><td>brawl</td><td class="n">play × energy/70 × sass/50 × bond × 6</td><td>tension &lt; 0.6: it's play, so it rides on bond</td></tr>
+            <tr><td>follow</td><td class="n">6</td><td>affection &gt; 80 and the buddy is wandering</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="groove"><span class="lg">Needs, moods, relationships</span>
+          <ul style="margin:0;padding-left:16px;font-size:11px">
+            <li><b>Needs</b> 0–100: belly, energy, love, greens. They drift; nothing punishes you for letting them.</li>
+            <li><b>Moods</b> 0–1: grump, cuddle, play. Petting lifts cuddle; the watering can and a bad plant lift grump; a fresh box lifts play.</li>
+            <li><b>Excitement</b> rises with play and zoomies, decays at rest.</li>
+            <li><b>Relationship</b> per pair: <code>bond</code> and <code>tension</code>. Shared sunshine cools tension (the comfort zone). Play-fights raise bond. "Love / hate / love."</li>
+            <li><b>Attention</b>: every stimulus (laser, wand, toy, butterfly below z 34, leaf, squirrel, ground bird, the pigeon) carries an interest level per cat; it has to cross her threshold (aloof raises it) and survive her latency (Bo 22–70 ticks, Bunny 5–22) before she engages.</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="groove"><span class="lg">Beds: who picks what (startNap weights)</span>
+          <div class="scroll"><table class="lv"><thead><tr><th>Bed</th><th class="n">Bo</th><th class="n">Bunny</th><th>Note</th></tr></thead><tbody>
+            <tr><td>pod</td><td class="n">5</td><td class="n">3</td><td>clipped to the opening; peeks out</td></tr>
+            <tr><td>pillow</td><td class="n">5</td><td class="n">5</td><td>biscuits first; dangle</td></tr>
+            <tr><td>blanket</td><td class="n">6</td><td class="n">6</td><td>burrows: a lump with ears, a face peeks out</td></tr>
+            <tr><td>box / bag</td><td class="n">3 / 3.5</td><td class="n">3 / 3.5</td><td>+6 while fresh (5400 ticks)</td></tr>
+            <tr><td>lamp table</td><td class="n">6</td><td class="n">6</td><td>+3 at night; two seats</td></tr>
+            <tr><td>daybed / its seat</td><td class="n">7</td><td class="n">7</td><td>room for two; the "join her" rule ×16×bond</td></tr>
+            <tr><td>chairs (poppy, dragonfly, …)</td><td class="n">3.5</td><td class="n">3.5</td><td>dangle naps over the edge</td></tr>
+            <tr><td>coffee table</td><td class="n">3.5</td><td class="n">3.5</td><td>on top, or under it</td></tr>
+            <tr><td>sill ledge</td><td class="n">2.5</td><td class="n">2.5</td><td>chatters at the pigeon; pushes things off</td></tr>
+            <tr><td>felt cube (cubby)</td><td class="n">7</td><td class="n">4</td><td>face in the hole; one arm out</td></tr>
+            <tr><td>Adirondack / tire / stoop</td><td class="n">7 / 4 / 3</td><td class="n">7 / 4 / 3</td><td>yard</td></tr>
+            <tr><td>Juno's bed · the cushion beside Juno</td><td class="n"><b>0</b></td><td class="n">5 · 4</td><td>Bo never. Bunny sometimes.</td></tr>
+            <tr><td>sun pools / sunbeam</td><td class="n">5–6</td><td class="n">5–6</td><td>×14×bond if the buddy is already asleep in it</td></tr>
+          </tbody></table></div>
+          <p style="font-size:11px;margin-top:4px">A bed is anything with <code>bed: true</code>. <code>BZ.bedGeom(it, size)</code> says where to walk (<code>front</code>), where to land (<code>spot</code>), how high to sit (<code>rootPx</code>), whether to clip (pod, cube), how to sort, which way to face. <code>planBed</code> decides what she does first: watch, peek, knead, burrow, knock something off. Nap styles: baguette, crescent, lounge, dangle, flop, loaf, sphinx, weighted per cat and per bed.</p>
+        </div>
+        <div class="groove"><span class="lg">Juno (Dog.tickRest)</span>
+          <div class="crt" style="font-size:17px">watch  ─700-1600─▶ doze ─900-2000─▶ sleep
+  ▲ sphinx          chin (ear flicks)   (dream twitch)
+  │ idle glance /110 · 35% yawn        45% by day, 75% at night
+  └──────────── brawl nearby or the squirrel wakes her ◀──┘
+LIFTS THE HEAD: squirrel (brows .9, ears .9, 40% boof)
+  bird landing · a cat in the air · a cat moving &lt;190·size
+  your hand &lt;110·size · Bo &lt;85·size → Bo gets s_skeptic
+PET: ears back, squint, tail thumps 40, leans into the hand
+TAP: head up, brows .8, ears .7, looks at you, wag 20
+BED-SHARE: Bunny arrives → wag 90 and a look</div>
+          <p style="font-size:11px;margin-top:4px">She never leaves the bed. The walking build (gallop, the squirrel chase, trotting away from Bo) exists in git history and is parked by Julia's call; see ROUNDS.LOG.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="status"><span>36 states. Soak before you ship: <code>node test/soak4.js 12000 yard</code> must print "errors: none".</span></div>
+</section>
+
+<!-- CLOSET -->
+<section class="win raised wide" id="w-closet" data-title="CLOSET.EXE - Toy Box">
+  <div class="tbar"><i class="ti" style="background:#e2675b"></i><span class="t">CLOSET.EXE - The toy box catalogue (one of each thing per place)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <p class="txt" style="margin-bottom:8px">Every placeable thing is a row in <code>BZ.ITEMS</code> (<code>items.js</code>): a label, a hint, a hit box (<code>r</code>, <code>h</code>) and flags. The flags are the design: <b>bed</b> (cats nap on it), <b>soft</b>, <b>box</b> (climb in), <b>chair</b>, <b>plant</b>, <b>snack</b>, <b>tool</b> (lives on your cursor), <b>seed</b>, <b>places</b> (which toy box offers it). Icons are drawn by the engine.</p>
+    <div id="closet"></div>
+    <div class="groove"><span class="lg">Fixtures and surfaces (not in the box)</span>
+      <div class="two">
+        <div><b style="font-size:11px">Fixtures</b> <span style="font-size:11px">(<code>fixed: true</code>, provided by the place, never dragged or saved): the two sill ledges, the daybed and coffee table (room), the felt cube, the daybed's second cushion and Juno herself (room); the steps, the potting-shelf perch, the tire swing, the Adirondack chair, Juno's bed (yard). <code>syncFixtures()</code> keeps the same objects across relayouts so a sitting cat isn't knocked off.</span></div>
+        <div><b style="font-size:11px">Surfaces</b> <span style="font-size:11px">(<code>World.surfaces()</code>): the sill, the bookcase top and two shelves, the coffee table; out back the shelf top, the shelf middle, the wire stand, the landing. Small things set down near one snap up onto it (<code>surf</code>, <code>su</code>, <code>lift</code>). A cat on the sill or the table will look at you, then push one off.</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="status"><span id="closetstat"></span><span class="fx">Garden tab only out back</span></div>
+</section>
+
+<!-- PLACES -->
+<section class="win raised wide" id="w-places" data-title="PLACES.MAP">
+  <div class="tbar"><i class="ti" style="background:#5a8f3c"></i><span class="t">PLACES.MAP - Bo's Jungle · Backyard · My desktop</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="two">
+      <figure class="fig px"><img src="img/room-day.png" alt="Bo's Jungle at midday, furnished"><figcaption><b>Bo's Jungle</b> (<code>room</code>). Sage room, the big window with its sill cushions and the pigeon feeder outside, curtains, a clock that keeps real time, the bookcase with the felt-cube cubby, the carved coffee table and the burl sleigh daybed (permanent; Juno has the right cushion), kilim rug, the monstera, dust in the sunbeam. Fixtures: 2 ledges, cubby, daybed + seat, coffee table. Surfaces: sill, bookcase top, 2 shelves, table.</figcaption></figure>
+      <figure class="fig px"><img src="img/yard-day.png" alt="The backyard at midday"><figcaption><b>Backyard</b> (<code>yard</code>). The green clapboard studio with French doors (the cats come out through them), landing and steps, flagstone patio with moss, plant-care shelves, the easel with the glacial-valley painting, the kick wheel, the stone bunny, the lawn, the woods, the big tree with the tire swing, the Adirondack chair, the feeder at the tree line with the rhododendron and hydrangea, the sandbox corner, and Juno on her bed. Four garden plots. Dappled sun that drifts with the hour.</figcaption></figure>
+    </div>
+    <div class="two" style="margin-top:8px">
+      <figure class="fig px"><img src="img/room-night.png" alt="Bo's Jungle at night"><figcaption>Night in the room: a cool dim over everything with the lamp table's warm pool cut out of it; the city lit in the window.</figcaption></figure>
+      <figure class="fig px"><img src="img/yard-night.png" alt="The backyard at night"><figcaption>Night out back: the studio windows and porch light on, fireflies over the lawn, no birds, no butterflies.</figcaption></figure>
+    </div>
+    <figure class="fig px" style="margin-top:8px"><img src="img/times-of-day.png" alt="Eight frames: both places at dawn, day, dusk and night"><figcaption>The clock is real. <code>phaseNow()</code>: night before 5:30 and after 20:30, dawn to 8, day to 17:30, dusk after. Each phase repaints the sky, the window view, the light and the tint; <code>BZ.hourOverride</code> pins it for renders.</figcaption></figure>
+    <div class="two" style="margin-top:8px">
+      <div class="groove"><span class="lg">What's alive out back</span>
+        <ul style="margin:0;padding-left:16px;font-size:11px">
+          <li><b>Birds</b> at the feeder, Northern Virginia regulars by season: cardinal (m/f), blue jay (bosses the tray), Carolina chickadee, tufted titmouse, goldfinch (yellow in summer), house finch, Carolina wren, downy woodpecker and white-breasted nuthatch (cling to the pole and trunk), mourning dove, robin (hops on the lawn), juncos in winter. Up to 3 at once; they scatter from a cat within 44–64 px and from the squirrel.</li>
+          <li><b>The squirrel</b> comes down the trunk every 1800–4400 ticks; 40% of the time it raids the feeder. Cats chatter and stalk; Juno boofs.</li>
+          <li><b>Butterflies</b> (2 by day) visit grown flowers; cats bat at them only when they dip below z 34. <b>Leaves</b> let go and drift. <b>Fireflies</b> at night. The <b>dapple</b> shimmers; the sun pools drift with the hour.</li>
+          <li><b>The garden</b>: wall bed, lawn bed, two grass patches. Eight seeds (cat grass, catmint, poppies, tulips, sunflower, lavender, cosmos, strawberries). Growth is real time, faster when watered, continues while the app is closed (capped at 2 h). Bo grazes the grass; catmint sends them rolling; lavender makes them sneeze.</li>
+        </ul>
+      </div>
+      <div class="groove"><span class="lg">My desktop (Mac app only)</span>
+        <p style="font-size:11px">Roam mode: the stage is the whole screen, the cats walk over your windows, the sunbeam brings its own window, and the daybed and coffee table can be put out. Each place keeps its own set of things (<code>World.sets[place]</code>); switching places stashes and restores them. On a phone the browser version shows part of the room and a camera follows the cats; drag the ground to look around.</p>
+        <div class="crt" style="margin-top:6px;font-size:17px">STAGE      room 436x363 @ PX 2 (1280x800 window)
+FLOOR      F = 0.50 H (room) · 0.44 H (yard) + 7
+PLACES     room · yard · desk, own item sets
+CAMERA     minW 900 css on phones → cam.x follows
+SAVE       v4 { cats, sets, scene, rels, size, sound, savedAt }</div>
+      </div>
+    </div>
+  </div>
+  <div class="status"><span>Both scenes implement layout · paint · drawBack · drawFront · fixtures · surfaces · props · stimuli · birdSpot.</span></div>
+</section>
+
+<!-- ART -->
+<section class="win raised wide" id="w-art" data-title="BALLZ.DOC - Art direction">
+  <div class="tbar"><i class="ti" style="background:#d0c0a0"></i><span class="t">BALLZ.DOC - Art direction: how a cat is drawn, how a room is painted</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="two">
+      <div>
+        <div class="groove"><span class="lg">1 · The cats: Ballz</span>
+          <p style="font-size:11px">PF Magic's technique (<i>Ballz</i> 1994 → <i>Dogz</i> 1995 → <i>Catz</i> 1996), rebuilt from the reverse-engineering record in <code>ballz-technique.json</code>: a pet is a list of <b>balls</b> (shaded discs) and <b>tapered lines</b> between them, re-posed every frame in 3D, projected with a yaw-and-pitch camera, sorted far to near and drawn with a 1-px outline around the whole silhouette. No sprite sheets. Ours adds Cornish Rex proportions (egg head, huge ears, Roman nose, long legs, whip tail), marcel-wave speckle on the coat, IK forelegs, a 15-joint spring tail with a gesture layer, and the outline pass as one image-data step.</p>
+          <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;flex-wrap:wrap">
+            <canvas id="ballz" width="240" height="132" style="width:480px;max-width:100%;image-rendering:pixelated;background:#c9d3c4;border:1px solid #000"></canvas>
+            <p style="font-size:11px;flex:1;min-width:160px">Bo at 2×: the drawn cat, and beside her the same frame with every ball center ringed, which is all the skeleton is. Body balls: hip, back, chest, belly; head: skull, muzzle, cheeks, ears; four legs of root → knee → paw; the tail chain. Hind legs: thigh 7.5, shank 10.5, hock 11 above the paw (shorter was "munchkin"). Ground-rest lift weighted by min(1, |roll|/35) so no cat sinks after a nap.</p>
+          </div>
+        </div>
+        <div class="groove"><span class="lg">2 · The places: RCT rules</span>
+          <ul style="margin:0;padding-left:16px;font-size:11px">
+            <li><b>One light</b>, upper right (the window; the sun). Top and right edges catch it; bottom and left edges shade. Contact shadows are <code>rgba(20,14,6,0.28)</code> ellipses.</li>
+            <li><b>Ramps</b> of 5–8 steps, one per material; never an ad hoc color. Below are the live ramps from <code>rex.js</code>.</li>
+            <li><b>Ordered dither</b>: <code>rampAt(ramp, L, x, y)</code> adds a 4×4 Bayer value to the light level before picking a step. Per-pixel shading goes through <code>shade(ctx, pts, fn)</code> (polygon scanline fill).</li>
+            <li><b>Big things are cached</b> once per size (<code>cached(key, w, h, ox, oy, paint)</code>) and cost nothing per frame.</li>
+            <li><b>Specific over generic</b>: these are her things, painted from the photo. If a thing is big enough to look at, draw it like a chair (shaded polygons, specific detail); the first easel and kick wheel were flat sketches and she said so.</li>
+            <li><b>Alive, quietly</b>: clouds, curtains, dust, a pigeon; dapple, leaves, butterflies, birds, a squirrel. Nothing loud.</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="groove"><span class="lg">Ramps (BZ.RAMPS, live)</span><div class="ramps" id="ramps"></div></div>
+        <div class="groove"><span class="lg">Readability tests (ship gates)</span>
+          <ol style="margin:0;padding-left:18px;font-size:11px">
+            <li>At actual size (PX 2, size M), can you tell what it is in under a second?</li>
+            <li>Does the silhouette alone say the pose? (The blanket lump needed ears and a peeking face before it read.)</li>
+            <li>Is it hers? Side by side with the photo in <code>refs/</code>.</li>
+            <li>Legs: nobody sinks, crawls, or goes stumpy after a nap, a wake or a brawl.</li>
+          </ol>
+        </div>
+        <div class="groove"><span class="lg">Characters at a glance</span>
+          <div class="scroll"><table class="lv"><thead><tr><th></th><th>Bo</th><th>Bunny</th><th>Juno</th></tr></thead><tbody>
+            <tr><td>Coat</td><td>seal point & white: seal mask, ears, tail; cream body; white chest, legs, muzzle</td><td>all white</td><td>sable saddle over cream; white chest, legs, muzzle, a blaze up the face; golden ears</td></tr>
+            <tr><td>Eyes</td><td><code>boblue</code>: bright, light, shiny teal-blue</td><td><code>gold</code></td><td>dark brown in tan patches; eyebrows that lift</td></tr>
+            <tr><td>Build</td><td>small, long legs, tucked waist, huge ears, Roman nose, marcel waves</td><td>tinier, older (size 0.8)</td><td>1.28× the cats; narrow domed skull, long muzzle, ears that perk at rest and lift like flags</td></tr>
+            <tr><td>Carriage</td><td>languid, deliberate; tail low with an S, tip up</td><td>brisk; tail up with a hook</td><td>lying only; the head does the talking</td></tr>
+          </tbody></table></div>
+        </div>
+      </div>
+    </div>
+    <figure class="fig px" style="margin-top:8px"><img src="img/moments.png" alt="Contact sheet of key behaviors"><figcaption>The staged contact sheet (<code>test/moments.js</code>) is the look test for behavior: the ledge, the box periscope, biscuits, the blanket lump, the daybed for two, the coffee table, the wall stretch, three grooms, the belly-up roll, brushing (elevator butt, loose fur), the wand leap, batting the fern, lurking behind the albo.</figcaption></figure>
+  </div>
+  <div class="status"><span>Palettes and proportions are in SPEC.JSON (body, gait, naps, juno) and BALLZ technique (pipeline, raster).</span></div>
+</section>
+
+<!-- ENGINE -->
+<section class="win raised wide" id="w-eng" data-title="ENGINE.SYS">
+  <div class="tbar"><i class="ti" style="background:#000"></i><span class="t">ENGINE.SYS - Architecture, data, hosts, tests, deploy</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="two">
+      <div>
+        <div class="groove"><span class="lg">Files (one global, BZ; no bundler)</span>
+          <div class="scroll"><table class="lv"><thead><tr><th>File</th><th>Holds</th></tr></thead><tbody>
+            <tr><td><code>src/raster.js</code></td><td>pixel primitives: <code>drawBall</code>, <code>drawLine</code> (tapered), <code>drawThin</code>, <code>ellipse</code>, <code>fillPoly</code>, ball-span clipping</td></tr>
+            <tr><td><code>src/rex.js</code></td><td>ramps, coats (color slots + masks), personalities, adopt order, names</td></tr>
+            <tr><td><code>src/cat.js</code></td><td>skeleton, <code>BZ.POSES</code>, gaits, IK, tail springs, camera/projection, <code>drawCat</code> + outline pass, <code>BZ.Dog</code></td></tr>
+            <tr><td><code>src/world.js</code></td><td><code>Cat</code> (states, attention, needs, naps, beds, petting), <code>World</code> (places, items, fixtures, surfaces, input, camera, tick, render, save/load)</td></tr>
+            <tr><td><code>src/items.js</code></td><td><code>BZ.ITEMS</code>, <code>BZ.PLANTS</code>, <code>BZ.GARDEN</code>, <code>bedGeom</code>, every item painter, icons, hit tests</td></tr>
+            <tr><td><code>src/jungle.js</code></td><td><code>BZ.Jungle</code> (room) and <code>BZ.Yard</code>: painting, fixtures, surfaces, props, birds, squirrel, dog glue, night</td></tr>
+            <tr><td><code>src/panel.js</code></td><td>the toy box UI, portraits</td></tr>
+            <tr><td><code>src/sound.js</code></td><td>formant voices, purr, thunks</td></tr>
+            <tr><td><code>desktop/</code></td><td>Electron: <code>main.js</code>, <code>renderer.js</code>, <code>index.html</code>, <code>preload.js</code>, <code>panel.html</code>; <code>engine/</code> is a build copy of <code>src/</code></td></tr>
+            <tr><td><code>web/playpen.src.html</code></td><td>the browser host (desktop, phone sheet, portrait tablet layouts); built to <code>web/playpen.html</code></td></tr>
+            <tr><td><code>test/</code></td><td>Playwright harnesses (below)</td></tr>
+            <tr><td><code>docs/</code> · <code>refs/</code></td><td>the record: brief, process, protocol, architecture, art direction, backlog, changelog, decisions, specs; every reference filed</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="groove"><span class="lg">A frame (every 33 ms)</span>
+          <div class="crt" style="font-size:17px">tick()
+  items      physics (z/vz), surfaces, garden growth
+  stimuli    scene.stimuli() + laser/wand/toys → attention
+  rels       bond/tension drift, comfort zone
+  cats       think(): s_&lt;state&gt;() · animate(): pose lerp,
+             gait, tail springs, lids, ears
+  scene      tick(): birds, squirrel, butterflies, dog
+render()
+  drawBack   bg canvases, window view, doors, dapple, pools
+  ents       cats + props + items, sort by y (far → near)
+  each cat   buildSkeleton → project → balls+lines sorted
+             by depth → outline pass (image data) → blit
+  drawFront  fg canvas (fronds, boughs), night dim, tint
+  held       the thing on your cursor, the carried cat</div>
+        </div>
+      </div>
+      <div>
+        <div class="groove"><span class="lg">Save (v4) — what persists</span>
+          <pre class="json" style="max-height:220px">{
+  "cats": [{ "coat": "bo", "name": "Bo", "pers": "bo", "x": 311, "y": 288,
+             "needs": { "belly": 62, "energy": 41, "love": 70, "greens": 30 },
+             "sweater": { "bow": "#5f7a3a" } }, { "coat": "bunny", "name": "Bunny" }],
+  "sets": { "room": [{ "type": "pod", "x": 115, "y": 250 }, { "type": "orchid", "surf": "ctable", "su": 0.62 }],
+            "yard": [{ "type": "sprout", "kind": "catgrass", "plot": "lawnBed", "slot": 2, "g": 2140, "water": 0.6 }],
+            "desk": [] },
+  "scene": "room", "rels": { "bo|bunny": { "bond": 0.71, "tension": 0.18 } },
+  "size": 1.2, "sound": true, "v": 4, "savedAt": 1760320000000
+}</pre>
+          <p style="font-size:11px;margin-top:4px">Older saves (<code>items</code>, v3) load into both room and desk. The daybed and coffee table are dropped from room sets because the room owns them. Sprout positions are recomputed from plot + slot on layout. Growth catches up from <code>savedAt</code>, capped at two hours.</p>
+        </div>
+        <div class="groove"><span class="lg">Input</span>
+          <p style="font-size:11px">Pointer events (mouse, pen, touch). A lifted finger means no pointer: the laser dot goes away, cats stop staring. Hit order: a cat's drawn balls (regions head / back / leg / tail), then Juno's, then items. Press + stroke = pet (purr, lean, ears); a quick tap on a face, leg or tail = poke; press + drag past the bbox = carry; drop over a free bed = place. The brush grooms on contact. A finger dragged on empty ground pans the camera when there is one.</p>
+        </div>
+        <div class="groove"><span class="lg">Hosts</span>
+          <p style="font-size:11px"><b>Mac app</b> (<code>/Applications/Desktop Bo.app</code>): Electron; a habitat window plus a toy-box popover; roam mode over the desktop; state in <code>~/Library/Application Support/Desktop Bo/state.json</code>. Only <code>engine/</code> changes between rounds (an update zip swaps it, re-signs ad hoc, relaunches). <b>Browser playpen</b>: one published page, same engine inlined; phone layout with a bottom-sheet toy box and a camera; Add to Home Screen works. <b>This document</b>: the engine again, in an iframe, with the hour pinnable.</p>
+        </div>
+      </div>
+    </div>
+    <div class="groove"><span class="lg">Test harnesses (Playwright + headless Chromium)</span>
+      <div class="scroll"><table class="lv"><thead><tr><th>Command</th><th>What it proves</th></tr></thead><tbody>
+        <tr><td><code>node test/scene.js room|yard out.png [ticks]</code></td><td>The habitat window after N ticks; the look test for any scene change.</td></tr>
+        <tr><td><code>node test/one.js "t=orchid&amp;s=1.6&amp;px=4" out.png</code></td><td>A close-up of one item at 4×; the look test for any new item.</td></tr>
+        <tr><td><code>node test/moments.js out.png</code></td><td>Staged contact sheet of key behaviors.</td></tr>
+        <tr><td><code>node test/juno.js</code> · <code>node test/junoyard.js</code></td><td>Juno's pose sheet; Juno in the yard with Bunny, a hand, and Bo's look.</td></tr>
+        <tr><td><code>node test/soak4.js 12000 yard|room</code></td><td>Long run with tools, surfaces, the garden; prints a state histogram and <b>errors: none</b>.</td></tr>
+        <tr><td><code>node test/soak3.js 24000 habitat|roam</code></td><td>The original all-items soak.</td></tr>
+        <tr><td><code>node test/ux.js phone|tablet|desktop out.png</code></td><td>A scripted walkthrough with touch or mouse: pick, place, pet, laser, put down, switch to the yard.</td></tr>
+        <tr><td><code>xvfb-run -a npx electron --no-sandbox test/electron-smoke.js</code></td><td>Boots the Mac app's windows headlessly and screenshots them.</td></tr>
+        <tr><td><code>node test/gif.js &lt;scenario&gt;</code> · <code>node test/gifs2.js &lt;scenario&gt;</code></td><td>Gameplay GIFs: doors, garden, knock, swing, cubby, sweaters, juno; the time-of-day set.</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="status"><span>Everything renders at PX 2 with imageSmoothingEnabled off. The outline pass is the one per-cat image-data read per frame.</span></div>
+</section>
+
+<!-- HOWTO -->
+<section class="win raised wide" id="w-howto" data-title="HOWTO.TXT">
+  <div class="tbar"><i class="ti"></i><span class="t">HOWTO.TXT - Recipes (any builder, any session)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="tabs" role="tablist" id="howtabs">
+      <button class="tab" role="tab" aria-selected="true" data-tab="h-run">Run it</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-item">Add a thing</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-pose">Add a nap pose</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-state">Add a behavior</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-scene">Add scenery</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-bird">Add a bird</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-gif">Record a GIF</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-ship">Ship it</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="h-round">A round, start to end</button>
+    </div>
+    <div class="tabpanel" id="h-run">
+      <p style="font-size:11px;margin-bottom:6px">Clone <code>~/Developer/desktop-bo</code> (the canonical repo, on Julia's Mac). Everything is plain browser JS; nothing to install except Playwright for the tests.</p>
+<pre class="code">open web/playpen.src.html            # loads src/ directly; this is the dev page
+python3 build.py                      # src → desktop/engine + web/desktop-bo.html
+cp web/desktop-bo.html web/playpen.html
+node test/scene.js room out.png 200   # look at the room (or: yard)
+node test/soak4.js 12000 yard         # behavior soak: must print "errors: none"</pre>
+    </div>
+    <div class="tabpanel" id="h-item" hidden>
+      <ol style="margin:0;padding-left:18px;font-size:11px;line-height:1.5">
+        <li>File the reference photo in <code>refs/furniture/</code> (or plants/), add a row to <code>refs/README.md</code> and <code>refs/refs.json</code>.</li>
+        <li>Register it in <code>BZ.ITEMS</code> with its flags and hit box, then put it in <code>BZ.ITEM_ORDER</code> and the right group in <code>BZ.ITEM_GROUPS</code>.</li>
+        <li>Write the painter in <code>items.js</code> with the RCT rules (ramp per material, <code>shadePoly</code>, light upper right), wrapped in <code>cached()</code> if it's big, and dispatch it from <code>BZ.drawItem</code>.</li>
+        <li>If cats can sit on it, add a branch to <code>BZ.bedGeom</code> (front, spot, rootPx, clip, sortY, face) and a weight in <code>startNap</code>. If it has an edge, add it to <code>EDGY</code> so the dangle nap can happen.</li>
+        <li>Tune the icon scale in <code>BZ.drawIcon</code>. Look at it: <code>node test/one.js "t=&lt;type&gt;&amp;s=1.6&amp;px=4"</code>, then in a scene.</li>
+      </ol>
+<pre class="code">// items.js — the registry row
+lamptable: { label: 'Lamp table', hint: 'mahogany, a brass lamp, warm for two', r: 24, h: 74, bed: true },
+
+// items.js — the bed contract (two cushions; the 'seat' fixture is the second)
+if (it.type === 'lamptable' || (it.type === 'seat' &amp;&amp; it.parent &amp;&amp; it.parent.type === 'lamptable')) {
+  const P = it.type === 'seat' ? it.parent : it, slot = it.type === 'seat' ? 1 : 0, k = s * 0.95;
+  return { front: [P.x + (slot ? 12 : -12) * k, P.y + 12 * k], spot: [P.x + (slot ? 9 : -9) * k, P.y - 2 * k],
+           rootPx: 27.5 * k, clip: null, sortY: P.y + 0.3 + slot * 0.01, face: slot ? Math.PI / 2 - 0.4 : Math.PI / 2 + 0.4 };
+}</pre>
+    </div>
+    <div class="tabpanel" id="h-pose" hidden>
+      <p style="font-size:11px;margin-bottom:6px">A pose is a set of keys on <code>BZ.POSES</code>: hip and chest positions, back/belly lift, head offsets and angles, paw targets <code>[forward, up, side]</code> with a leg mode (<code>ik | flat | tuck | sit | hide</code>), tail shape, ears, lids. Write the two or three observable facts from the photo first; the dangle nap was <i>curled body; one foreleg poured out long; the paw hangs over an edge, toe beans down</i>.</p>
+<pre class="code">// cat.js — a nap pose, keyed off the crescent
+dangle: P({ hipX: -8, hipY: 7, chestX: 7, chestY: 7.5, backLift: 5, headDX: -1, headDY: -7, headPitch: -8, headYaw: 18,
+  fl: [18, -9, 2], flMode: 'ik',   // the poured-out foreleg, below the surface: it hangs
+  fr: [5, 1, -3], frMode: 'tuck', tailCurl: 0.9, tailWrap: 1, lid: 1 }),
+
+// world.js — who does it and where: nap-style weights per bed
+pick({ crescent: 3, loaf: 2, baguette: 1, sphinx: 1, dangle: EDGY.includes(it.type) ? (this.isBo ? 2.5 : 1.2) : 0 })</pre>
+      <p style="font-size:11px;margin-top:6px">Then the naps sheet: <code>node test/naps.js</code>, and a soak so no leg stays bent after she wakes.</p>
+    </div>
+    <div class="tabpanel" id="h-state" hidden>
+      <ol style="margin:0;padding-left:18px;font-size:11px;line-height:1.5">
+        <li>Design the five parts (see docs/02): trigger, personality, shape, exit, interplay.</li>
+        <li>Add <code>s_&lt;name&gt;()</code> to <code>Cat</code>. Use <code>this.st</code> (ticks in state), <code>this.anim</code>, <code>this.lookAt</code>, <code>this.turnToward()</code>, <code>this.tailGesture()</code>, <code>this.say()</code>. End with <code>setState('idle')</code> or <code>'wander'</code>.</li>
+        <li>Put it in <code>BUSY</code> if the world mustn't interrupt it, in <code>NAPPING</code> if energy should recover.</li>
+        <li>Trigger it: a weight in <code>pickActivity()</code> plus a line in the <code>go</code> map of <code>s_idle</code>, or a push from outside (the scene, the other cat, the pointer).</li>
+        <li>Stage it in <code>test/moments.js</code>, then soak.</li>
+      </ol>
+<pre class="code">// world.js — Bo's look at Juno, entered from the scene when Bo wanders within 85·size of the dog
+s_skeptic() {
+  const d = this.skepAt; if (!d) { this.setState('idle'); return; }
+  this.gait = null; this.anim = this.st > 30 &amp;&amp; this.pers.sleepy > 50 ? 'sit' : 'stand';
+  const H = d.screen &amp;&amp; d.screen.head ? d.screen.head : [d.x, d.y - 20];
+  this.turnToward(this.angleTo(d.x, d.y), 1); this.lookAt = [H[0], H[1]]; this.perk = 0.7; this.pose.earBack = 0.55;
+  if (this.st === 10) this.tailGesture('flick'); if (this.st === 24 &amp;&amp; ri(3) === 0) this.say('meow');
+  if (this.st > (this.skepT || 90)) { this.pose.earBack = 0; this.mood.grump = Math.min(1, this.mood.grump + 0.05); this.setState('wander'); }
+}</pre>
+    </div>
+    <div class="tabpanel" id="h-scene" hidden>
+      <ol style="margin:0;padding-left:18px;font-size:11px;line-height:1.5">
+        <li>Anchor it in <code>layout(st)</code> (positions relative to <code>S</code> the studio edge, <code>F</code> the floor line, <code>W</code>, <code>H</code>) so phones and the desktop both fit it.</li>
+        <li>Paint it in its own <code>paint&lt;Thing&gt;(g)</code> with <code>shade()</code>, <code>rampAt()</code>, <code>ellPts()</code>, <code>leafPts()</code>; call it from <code>paint()</code> in depth order (back to front). Background things go into <code>bg</code>; things cats should pass behind become <code>props()</code> entries with a sort y.</li>
+        <li>If cats can sit on it, return a fixture from <code>fixtures()</code> (with a <code>bedGeom</code> branch); if small things can be set on it, a surface from <code>surfaces()</code>.</li>
+        <li><code>node test/scene.js yard</code>, crop it at 3×, and compare to the photo before anything else.</li>
+      </ol>
+<pre class="code">// jungle.js — a prop that sorts with the cats, painted once
+props() { return [
+  { y: Yo + t.base, draw: (ctx) => this.drawTrunk(ctx, X + t.x, Yo + t.base) },
+  { y: this.dog.y + 0.2, draw: (ctx) => this.dog.draw(ctx) },
+  { y: Yo + this.easel.foot, draw: (ctx) => this.drawStudioStuff(ctx, X, Yo, 'easel') },
+]; }</pre>
+    </div>
+    <div class="tabpanel" id="h-bird" hidden>
+      <p style="font-size:11px;margin-bottom:6px">Birds are rows in <code>Yard.birdKinds()</code>: colors by part, a size, which perches they use, and quirks. Seasonal weight <code>w</code> can be 0.</p>
+<pre class="code">{ k: 'nuthatch', w: 3, body: '#6f86a8', head: '#1a1a24', breast: '#f2f0ea', wing: '#5a7090', cheek: '#f2f0ea', bill: '#2a2a2a',
+  size: 0.8, perch: ['trunk', 'pole'], cling: true, headDown: true },
+// perches: tray · side · pole · trunk · ground · lawn   quirks: crest · bar · mask · cap · eyering · tailUp · hops · slow · boss · cling · headDown</pre>
+    </div>
+    <div class="tabpanel" id="h-gif" hidden>
+      <p style="font-size:11px;margin-bottom:6px">A scenario in <code>test/gifs2.js</code> stages the world (places things, puts cats in beds, pins the hour), defines a crop and a scale, and a per-frame script that moves the pointer. Frames are grabbed from the canvas and encoded with ffmpeg (15 fps, 2 ticks per frame, 128-color diff palette, nearest-neighbor scaling).</p>
+<pre class="code">if (sc === 'night-lamp') {
+  BZ.hourOverride = 22; world.dress(bo); bed(bu, DF, 'crescent', 100); rest(bo, DF.x - 40 * SZ, DF.y + 8, Math.PI / 2 + 0.25, 'stare');
+  window.__crop = [st.x + 222, st.y + 196, 200, 150]; window.__scale = 3;
+  let f = 0; window.__script = () => { f++;                         // called twice per frame
+    if (f > 90 &amp;&amp; f < 260) { const H = bo.screen[BZ.IDX.head]; P.x = H[0] + Math.sin(f * 0.35) * 6; P.y = H[1] - 4; world.onMove(); if (f === 122) world.onDown(); }
+    if (f === 260) world.onUp(); };
+}
+// node test/gifs2.js night-lamp gifs/2026-10-12/room-night-lamp.gif</pre>
+    </div>
+    <div class="tabpanel" id="h-ship" hidden>
+<pre class="code">python3 build.py &amp;&amp; cp web/desktop-bo.html web/playpen.html     # 1 build; publish web/playpen.html as the artifact (same path keeps the URL)
+rm -rf dist/update/engine &amp;&amp; cp -r desktop/engine dist/update/engine
+cd dist &amp;&amp; zip -qr DesktopBo-update-&lt;MMDD&gt;&lt;letter&gt;.zip update          # 2 a NEW name every time; a stale zip once cost a round
+sha256sum DesktopBo-update-&lt;MMDD&gt;&lt;letter&gt;.zip                        # 3 copy to the Mac (~/Applications), compare the hash
+ditto -x -k DesktopBo-update-….zip ~/Applications/dbo-…               # 4 on the Mac
+zsh ~/Applications/dbo-…/update/update.sh                             #   quits the app, swaps engine/, re-signs ad hoc, relaunches
+grep -c "&lt;marker unique to this round&gt;" "/Applications/Desktop Bo.app/Contents/Resources/app/engine/*.js"   # 5 verify
+git bundle create desktop-bo-&lt;round&gt;.bundle &lt;base&gt;..main              # 6 mirror the repo: pull --ff-only the bundle on the Mac</pre>
+      <p style="font-size:11px;margin-top:6px">Changes to <code>desktop/main.js</code>, <code>index.html</code>, <code>renderer.js</code> or <code>preload.js</code> need a full app rebuild, not the engine swap. Never delete her files; quarantine to <code>_quarantine/&lt;date&gt;/</code> with a MANIFEST.</p>
+    </div>
+    <div class="tabpanel" id="h-round" hidden>
+      <ol style="margin:0;padding-left:18px;font-size:11px;line-height:1.5">
+        <li><b>Intake</b>: her words into <code>docs/backlog.md</code> with the date; every reference filed before designing from it. Mid-build messages are new rows, not interruptions.</li>
+        <li><b>Look before designing</b>: open the refs; for motion, a frame sheet from the video. Write the two or three observable facts the work must hit.</li>
+        <li><b>Design the behavior, not just the pose</b>: trigger, personality, shape, exit, interplay.</li>
+        <li><b>Build</b> to the art rules; no new engine files; keep saves backward compatible.</li>
+        <li><b>Verify</b>: close-ups, scene shots, the contact sheet, three soaks with "errors: none", the leg check, the readability test.</li>
+        <li><b>Ship</b>: build, publish, unique zip, deploy, hash + grep. GIFs or a contact sheet for her.</li>
+        <li><b>Record</b>: changelog, backlog statuses, decisions, spec version, refs; commit <code>round &lt;date&gt;&lt;letter&gt;: &lt;what she can see&gt;</code>.</li>
+        <li><b>Report</b>: lead with what she can see. No step recaps. Name what's left.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="status"><span>The full process is docs/02-design-process.md; the protocol is docs/03-collaboration.md.</span></div>
+</section>
+
+<!-- ROUNDS -->
+<section class="win raised wide" id="w-rounds" data-title="ROUNDS.LOG">
+  <div class="tbar"><i class="ti" style="background:#a08000"></i><span class="t">ROUNDS.LOG - The campaign so far (what she said → what shipped)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="scroll"><table class="lv"><thead><tr><th>Round</th><th>★</th><th>Julia said</th><th>Shipped</th></tr></thead><tbody>
+      <tr><td style="white-space:nowrap">2026-10-06</td><td style="color:#a08000">★</td><td>a desktop pet of Bo, Petz-style</td><td>Bo in Ballz, the pod, cat grass, the laser, roam on the desktop.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-08</td><td style="color:#a08000">★★</td><td>"snappy stretch", "languid walk", drop cats into the pod, more chairs, Bunny</td><td>Bunny joins (wallops, body-slams; brawls); Bo's teal-blue eyes; floral, emerald and blush chairs; felt mouse and shrimp; formant voices.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-09 / 10a–c</td><td style="color:#a08000">★★</td><td>legs "stuck in the ground", "crawling on elbows", "stumpy"; "fluid, varied play"; "RCT-quality scenery"</td><td>Legs fixed for good (roll-residual lift; short thigh, long shank); kick, toss, crab, wall leaps; the RCT room rewrite (dither ramps, window view, curtains, clock, bookcase); app findable in Applications.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-10d</td><td style="color:#a08000">★★★</td><td>carved coffee table and antique daybed "a wee bit better"; monstera albo; wall stretch; expressive tails</td><td>Window ledge; the desktop sunbeam with its own window; pillow, blanket, box; brush and wand; 15 plants; the daybed rebuilt; tail gestures; petting reactions; toy-box tabs.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-10e</td><td style="color:#a08000">★★★</td><td>the two chairs from the photos; the backyard "to bask"; a plant-care area; beds to plant; pod 20% smaller; bookshelf cubby; the dangle nap; "a clear process for game design, and a really tight record"; "no way to unadopt"; "blanket doesn't read"</td><td>The backyard with the garden (8 seeds, real-time growth), Poppy and Dragonfly chairs, surfaces with knock-offs, the felt-cube cubby, the dangle pose, the blanket lump redrawn, × to send a cat home, AGENTS.md + docs/ + refs/.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-10f</td><td style="color:#a08000">★★</td><td>sweaters with ribbon bows; the felted bag; the lamp table; the motion videos</td><td>Sweaters (green bow for Bo, brown for Bunny); the felted bag; the mahogany lamp table for two; the lunge and the crab hop from the videos.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-12g</td><td style="color:#a08000">★★★</td><td>"a complete pass to make the UX and UI clean … working well on mobile"; "this pop up is unnecessary"; easel + pottery wheel; sandbox with a yellow dump truck and backhoe; a bird feeder with NoVA birds; rhododendron + hydrangea; Juno</td><td>Touch everywhere, the phone sheet, the camera, the in-hand strip, no hover tag; feeder with 13 seasonal birds; the bushes, easel, wheel, sandbox; Juno, first pass (walking).</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-12h</td><td style="color:#a08000">★★★</td><td>"seeing Juno — terrifying lol"; "pause fully building Juno … on a big dog bed … you can pet her … Bunny sometimes naps with her but Bo doesn't"; "REALLY work on the art fidelity"; "the ears perked and nose / eyes ratio were slightly better"; "a lump under her snout"; the glacial-valley painting</td><td>Juno on her bed (watch, doze, sleep, petting, Bunny joins, Bo's look); the easel, wheel, bushes, feeder and sandbox redrawn at the chair standard; the painting; her face from her screenshots.</td></tr>
+      <tr><td style="white-space:nowrap">2026-10-12i / j</td><td style="color:#a08000">★★</td><td>"in the living room, can juno please be on the daybed"; "legs stumpy, snout bumpy, on the bed weird; bed up 15%"; "gifs of different times of day … art direct them nicely"</td><td>Juno on the daybed's right cushion; one rest machine for both scenes; night in the room with the lamp's pool; the porch light at dusk; the hour override; the smooth muzzle, longer legs, bigger daybed; the eight time-of-day GIFs.</td></tr>
+    </tbody></table></div>
+    <div class="two" style="margin-top:8px">
+      <div class="groove"><span class="lg">Unlocks ahead (open backlog)</span>
+        <ul style="margin:0;padding-left:16px;font-size:11px">
+          <li><b>Mom mode</b>: a simple iPad version for Julia's mother; touch-first, home-screen app, optional Guided Access. Waiting on: device, who sets it up, a note on the opening screen.</li>
+          <li><b>Juno, walking</b>: parked. Pick up from the bed dog's head and proportions, not the old skeleton.</li>
+          <li>Cats walk across Juno's bed as if it weren't there (fixtures aren't obstacles yet).</li>
+          <li>Motion pass two: Bunny's walk and tail carriage; the wiggle-before-pounce timing.</li>
+          <li>The stone bunny visit: match the pose.</li>
+          <li>Port the lost gaze system and pod carry from the other chat.</li>
+        </ul>
+      </div>
+      <div class="groove"><span class="lg">Decisions someone might undo by accident</span>
+        <ul style="margin:0;padding-left:16px;font-size:11px">
+          <li>Hind leg is short thigh, long shank; roll residual can't lift the body. Every earlier proportion read as munchkin or stumpy.</li>
+          <li>Unique update zip names, verified by hash. A stale zip once meant a fix never reached the Mac.</li>
+          <li>Each place keeps its own things; the daybed and table are room fixtures and still placeable on the desktop.</li>
+          <li>Juno stays on her bed; Bo never picks a bed she's on (<code>?? 3.5</code>, not <code>|| 3.5</code>, so a 0 weight stays 0).</li>
+          <li>Scenery is drawn at item scale with the item technique. If it's big enough to look at, draw it like a chair.</li>
+          <li>Night in the room is a dim with holes, not darker art.</li>
+          <li>No new engine files: the Electron index lists them and the update swaps only <code>engine/</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="status"><span>Full text: docs/changelog.md, docs/backlog.md, docs/decisions.md. Commit messages name the round.</span></div>
+</section>
+
+<!-- REFS -->
+<section class="win raised" id="w-refs" data-title="REFS - Ground truth">
+  <div class="tbar"><i class="ti" style="background:#c66472"></i><span class="t">REFS - Her photos are ground truth (71 filed)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="refs">
+      <figure><img src="img/ref-bo-pillow.jpg" alt="Bo curled on a pillow, one arm hanging"><figcaption>Bo, one arm hanging → the <b>dangle</b> nap</figcaption></figure>
+      <figure><img src="img/ref-bo-cube.jpg" alt="Bo asleep in the felt cube, an arm out"><figcaption>Bo in the felt cube, arm out → the <b>cubby</b></figcaption></figure>
+      <figure><img src="img/ref-bo-sill.jpg" alt="Bo loafing on the sill pad in sun"><figcaption>Bo on the sill in hard sun → the <b>ledges</b>, the sunbeam</figcaption></figure>
+      <figure><img src="img/ref-poppy.jpg" alt="The poppy chair with Bo"><figcaption>The poppy chair (tall, "like the reference")</figcaption></figure>
+      <figure><img src="img/ref-dragonfly.jpg" alt="Blue checked damask with gold dragonflies"><figcaption>"The bee chair": the damask under the bags is dragonflies → the <b>dragonfly chair</b>, and the bags became the <b>felted bag</b></figcaption></figure>
+      <figure><img src="img/ref-daybed.jpg" alt="Burl sleigh daybed"><figcaption>The burl sleigh daybed ("a wee bit better")</figcaption></figure>
+      <figure><img src="img/ref-studio.jpg" alt="The green art studio"><figcaption>The studio → the backyard scene</figcaption></figure>
+      <figure><img src="img/ref-juno.jpg" alt="Juno on a dog bed with a tiny sombrero"><figcaption>Juno on her bed → her head, the crossed forelegs</figcaption></figure>
+      <figure><img src="img/ref-both-lamp.jpg" alt="Bo and Bunny in sweaters by the lamp"><figcaption>Sweaters, bows, the lamp table for two</figcaption></figure>
+      <figure><img src="img/ref-both-adk.jpg" alt="Both cats on the Adirondack mat"><figcaption>Both on the Adirondack mat → the chair for two</figcaption></figure>
+    </div>
+    <p style="font-size:11px;margin-top:8px">Filing: <code>refs/&lt;category&gt;/&lt;subject&gt;-&lt;what&gt;-&lt;detail&gt;.jpg</code>; categories bo · bunny · together · motion · furniture · plants · scenes · juno · technique · app-feedback. Each entry in <code>refs/refs.json</code> says what it <b>shows</b> and what it <b>informs</b>. Photos 2000 px JPEG q88; video 720p H.264 no audio; her app screenshots go to <code>app-feedback/</code> with the note she sent.</p>
+  </div>
+  <div class="status"><span>Her words beat the builder's eye. When they disagree, the photo wins.</span></div>
+</section>
+
+<!-- ALBUM -->
+<section class="win raised wide" id="w-album" data-title="ALBUM - GIFs">
+  <div class="tbar"><i class="ti" style="background:#3ccbdb"></i><span class="t">ALBUM - Moving pictures (the look tests that move)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body">
+    <div class="album">
+      <figure><img src="gif/yard-day-yard.gif" loading="lazy" alt="Backyard at midday"><figcaption>Midday out back: Bunny in the tire, Bo grazing, birds, Juno; the squirrel raids.</figcaption></figure>
+      <figure><img src="gif/yard-dawn-feeder.gif" loading="lazy" alt="Dawn at the feeder"><figcaption>Dawn at the feeder, Bo chattering from the potting shelf.</figcaption></figure>
+      <figure><img src="gif/yard-dusk-doors.gif" loading="lazy" alt="Dusk at the French doors"><figcaption>Dusk: the porch light comes on; out through the doors.</figcaption></figure>
+      <figure><img src="gif/yard-night-yard.gif" loading="lazy" alt="Night on the lawn"><figcaption>Night: fireflies, Juno asleep, Bunny curled against her, Bo in the chair.</figcaption></figure>
+      <figure><img src="gif/room-dusk-cubby.gif" loading="lazy" alt="Dusk in the felt cube"><figcaption>Dusk: Bo in the cube, Bunny under the blanket.</figcaption></figure>
+      <figure><img src="gif/room-night-lamp.gif" loading="lazy" alt="Night by the lamp"><figcaption>Night in the reading nook: Bunny asleep, Bo petted in the lamp's pool.</figcaption></figure>
+      <figure><img src="gif/knock.gif" loading="lazy" alt="Knocking a plant off the table"><figcaption>The look at you, then the push.</figcaption></figure>
+      <figure><img src="gif/swing.gif" loading="lazy" alt="The tire swing"><figcaption>Bunny in the tire swing; Bo dangling in the Adirondack.</figcaption></figure>
+      <figure><img src="gif/doors.gif" loading="lazy" alt="Out through the studio doors"><figcaption>The French doors, one cat at a time.</figcaption></figure>
+    </div>
+  </div>
+  <div class="status"><span>More in gifs/: garden, cubby, sweaters, juno, and the 2026-10-12 looping set with the two-minute reel.</span></div>
+</section>
+
+<!-- SPEC -->
+<section class="win raised wide" id="w-spec" data-title="SPEC.JSON">
+  <div class="tbar"><i class="ti"></i><span class="t">SPEC.JSON - machine-readable (desktop-bo-spec.json v2.9.0 · ballz-technique.json)</span><span class="ctl"><button class="raised" data-act="min" aria-label="Minimize">_</button><button class="raised" data-act="max" aria-label="Maximize">▫</button><button class="raised x" data-act="close" aria-label="Close">×</button></span></div>
+  <div class="body pad0">
+    <div class="tabs" role="tablist" id="spectabs" style="padding:8px 8px 0"><button class="tab" role="tab" aria-selected="true" data-tab="sp-bo">desktop-bo-spec.json</button><button class="tab" role="tab" aria-selected="false" data-tab="sp-ballz">ballz-technique.json</button></div>
+    <div class="tabpanel" id="sp-bo" style="margin:0 8px"><pre class="json" id="specpre"></pre><div class="btnrow"><button class="btn raised" data-copy="specpre">Copy</button></div></div>
+    <div class="tabpanel" id="sp-ballz" style="margin:0 8px" hidden><pre class="json" id="ballzpre"></pre><div class="btnrow"><button class="btn raised" data-copy="ballzpre">Copy</button></div></div>
+    <div style="height:8px"></div>
+  </div>
+  <div class="status"><span id="specstat">The same objects live in docs/ in the repo. Bump "version" when technique changes.</span></div>
+</section>
+
+</main>
+
+<div class="taskbar">
+  <button class="start raised" id="startbtn" aria-haspopup="true" aria-expanded="false"><i></i>Start</button>
+  <div class="tasks" id="tasks"></div>
+  <div class="tray sunken" style="background:var(--face)"><span aria-hidden="true">🐈</span><span id="clock"></span></div>
+</div>
+<nav class="smenu raised" id="smenu" hidden aria-label="Start menu">
+  <div class="band">Bo 95</div>
+  <ul>
+    <li data-go="w-play">▸ Programs › PLAYPEN.EXE</li>
+    <li data-go="w-readme">▸ Documents › README.TXT</li>
+    <li data-go="w-howto">▸ Documents › HOWTO.TXT</li>
+    <li data-go="w-rounds">▸ Documents › ROUNDS.LOG</li>
+    <li data-go="w-spec">▸ Settings › SPEC.JSON</li>
+    <li data-go="w-refs">▸ Find › References</li>
+    <li class="sep"></li>
+    <li id="shutdown">⏻ Shut Down… (she's asleep anyway)</li>
+  </ul>
+</nav>
+<div class="dlg raised" id="dlg" hidden role="dialog" aria-modal="true">
+  <div class="tbar"><span class="t">Desktop Bo</span></div>
+  <div style="display:flex;gap:12px;padding:12px 12px 8px"><div style="font-size:28px;line-height:1;flex:none">😺</div><pre id="dlgmsg" style="margin:0;font:12px/1.4 Tahoma,Arial,sans-serif;white-space:pre-wrap;max-width:60ch"></pre></div>
+  <div class="btnrow" style="padding:0 12px 10px;justify-content:center"><button class="btn raised" id="dlgok">OK</button></div>
+</div>
+
+<script type="application/json" id="spec">/*__SPEC__*/</script>
+<script type="application/json" id="ballzjson">/*__BALLZ__*/</script>
+
+<script src="engine/font-data.js"></script>
+<script src="engine/raster.js"></script>
+<script src="engine/rex.js"></script>
+<script src="engine/cat.js"></script>
+<script src="engine/items.js"></script>
+<script src="engine/sound.js"></script>
+<script src="engine/world.js"></script>
+<script src="engine/jungle.js"></script>
+<script src="engine/panel.js"></script>
+<script>
+(function () {
+  /* specs */
+  const spec = JSON.parse(document.getElementById('spec').textContent), ballz = JSON.parse(document.getElementById('ballzjson').textContent);
+  document.getElementById('specpre').textContent = JSON.stringify(spec, null, 2);
+  document.getElementById('ballzpre').textContent = JSON.stringify(ballz, null, 2);
+  document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.copy).textContent, s = document.getElementById('specstat'); if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => { s.textContent = 'Copied ' + t.length + ' bytes.'; }, () => { s.textContent = 'Select the text and copy.'; }); }));
+
+  /* tabs */
+  document.querySelectorAll('.tabs').forEach((tabs) => tabs.addEventListener('click', (e) => { const b = e.target.closest('.tab'); if (!b) return; tabs.querySelectorAll('.tab').forEach((o) => o.setAttribute('aria-selected', o === b)); tabs.parentElement.querySelectorAll(':scope > .tabpanel').forEach((p) => { p.hidden = p.id !== b.dataset.tab; }); }));
+
+  /* characters: live portraits + personality bars */
+  const P = BZ.PERSONALITIES, C = BZ.COATS;
+  function bar(label, v, c, max) { max = max || 100; return '<div class="stat"><span>' + label + '</span><div class="bar"><i style="width:' + (v / max * 100) + '%;--c:' + c + '"></i></div><span class="v">' + v + '</span></div>'; }
+  function naps(n) { const tot = Object.values(n).reduce((a, b) => a + b, 0); return Object.entries(n).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + Math.round(v / tot * 100) + '%').join(' · '); }
+  const cats = [
+    { key: 'bo', color: '#3ccbdb', ink: '#000', name: 'Bo', sub: 'seal point & white Cornish Rex · 19', lines: ['Aloof, sleepy, indifferent baseline. Watches the laser, rarely bothers. Loves grass.', 'Favorite spots: the sill pad in hard sun, the felt cube, curled on pillows with one arm hanging out.', 'Picks the cube 7, the daybed 7, the pod 5. Never a bed Juno is on; gives her the look within 85 px.', 'Dangles more than Bunny (×2.5 on anything with an edge).'], bark: 'so typical of Bo to watch the laser pointer but not usually give af' },
+    { key: 'bunny', color: '#e6bf1e', ink: '#000', name: 'Bunny', sub: 'all white Cornish Rex · older, tinier (0.8) · gold eyes', lines: ['Feisty: wallops Bo, body-slams her; they chase and brawl, then nap together.', 'Fast to notice (latency 5–22 ticks), fast to act (tempo 1.18). Chases the laser; Bo watches.', 'Visits the stone bunny out back. Sometimes curls up at the foot of Juno\'s bed.', 'Wore a brown ribbon bow on her harness: that is her sweater bow.'], bark: 'the comraderie comfort part' },
+  ];
+  document.getElementById('cats').innerHTML = cats.map((c) => { const p = P[c.key]; return '<div class="card"><div class="strip" style="background:' + c.color + ';color:' + c.ink + '"><span>' + c.name + '</span><small>' + c.sub + '</small></div>'
+    + '<div class="top"><canvas class="port" data-port="' + c.key + '" width="50" height="50"></canvas><div>' + bar('energy', p.energy, c.color) + bar('sleepy', p.sleepy, c.color) + bar('affection', p.affection, c.color) + bar('curious', p.curious, c.color) + bar('sass', p.sass, c.color) + bar('aloof', p.aloof, c.color) + '</div></div>'
+    + '<div style="font-size:11px;margin-top:4px">chatty ' + p.chatty + ' · grass ' + p.grass + ' · nerve ' + p.nerve + ' · tempo ' + p.tempo + ' · latency ' + p.latency.join('–') + ' ticks · baseline <b>' + p.baseline + '</b></div>'
+    + '<div style="font-size:11px;margin-top:2px"><b>Nap mix:</b> ' + naps(p.naps) + '</div>'
+    + '<ul style="font-size:11px">' + c.lines.map((l) => '<li>' + l + '</li>').join('') + '</ul><div class="thought">' + c.bark + '</div></div>'; }).join('')
+    + '<div class="card"><div class="strip" style="background:#cdb998;color:#000"><span>Juno</span><small>Mom\'s Saluki · on a bed · BZ.Dog</small></div>'
+    + '<div class="top"><canvas class="port" id="junoport" width="50" height="50"></canvas><div>' + bar('watchful', 85, '#cdb998') + bar('sleepy', 70, '#cdb998') + bar('brows', 95, '#cdb998') + bar('ears', 90, '#cdb998') + bar('leaves bed', 0, '#cdb998') + bar('boof', 10, '#cdb998') + '</div></div>'
+    + '<div style="font-size:11px;margin-top:4px">1.28× the cats · poses sphinx / chin / sleep · head yaw ±1.1 rad toward whatever she watches · baseline <b>chill</b></div>'
+    + '<ul style="font-size:11px"><li>Very sweet, very languid, very expressive: a lot packed into her eyebrows, eyes and ears.</li><li>Watches the yard from her bed by the tree; in the room she has the daybed\'s right cushion, head over the far scroll.</li><li>Pet her: ears back, squint, the tail thumps, she leans in. Tap her: head up, brows up. The squirrel gets one boof.</li><li>Bunny may share; Bo won\'t, and Juno watches her go, eyebrows up, hopeful.</li></ul><div class="thought">She b-lines for squirrels at lightning speed (parked, for now)</div></div>';
+  document.querySelectorAll('canvas[data-port]').forEach((cv) => BZ.portrait(cv, cv.dataset.port, { scale: 1.1, headY: 0.62 }));
+  (function () { const cv = document.getElementById('junoport'), g = cv.getContext('2d'); g.imageSmoothingEnabled = false; const fake = { size: 0.56, frame: 0, pointer: { x: 0, y: 0 } }; const d = new BZ.Dog(fake, 21, 45); d.theta = 0.5; d.anim = 'sphinx'; d.look = [44, 110]; d.browT = 999; d.browTo = 0.6; for (let k = 0; k < 60; k++) d.animate(); d.draw(g); })();
+  document.getElementById('adopt').innerHTML = Object.keys(C).map((k) => { const pk = BZ.COAT_PERSONALITY[k], p = P[pk]; return '<tr><td>' + C[k].label + '</td><td>' + C[k].note + '</td><td>' + p.label + '</td><td>' + p.baseline + '</td></tr>'; }).join('');
+
+  /* ballz diagram: Bo drawn at 2x, and ringed ball centers */
+  (function () {
+    const cv = document.getElementById('ballz'), ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+    const fake = { size: 1.35, items: [], stage: { x: -999, y: -999, w: 9999, h: 9999 }, floorTop: -999, sound: { purr() {}, meow() {} }, pointer: {} };
+    for (const [ox, ring] of [[62, false], [178, true]]) {
+      const c = new BZ.Cat({ coat: 'bo', x: ox, y: 114, theta: 0.35 }, fake); c.state = 'show'; c.anim = 'stand'; c.pose = BZ.clonePose(BZ.POSES.stand);
+      for (let i = 0; i < 30; i++) { c.t++; c.animate(); } c.blink = 0; BZ.drawCat(ctx, c);
+      if (ring && c.screen) { ctx.strokeStyle = '#c66472'; ctx.lineWidth = 1; for (const s of c.screen) { if (!s) continue; ctx.beginPath(); ctx.arc(Math.round(s[0]) + 0.5, Math.round(s[1]) + 0.5, 2.5, 0, Math.PI * 2); ctx.stroke(); } }
+    }
+  })();
+
+  /* ramps */
+  document.getElementById('ramps').innerHTML = Object.entries(BZ.RAMPS).map(([k, r]) => '<div class="ramp"><b>' + k + '</b> <span style="color:#555">' + r.length + '</span><div class="sw">' + r.map((c) => '<i style="background:' + c + '"></i>').join('') + '</div></div>').join('');
+
+  /* closet */
+  const groups = BZ.ITEM_GROUPS, does = {
+    sun: 'a sunbeam on the floor; two nap slots; shared sun cools tension', pod: 'climbs in, peeks out; clipped to the opening; 20% smaller than it was', pillow: 'biscuits first, then a nap; dangle', blanket: 'burrows under: a lump with ears, a face that peeks out', box: 'periscope, ambush; irresistible while fresh', bag: 'hand-knit wool with a leather strap; she climbs in and peeks', lamptable: 'two seats under the brass lamp; warmer at night', sweater: 'click a cat to dress her; click again to undress; Bo sits down in it, unimpressed', daybed: 'room for two (Juno holds one cushion in the room)', ctable: 'on top or under; things on it get pushed off', poppy: 'tall butter-cream chair with coral poppies; dangle naps', dfly: 'carved fruitwood, blue damask, gold dragonflies', chair: 'a velvet reading chair', floral: 'dark chintz, tufted', emerald: 'emerald wingback', blush: 'blush slipper chair',
+    grass: 'Bo grazes it (greens need)', catnip: 'a nibble, a roll, zoomies; 6000-tick cooldown', spider: 'a spider plant to nibble', yarn: 'bat, toss, carry', mouse: 'the felt mouse: pounce, toss', laser: 'Bunny chases; Bo watches', wand: 'a feather on a string under your cursor; the leap', brush: 'grooms on contact: elevator butt, loose fur', treat: 'beg, then eat', shrimp: 'the shrimp', bowl: 'a bowl with servings', can: 'hold the mouse down over the beds; nobody likes the watering can', trowel: 'dig a plant back up',
+  };
+  const flags = (d, t) => ['bed', 'soft', 'box', 'chair', 'plant', 'snack', 'tool', 'seed', 'consumable', 'garden'].filter((f) => d[f]).map((f) => '<span class="flag ' + (f === 'bed' ? 'bed' : f === 'tool' || f === 'seed' ? 'tool' : '') + '">' + f + '</span>').join('') + (d.places ? d.places.map((p) => '<span class="flag yard">' + p + '</span>').join('') : '');
+  let n = 0; document.getElementById('closet').innerHTML = groups.map(([name, list, place]) => '<div class="groove"><span class="lg">' + name + (place ? ' (' + place + ')' : '') + '</span><div class="closet">' + list.map((t) => { const d = BZ.ITEMS[t]; if (!d) return ''; n++; const what = does[t] || (BZ.PLANTS[t] ? (BZ.PLANTS[t].hint || '') + (BZ.PLANTS[t].hide ? '; lurk behind it' : '') + (BZ.PLANTS[t].sneeze ? '; sneeze' : '') + (BZ.PLANTS[t].nip ? '; rolls' : '') : d.seed ? (BZ.GARDEN[d.seed].hint || '') : d.hint || ''); return '<div class="tile"><canvas data-icon="' + t + '" width="32" height="22"></canvas><div><b>' + d.label + '</b><small>' + what + '</small><div class="flags">' + flags(d, t) + '</div></div></div>'; }).join('') + '</div></div>').join('');
+  document.querySelectorAll('canvas[data-icon]').forEach((cv) => { try { BZ.drawIcon(cv, cv.dataset.icon); } catch (e) {} });
+  document.getElementById('closetstat').textContent = n + ' things in the box · ' + Object.keys(BZ.PLANTS).length + ' plants · ' + Object.keys(BZ.GARDEN).length + ' seeds';
+
+  /* window manager */
+  const desk = document.getElementById('desk'), tasks = document.getElementById('tasks'), wins = [...document.querySelectorAll('.win')];
+  function drawTasks() { tasks.innerHTML = wins.map((w) => '<button class="task raised" data-go="' + w.id + '" aria-pressed="' + (!w.hidden && !w.classList.contains('min')) + '">' + (w.dataset.title || w.id) + '</button>').join(''); }
+  function go(id) { const w = document.getElementById(id); if (!w) return; w.hidden = false; w.classList.remove('min'); drawTasks(); w.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  document.addEventListener('click', (e) => {
+    const g = e.target.closest('[data-go]'); if (g) { go(g.dataset.go); closeStart(); return; }
+    const a = e.target.closest('[data-act]'); if (a) { const w = a.closest('.win'); if (a.dataset.act === 'close') w.hidden = true; else if (a.dataset.act === 'min') w.classList.toggle('min'); else w.classList.toggle('max'); drawTasks(); }
+  });
+  drawTasks();
+  /* start menu, clock, dialog */
+  const sb = document.getElementById('startbtn'), sm = document.getElementById('smenu');
+  function closeStart() { sm.hidden = true; sb.setAttribute('aria-expanded', 'false'); }
+  sb.addEventListener('click', (e) => { e.stopPropagation(); sm.hidden = !sm.hidden; sb.setAttribute('aria-expanded', String(!sm.hidden)); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#smenu') && !e.target.closest('#startbtn')) closeStart(); });
+  const dlg = document.getElementById('dlg'), msg = document.getElementById('dlgmsg');
+  document.getElementById('shutdown').addEventListener('click', () => { closeStart(); msg.textContent = 'It is now safe to turn off your computer.\n\nBo is asleep on the sill. Bunny is in the box. Juno has the daybed. The garden keeps growing.'; dlg.hidden = false; });
+  document.getElementById('dlgok').addEventListener('click', () => { dlg.hidden = true; });
+  const clock = document.getElementById('clock'); const tickClock = () => { const d = new Date(); clock.textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + ' · ' + BZ.phaseNow(); }; tickClock(); setInterval(tickClock, 15000);
+})();
+</script>

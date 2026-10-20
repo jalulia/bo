@@ -17,6 +17,7 @@ Every request from Julia, in her words where possible. Status: `open`, `in progr
 
 | Date | Request | Round |
 |---|---|---|
+| 2026-10-20 | "a proper, well designed, game design document … include examples, visuals, technical details, specs, how to's, etc. Model it after the Madwell Mad Money tycoon game design document" | 2026-10-20 (`docs/gdd/`, the Bo 95 artifact) |
 | 2026-10-12 | "in the living room, can juno please be on the daybed" | 2026-10-12i |
 | 2026-10-12 | "a few cute gifs of different times of days, the various interactions. 3-4 per outside and inside", with orchids, the floral and bee chair and the table lamp out; two full screen, the rest cropped; art directed | 2026-10-12i (`gifs/2026-10-12/`) |
 | 2026-10-12 | "Pause fully building Juno briefly, and just have Juno on a big dog bed. Sort of to the side watching the scene. you can pet her and she reacts, and she looks around and naps, but stays on the bed. Bunny sometimes naps with her but Bo doesn't, looks skeptical of her occasionally when she gets too close" | 2026-10-12h |
