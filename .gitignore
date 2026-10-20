@@ -5,3 +5,4 @@ dist/payload/
 dist/update/engine/
 test/*.png
 .DS_Store
+dist/bundles/
