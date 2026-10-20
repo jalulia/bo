@@ -2,20 +2,19 @@
 
 Live: https://jalulia.github.io/bo/ (GitHub Pages, from `index.html` at the repo root). Also published as a private artifact: https://claude.ai/artifact/1pQ1vEAJshbkc8B429Yeo8. v1.1: a neutral, class-structured document (v1.0 was a Win95-desktop presentation; Julia asked for the information to lead).
 
-| § | Section | What it holds |
-|---|---|---|
-| 1 | Overview | concept, experience goals (her words → systems), pillars, non-goals, player role and loop, the build running live, glossary |
-| 2 | Ontology | class diagram, class table, affordance matrix (who can do what to which class) |
-| 3 | Agents | Cat (personality, needs/moods, 36 states, `pickActivity` weights, attention, naps × beds, relationships, voice), Dog (Juno's rest machine, inputs), Wildlife (13 birds, squirrel, pigeon, butterflies, leaves, fireflies), Cast |
-| 4 | Things | affordance flags, the catalogue (generated from `BZ.ITEMS`, engine-drawn icons), the bed contract, fixtures and surfaces |
-| 5 | Places | place table, both scenes by day and night, layout anchors, time of day |
-| 6 | Interactions | the hand's complete verb table: input, target, precondition, effect, feedback |
-| 7 | Systems | each system with rule, parameters, status chip, source |
-| 8 | Presentation | Ballz (exploded cat), painting rules, live palette, character sheets, readability gates, motion principles |
-| 9 | Technical | architecture, frame pipeline, save v4, hosts, tests, build and deploy |
-| 10 | Production | a round, feature status, rounds as a playtest log, backlog, decisions, references |
-| 11 | Recipes | run it; add a thing / nap pose / behavior / scenery / bird; record a GIF; ship; update this document |
-| A–D | Appendices | desktop-bo-spec.json, ballz-technique.json (both with Copy), GIFs, document history |
+Modeled on the Mad Money Tycoon design document (the chaptered one, not the Win95 artifact): eight chapters with a section index, plates with figure ids and notes, question-column tables, bindings and a claim record; four reference pages.
+
+| Chapter | What it holds |
+|---|---|
+| 01 Game | player role, experience goals (her words → systems → how measured), the three places, non-goals, design decisions (rule / reason) |
+| 02 First session | the fifteen-minute path, attention states (one stimulus, two cats), photo-to-pose bindings |
+| 03 Objects & systems | relationship model, object definitions (object / essential relationships / what it becomes on screen), places and fixtures, operating loop, economy (system / player input / consequence / hard boundary), affordance matrix and flags |
+| 04 Behavior & character | the state machine (36 states, flags, entries, exits), decision weights, attention and naps, events (event / reaction / purpose), the dog, cast and voice |
+| 05 Interface | three views, the hand's complete verb table, toy box vocabulary, readouts, accessibility |
+| 06 Art & sound | character construction (exploded skeleton), references, painting rules, scale and material (live ramps), component kit (engine-drawn icons), scenes, the live build, motion and sound |
+| 07 Build & test | architecture, the frame, data (save v4), hosts and deploy, production sequence (gates), acceptance tests (test / setup / failure means), decisions, change record |
+| 08 Evidence | what has been used, source classes, feedback bindings (her words → change), cast and authority, non-negotiable distinctions, open issues, claim record |
+| A–D | machine-readable specs + the thing registry; recipes; moving pictures; document history |
 
 Repo: https://github.com/jalulia/bo
 

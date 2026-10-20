@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PLAYPEN.EXE</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<title>Desktop Bo, running</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-  :root { --face: #C0C0C0; --lt: #fff; --sh: #808080; --dk: #000; --title: #2f6e5c; --winbar: #3a3030; --winpaper: #f4eee4; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--face); font: 12px/1.35 Tahoma, "Segoe UI", Arial, sans-serif; color: #000; }
-  #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 300px; gap: 8px; padding: 8px; }
+  :root { --ink: #151b17; --green: #086936; --muted: #5a645e; --rule: #ccd2ce; --strong: #18201b; --winbar: #3a3030; --winpaper: #f4eee4; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; font: 13px/1.5 Geist, 'Helvetica Neue', Arial, sans-serif; color: var(--ink); }
+  #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: 1fr 300px; gap: 14px; padding: 14px; }
   #hab { position: relative; min-width: 0; background: var(--winpaper); border: 2px solid var(--winbar); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
   #hab .bar { height: 30px; flex: none; display: flex; align-items: center; gap: 7px; padding: 0 10px; background: var(--winbar); color: #f2ebdc; font: 400 13px 'BoPixel', ui-monospace, monospace; }
   #hab .bar i { width: 10px; height: 10px; border-radius: 50%; background: #e2675b; } #hab .bar i:nth-child(2) { background: #e9b949; } #hab .bar i:nth-child(3) { background: #69b765; margin-right: 6px; }
@@ -16,13 +16,14 @@
   #hab .stage { flex: 1; }
   canvas#c { position: fixed; left: 0; top: 0; image-rendering: pixelated; z-index: 2; pointer-events: none; }
   canvas#o { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
-  #side { display: flex; flex-direction: column; gap: 6px; min-height: 0; }
-  .crt { white-space: pre; background: #000; color: #00C000; font-family: "VT323", "Courier New", monospace; font-size: 19px; line-height: 1.05; padding: 7px 9px; border: 1px solid; border-color: var(--sh) var(--lt) var(--lt) var(--sh); box-shadow: inset 1px 1px var(--dk), inset -1px -1px var(--face); flex: none; overflow: hidden; }
-  .crt .dim { color: #007000; } .crt .hot { color: #FFD000; }
-  .row { display: flex; gap: 4px; flex-wrap: wrap; flex: none; }
-  .btn { font: inherit; padding: 2px 8px; background: var(--face); border: 1px solid; border-color: var(--lt) var(--dk) var(--dk) var(--lt); box-shadow: inset 1px 1px var(--face), inset -1px -1px var(--sh); cursor: pointer; }
-  .btn[aria-pressed=true] { border-color: var(--dk) var(--lt) var(--lt) var(--dk); background: repeating-conic-gradient(#fff 0 25%, var(--face) 0 50%) 0 0/2px 2px; font-weight: 700; }
-  #dock { flex: 1; min-height: 0; overflow: auto; border: 1px solid; border-color: var(--sh) var(--lt) var(--lt) var(--sh); background: #fff; }
+  #side { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .hud { white-space: pre; font: 12px/1.55 'Geist Mono', ui-monospace, monospace; border: 1px solid var(--strong); padding: 10px 12px; flex: none; overflow: hidden; background-image: radial-gradient(circle, #526b5929 .42px, transparent .6px); background-size: 4px 4px; }
+  .hud .dim { color: var(--muted); } .hud .hot { color: var(--green); font-weight: 500; }
+  .row { display: flex; gap: 0; flex: none; }
+  .btn { font: inherit; font-size: 12px; padding: 6px 10px; background: #fff; border: 1px solid var(--strong); border-right: 0; cursor: pointer; color: var(--ink); flex: 1; }
+  .btn:last-child { border-right: 1px solid var(--strong); }
+  .btn[aria-pressed=true] { background: var(--green); color: #fff; border-color: var(--green); }
+  #dock { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--rule); background: #fff; }
   #dock .bo-panel { max-width: none; border: 0; border-radius: 0; box-shadow: none; }
   @media (max-width: 760px) { #wrap { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 44%); } #side { min-height: 0; } }
 </style>
@@ -31,7 +32,7 @@
 <div id="wrap">
   <div id="hab"><div class="bar"><i></i><i></i><i></i><b id="title">Bo's Jungle</b></div><div class="stage" id="stage"></div></div>
   <div id="side">
-    <div class="crt" id="hud">booting…</div>
+    <div class="hud" id="hud">booting…</div>
     <div class="row" id="hours"><button class="btn" data-h="" aria-pressed="true">Live clock</button><button class="btn" data-h="6.6">Dawn</button><button class="btn" data-h="12">Day</button><button class="btn" data-h="18.6">Dusk</button><button class="btn" data-h="22">Night</button></div>
     <div id="dock"></div>
   </div>
@@ -64,13 +65,12 @@
   const pad = (s, n) => (s + '                ').slice(0, n);
   setInterval(() => {
     const s = world.summary(), lines = [];
-    lines.push(`<span class="dim">PLACE</span>      ${s.scene === 'yard' ? 'Backyard' : "Bo's Jungle"}`);
-    lines.push(`<span class="dim">HOUR</span>       ${BZ.hourOverride != null ? BZ.hourOverride + 'h (pinned)' : 'live ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
-    lines.push(`<span class="dim">PHASE</span>      ${BZ.phaseNow()}`);
-    for (const c of world.cats) lines.push(`<span class="hot">${pad(c.name.toUpperCase(), 8)}</span> ${pad(c.state, 11)} ${pad(c.moodLabel, 12)}\n  <span class="dim">belly</span> ${pad(String(Math.round(c.needs.belly)), 4)}<span class="dim">energy</span> ${pad(String(Math.round(c.needs.energy)), 4)}<span class="dim">love</span> ${Math.round(c.needs.love)}`);
-    const d = world.scene && world.scene.dog; if (d) lines.push(`<span class="hot">JUNO</span>     ${pad(d.st, 11)} ${d.anim}`);
-    lines.push(`<span class="dim">IN HAND</span>    ${s.carrying || s.tool || '-'}`);
-    lines.push(`<span class="dim">THINGS OUT</span> ${Object.keys(s.placed).length}`);
+    lines.push(`<span class="dim">place</span>      ${s.scene === 'yard' ? 'Backyard' : "Bo's Jungle"}`);
+    lines.push(`<span class="dim">hour</span>       ${BZ.hourOverride != null ? BZ.hourOverride + 'h (pinned)' : 'live ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${BZ.phaseNow()}`);
+    for (const c of world.cats) lines.push(`<span class="hot">${pad(c.name, 8)}</span> ${pad(c.state, 11)} ${pad(c.moodLabel, 12)}\n  <span class="dim">belly</span> ${pad(String(Math.round(c.needs.belly)), 4)}<span class="dim">energy</span> ${pad(String(Math.round(c.needs.energy)), 4)}<span class="dim">love</span> ${Math.round(c.needs.love)}`);
+    const d = world.scene && world.scene.dog; if (d) lines.push(`<span class="hot">Juno</span>     ${pad(d.st, 11)} ${d.anim}`);
+    lines.push(`<span class="dim">in hand</span>    ${s.carrying || s.tool || '–'}`);
+    lines.push(`<span class="dim">things out</span> ${Object.keys(s.placed).length}`);
     hud.innerHTML = lines.join('\n');
   }, 500);
 </script>
