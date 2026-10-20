@@ -1,20 +1,21 @@
 # The game design document ("Bo 95")
 
-Published: https://claude.ai/artifact/1pQ1vEAJshbkc8B429Yeo8 (private to Julia until shared). Modeled on her Mad Money Tycoon GDD: a Win95 desktop whose windows are the chapters, with the real engine running inside PLAYPEN.EXE.
+Published: https://claude.ai/artifact/1pQ1vEAJshbkc8B429Yeo8 (private to Julia until shared). v1.1: a neutral, class-structured document (v1.0 was a Win95-desktop presentation; Julia asked for the information to lead).
 
-| Window | What it holds |
-|---|---|
-| PLAYPEN.EXE | the shipping engine in an iframe (`play/index.html`), the CRT readout, hour pins, the real toy box |
-| README.TXT | pitch, tone, core loop, player role, places, casting |
-| CATZ.EXE | live portraits, personality bars from `BZ.PERSONALITIES`, nap mixes, adoptables, the voice |
-| BEHAVIOR.DAT | the state diagram, `pickActivity` weights, needs/moods/relationships, bed weights, Juno's machine |
-| CLOSET.EXE | every item with its engine-drawn icon, what cats do with it, flags; fixtures and surfaces |
-| PLACES.MAP | both scenes by day and night, the times-of-day sheet, yard life, the desktop mode |
-| BALLZ.DOC | the technique, the exploded cat, live ramps, the RCT rules, readability gates, the characters at a glance |
-| ENGINE.SYS | files, the frame, save v4, input, hosts, the test harnesses |
-| HOWTO.TXT | run it; add a thing / a nap pose / a behavior / scenery / a bird; record a GIF; ship; a round start to end |
-| ROUNDS.LOG | the campaign so far, open backlog, decisions |
-| REFS · ALBUM · SPEC.JSON | her photos as ground truth; the GIFs; both specs inlined with Copy |
+| § | Section | What it holds |
+|---|---|---|
+| 1 | Overview | concept, experience goals (her words → systems), pillars, non-goals, player role and loop, the build running live, glossary |
+| 2 | Ontology | class diagram, class table, affordance matrix (who can do what to which class) |
+| 3 | Agents | Cat (personality, needs/moods, 36 states, `pickActivity` weights, attention, naps × beds, relationships, voice), Dog (Juno's rest machine, inputs), Wildlife (13 birds, squirrel, pigeon, butterflies, leaves, fireflies), Cast |
+| 4 | Things | affordance flags, the catalogue (generated from `BZ.ITEMS`, engine-drawn icons), the bed contract, fixtures and surfaces |
+| 5 | Places | place table, both scenes by day and night, layout anchors, time of day |
+| 6 | Interactions | the hand's complete verb table: input, target, precondition, effect, feedback |
+| 7 | Systems | each system with rule, parameters, status chip, source |
+| 8 | Presentation | Ballz (exploded cat), painting rules, live palette, character sheets, readability gates, motion principles |
+| 9 | Technical | architecture, frame pipeline, save v4, hosts, tests, build and deploy |
+| 10 | Production | a round, feature status, rounds as a playtest log, backlog, decisions, references |
+| 11 | Recipes | run it; add a thing / nap pose / behavior / scenery / bird; record a GIF; ship; update this document |
+| A–D | Appendices | desktop-bo-spec.json, ballz-technique.json (both with Copy), GIFs, document history |
 
 ## Rebuild and republish
 
